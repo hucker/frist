@@ -8,3 +8,7 @@ name = "frist"
 version = "0.0.1"
 description = "Test Package"
 authors = [{name = "Chuck Bass"}]
+
+[tool.setuptools]
+packages = ["frist"]
+package-dir = {"" = "src"}

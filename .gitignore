@@ -1,0 +1,8 @@
+# Ignore Python virtual environments
+.venv/
+
+# Ignore build output
+/dist/
+
+# Ignore PyPI configuration
+.pypirc

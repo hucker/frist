@@ -1,0 +1,6 @@
+pyproject.toml
+src/frist/__init__.py
+src/frist.egg-info/PKG-INFO
+src/frist.egg-info/SOURCES.txt
+src/frist.egg-info/dependency_links.txt
+src/frist.egg-info/top_level.txt
