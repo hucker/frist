@@ -1,14 +1,18 @@
-
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "frist"
-version = "0.7.0"
+version = "0.8.0"
 description = "Test Package"
 authors = [{name = "Chuck Bass"}]
 
 [tool.setuptools]
 packages = ["frist"]
 package-dir = {"" = "src"}
+
+
+[tool.setuptools.package-data]
+# This is required for typehints to work in your IDE
+frist = ["py.typed"]

@@ -20,7 +20,7 @@ from ._age import Age
 from ._cal import Cal, TimeSpan
 from ._frist import Frist
 
-__version__ = "0.7.0"
+__version__ = "0.8.0"
 __author__ = "Chuck Bass"
 
 __all__ = ["Frist", "Age", "Cal", "TimeSpan"]
