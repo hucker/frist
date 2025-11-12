@@ -1,32 +1,18 @@
 
 """
-Calendar-based time window filtering for Frist package.
+Calendar-based time window filtering for frist package.
 
-Provides calendar window filtering functionality that works with any object
-having datetime and base_time properties (Time or Frist objects).
+Provides calendar window filtering functionality for Chronoobjects).
 """
 
 import datetime as dt
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING
 
 from ._constants import WEEKDAY_INDEX
 
 if TYPE_CHECKING:  # pragma: no cover
     pass
 
-
-class TimeSpan(Protocol):
-    """Protocol for objects that represent a time span between two datetime points."""
-
-    @property
-    def target_dt(self) -> dt.datetime:
-        """The target datetime being analyzed."""
-        raise NotImplementedError
-
-    @property
-    def ref_dt(self) -> dt.datetime:
-        """The reference datetime for span calculations."""
-        raise NotImplementedError
 
 
 
@@ -74,29 +60,57 @@ def normalize_weekday(day_spec: str) -> int:
     )
 
 
-class Cal:
-    """Calendar window filtering functionality for TimeSpan objects."""
 
-    def __init__(self, time_span: TimeSpan, fy_start_month: int = 1, holidays: set[str] | None = None) -> None:
-        """Initialize with a TimeSpan object to provide calendar filtering methods."""
-        self.time_span: TimeSpan = time_span
+class Cal:
+    """Calendar window filtering functionality for direct datetime/timestamp inputs."""
+
+    def __init__(
+        self,
+        target_dt: dt.datetime | float | int,
+        ref_dt: dt.datetime | float | int,
+        fy_start_month: int = 1,
+        holidays: set[str] | None = None,
+    ) -> None:
+        # Convert to datetime if needed
+        if isinstance(target_dt, (float, int)):
+            self._target_dt = dt.datetime.fromtimestamp(target_dt)
+        elif isinstance(target_dt, dt.datetime): # type: ignore # Explicit type check for runtime safety
+            self._target_dt = target_dt
+        else:
+            raise TypeError("target_dt must be datetime, float, or int")
+
+        if isinstance(ref_dt, (float, int)):
+            self._ref_dt = dt.datetime.fromtimestamp(ref_dt)
+        elif isinstance(ref_dt, dt.datetime): # type: ignore # Explicit type check for runtime safety
+            self._ref_dt = ref_dt
+        else:
+            raise TypeError("ref_dt must be datetime, float, or int")
+
         self.fy_start_month: int = fy_start_month
         self.holidays: set[str] = holidays if holidays is not None else set()
 
 
-
-
-
+    @property
+    def target_dt(self) -> dt.datetime:
+        """Get the target datetime."""
+        return self._target_dt
+    
+    @property
+    def ref_dt(self) -> dt.datetime:
+        """Get the reference datetime."""
+        return self._ref_dt
+    
     @property
     def holiday(self) -> bool:
-        """Return True if dt_val is a holiday (in holidays set)."""
-        date_str = self.dt_val.strftime('%Y-%m-%d')
+        """Return True if target_dt is a holiday (in holidays set)."""
+        date_str = self.target_dt.strftime('%Y-%m-%d')
         return date_str in self.holidays
+
     @property
     def fiscal_year(self) -> int:
-        """Return the fiscal year for dt_val based on fy_start_month."""
-        month = self.dt_val.month
-        year = self.dt_val.year
+        """Return the fiscal year for target_dt based on fy_start_month."""
+        month = self.target_dt.month
+        year = self.target_dt.year
         if month >= self.fy_start_month:
             return year
         else:
@@ -104,20 +118,11 @@ class Cal:
 
     @property
     def fiscal_quarter(self) -> int:
-        """Return the fiscal quarter for dt_val based on fy_start_month."""
-        month = self.dt_val.month
+        """Return the fiscal quarter for target_dt based on fy_start_month."""
+        month = self.target_dt.month
         offset = (month - self.fy_start_month) % 12
         return (offset // 3) + 1
 
-    @property
-    def dt_val(self) -> dt.datetime:
-        """Get target datetime from the time span."""
-        return self.time_span.target_dt
-
-    @property
-    def base_time(self) -> dt.datetime:
-        """Get reference datetime from the time span."""
-        return self.time_span.ref_dt
 
     def in_minutes(self, start: int = 0, end: int | None = None) -> bool:
         """
@@ -141,13 +146,13 @@ class Cal:
         if start > end:
             raise ValueError(f"start ({start}) must not be greater than end ({end})")
 
-        target_time = self.dt_val
+        target_time = self.target_dt
 
         # Calculate the time window boundaries
-        start_time = self.base_time + dt.timedelta(minutes=start)
+        start_time = self.ref_dt + dt.timedelta(minutes=start)
         start_minute = start_time.replace(second=0, microsecond=0)
 
-        end_time = self.base_time + dt.timedelta(minutes=end)
+        end_time = self.ref_dt + dt.timedelta(minutes=end)
         end_minute = end_time.replace(second=0, microsecond=0) + dt.timedelta(minutes=1)
 
         return start_minute <= target_time < end_minute
@@ -174,16 +179,14 @@ class Cal:
         if start > end:
             raise ValueError(f"start ({start}) must not be greater than end ({end})")
 
-        target_time = self.dt_val
+        target_time = self.target_dt
 
         # Calculate the time window boundaries
-        start_time = self.base_time + dt.timedelta(hours=start)
+        start_time = self.ref_dt + dt.timedelta(hours=start)
         start_hour = start_time.replace(minute=0, second=0, microsecond=0)
 
-        end_time = self.base_time + dt.timedelta(hours=end)
-        end_hour = end_time.replace(minute=0, second=0, microsecond=0) + dt.timedelta(
-            hours=1
-        )
+        end_time = self.ref_dt + dt.timedelta(hours=end)
+        end_hour = end_time.replace(minute=0, second=0, microsecond=0) + dt.timedelta(hours=1)
 
         return start_hour <= target_time < end_hour
 
@@ -191,14 +194,14 @@ class Cal:
         """True if timestamp falls within the day window(s) from start to end.
 
         Args:
-            start: Days from now to start range (negative = past, 0 = today, positive = future)
-            end: Days from now to end range (defaults to start for single day)
+            start: Days from reference to start range (negative = past, 0 = today, positive = future)
+            end: Days from reference to end range (defaults to start for single day)
 
         Examples:
-            zeit.cal.in_days(0)          # Today only
-            zeit.cal.in_days(-1)         # Yesterday only
-            zeit.cal.in_days(-7, -1)     # From 7 days ago through yesterday
-            zeit.cal.in_days(-30, 0)     # Last 30 days through today
+            cal.in_days(0)          # Today only
+            cal.in_days(-1)         # Yesterday only
+            cal.in_days(-7, -1)     # From 7 days ago through yesterday
+            cal.in_days(-30, 0)     # Last 30 days through today
         """
         if end is None:
             end = start
@@ -207,11 +210,11 @@ class Cal:
             msg = f"start ({start}) must not be greater than end ({end})"
             raise ValueError(msg)
 
-        target_date = self.dt_val.date()
+        target_date = self.target_dt.date()
 
         # Calculate the date range boundaries
-        start_date = (self.base_time + dt.timedelta(days=start)).date()
-        end_date = (self.base_time + dt.timedelta(days=end)).date()
+        start_date = (self.ref_dt + dt.timedelta(days=start)).date()
+        end_date = (self.ref_dt + dt.timedelta(days=end)).date()
 
         return start_date <= target_date <= end_date
 
@@ -234,9 +237,9 @@ class Cal:
         if start > end:
             raise ValueError(f"start ({start}) must not be greater than end ({end})")
 
-        target_time = self.dt_val
-        base_year = self.base_time.year
-        base_month = self.base_time.month
+        target_time = self.target_dt
+        base_year = self.ref_dt.year
+        base_month = self.ref_dt.month
 
         # Calculate the start month (earliest)
         start_month = base_month + start
@@ -287,8 +290,8 @@ class Cal:
         if start > end:
             raise ValueError(f"start ({start}) must not be greater than end ({end})")
 
-        target_time = self.dt_val
-        base_time = self.base_time
+        target_time = self.target_dt
+        base_time = self.ref_dt
 
         # Get current quarter (1-4) and year
         current_quarter = ((base_time.month - 1) // 3) + 1
@@ -334,8 +337,8 @@ class Cal:
         if start > end:
             raise ValueError(f"start ({start}) must not be greater than end ({end})")
 
-        target_year = self.dt_val.year
-        base_year = self.base_time.year
+        target_year = self.target_dt.year
+        base_year = self.ref_dt.year
 
         # Calculate year range boundaries
         start_year = base_year + start
@@ -369,11 +372,10 @@ class Cal:
         if start > end:
             raise ValueError(f"start ({start}) must not be greater than end ({end})")
 
-        # Normalize the week start day
         week_start_day = normalize_weekday(week_start)
 
-        target_date = self.dt_val.date()
-        base_date = self.base_time.date()
+        target_date = self.target_dt.date()
+        base_date = self.ref_dt.date()
 
         # Calculate the start of the current week based on week_start_day
         days_since_week_start = (base_date.weekday() - week_start_day) % 7
@@ -407,13 +409,12 @@ class Cal:
         """
         if end is None:
             end = start
-
         if start > end:
             raise ValueError(f"start ({start}) must not be greater than end ({end})")
 
-        base_time = self.base_time
         fy_start_month = self.fy_start_month
 
+        base_time = self.ref_dt  # <-- FIXED HERE
         fy = Cal.get_fiscal_year(base_time, fy_start_month)
         fq = Cal.get_fiscal_quarter(base_time, fy_start_month)
 
@@ -426,8 +427,8 @@ class Cal:
         start_year, start_quarter = normalize_fiscal_quarter_year(start)
         end_year, end_quarter = normalize_fiscal_quarter_year(end)
 
-        target_fy = Cal.get_fiscal_year(self.dt_val, fy_start_month)
-        target_fq = Cal.get_fiscal_quarter(self.dt_val, fy_start_month)
+        target_fy = Cal.get_fiscal_year(self.target_dt, fy_start_month)
+        target_fq = Cal.get_fiscal_quarter(self.target_dt, fy_start_month)
 
         target_tuple = (target_fy, target_fq)
         start_tuple = (start_year, start_quarter)
@@ -454,20 +455,20 @@ class Cal:
         """
         if end is None:
             end = start
-
         if start > end:
             raise ValueError(f"start ({start}) must not be greater than end ({end})")
 
-        base_time = self.base_time
         fy_start_month = self.fy_start_month
 
+        base_time = self.ref_dt  # <-- FIXED HERE
         fy = Cal.get_fiscal_year(base_time, fy_start_month)
         start_year = fy + start
         end_year = fy + end
 
-        target_fy = Cal.get_fiscal_year(self.dt_val, fy_start_month)
+        target_fy = Cal.get_fiscal_year(self.target_dt, fy_start_month)
 
         return start_year <= target_fy < end_year + 1
+    
     @staticmethod
     def get_fiscal_year(dt: dt.datetime, fy_start_month: int) -> int:
         """Return the fiscal year for a given datetime and fiscal year start month."""
@@ -478,3 +479,4 @@ class Cal:
         """Return the fiscal quarter for a given datetime and fiscal year start month."""
         offset = (dt.month - fy_start_month) % 12 if dt.month >= fy_start_month else (dt.month + 12 - fy_start_month) % 12
         return (offset // 3) + 1
+

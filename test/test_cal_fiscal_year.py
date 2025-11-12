@@ -7,7 +7,6 @@ import datetime as dt
 
 import pytest
 
-from frist import Frist
 from frist._cal import Cal
 
 
@@ -20,8 +19,8 @@ from frist._cal import Cal
     (dt.datetime(2025, 3, 31), 4, 2024),  # Mar next year, FY starts Apr
     (dt.datetime(2025, 4, 1), 4, 2025),   # Apr next year, FY starts Apr
 ])
-def test_get_fiscal_year(dt_val, fy_start_month, expected_fy):
-    """AAA: Test Cal.get_fiscal_year static method for various fiscal year starts."""
+def test_get_fiscal_year(dt_val: dt.datetime, fy_start_month: int, expected_fy: int):
+    """Test Cal.get_fiscal_year static method for various fiscal year starts."""
     # Act
     fy = Cal.get_fiscal_year(dt_val, fy_start_month)
     # Assert
@@ -37,8 +36,8 @@ def test_get_fiscal_year(dt_val, fy_start_month, expected_fy):
     (dt.datetime(2024, 10, 1), 4, 3),  # Oct, FY starts Apr, Q3
     (dt.datetime(2025, 1, 1), 4, 4),   # Jan, FY starts Apr, Q4
 ])
-def test_get_fiscal_quarter(dt_val, fy_start_month, expected_fq):
-    """AAA: Test Cal.get_fiscal_quarter static method for various fiscal year starts."""
+def test_get_fiscal_quarter(dt_val:dt.datetime, fy_start_month:int, expected_fq:int):
+    """Test Cal.get_fiscal_quarter static method for various fiscal year starts."""
     # Act
     fq = Cal.get_fiscal_quarter(dt_val, fy_start_month)
     # Assert

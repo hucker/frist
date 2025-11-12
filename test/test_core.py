@@ -8,44 +8,44 @@ import datetime as dt
 
 import pytest
 
-from frist import Frist
+from frist import Chrono
 
 
-def test_zeit_creation():
-    """Test basic Frist object creation."""
+def test_chrono_creation():
+    """Test basic Chrono object creation."""
     target_time = dt.datetime(2024, 1, 1, 12, 0, 0)
     reference_time = dt.datetime(2024, 1, 2, 12, 0, 0)
 
     # Test with explicit reference time
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     assert z.target_time == target_time
     assert z.reference_time == reference_time
 
     # Test with default reference time (now)
-    zeit_now = Frist(target_time=target_time)
+    zeit_now = Chrono(target_time=target_time)
 
     assert zeit_now.target_time == target_time
     assert zeit_now.reference_time is not None
 
 
-def test_zeit_properties():
-    """Test Frist object properties."""
+def test_chrono_properties():
+    """Test Chrono object properties."""
     target_time = dt.datetime(2024, 1, 1, 12, 0, 0)
     reference_time = dt.datetime(2024, 1, 2, 12, 0, 0)
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
 
     # Test basic properties
     assert z.timestamp == target_time.timestamp()
 
 
 
-def test_zeit_age_property():
-    """Test that Frist age property works correctly."""
+def test_chrono_age_property():
+    """Test that Chrono age property works correctly."""
     target_time = dt.datetime(2024, 1, 1, 12, 0, 0)
     reference_time = dt.datetime(2024, 1, 2, 12, 0, 0)
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     age = z.age
 
     # Test that age calculations work
@@ -56,12 +56,12 @@ def test_zeit_age_property():
     assert age.weeks == pytest.approx(1.0 / 7.0)
 
 
-def test_zeit_calendar_property():
-    """Test that Frist calendar property works correctly."""
+def test_chrono_calendar_property():
+    """Test that Chrono calendar property works correctly."""
     target_time = dt.datetime(2024, 1, 1, 12, 0, 0)
     reference_time = dt.datetime(2024, 1, 1, 18, 0, 0)  # Same day, 6 hours later
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # Test calendar window functionality
@@ -70,13 +70,13 @@ def test_zeit_calendar_property():
     assert not cal.in_days(-1)  # Not yesterday
 
 
-def test_zeit_with_reference_time():
-    """Test creating new Frist with different reference time."""
+def test_chrono_with_reference_time():
+    """Test creating new Chrono with different reference time."""
     target_time = dt.datetime(2024, 1, 1, 12, 0, 0)
     original_ref = dt.datetime(2024, 1, 2, 12, 0, 0)
     new_ref = dt.datetime(2024, 1, 3, 12, 0, 0)
 
-    zeit1 = Frist(target_time=target_time, reference_time=original_ref)
+    zeit1 = Chrono(target_time=target_time, reference_time=original_ref)
     zeit2 = zeit1.with_reference_time(new_ref)
 
     # Original should be unchanged
@@ -87,89 +87,89 @@ def test_zeit_with_reference_time():
     assert zeit2.target_time == target_time  # Same target
 
 
-def test_zeit_string_representations():
-    """Test string representations of Frist objects."""
+def test_chrono_string_representations():
+    """Test string representations of Chrono objects."""
     target_time = dt.datetime(2024, 1, 1, 12, 30, 45)
     reference_time = dt.datetime(2024, 1, 2, 12, 0, 0)
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
 
     # Test __repr__
     repr_str = repr(z)
-    assert "Frist" in repr_str
+    assert "Chrono" in repr_str
     assert "2024-01-01T12:30:45" in repr_str
     assert "2024-01-02T12:00:00" in repr_str
 
     # Test __str__
     str_str = str(z)
-    assert "Frist for 2024-01-01 12:30:45" in str_str
+    assert "Chrono for 2024-01-01 12:30:45" in str_str
 
 
-def test_zeit_parse_static_method():
-    """Test Frist.parse static method."""
+def test_chrono_parse_static_method():
+    """Test Chrono.parse static method."""
     # Test Unix timestamp
-    zeit1 = Frist.parse("1704110400")  # 2024-01-01 12:00:00 UTC
+    zeit1 = Chrono.parse("1704110400")  # 2024-01-01 12:00:00 UTC
     assert zeit1.target_time.year == 2024
     assert zeit1.target_time.month == 1
     assert zeit1.target_time.day == 1
 
     # Test ISO format
-    zeit2 = Frist.parse("2024-01-01T12:30:00")
+    zeit2 = Chrono.parse("2024-01-01T12:30:00")
     assert zeit2.target_time.hour == 12
     assert zeit2.target_time.minute == 30
 
     # Test simple date
-    zeit3 = Frist.parse("2024-12-25")
+    zeit3 = Chrono.parse("2024-12-25")
     assert zeit3.target_time.month == 12
     assert zeit3.target_time.day == 25
 
     # Test with custom reference time
     ref_time = dt.datetime(2024, 6, 1)
-    zeit4 = Frist.parse("2024-01-01", ref_time)
+    zeit4 = Chrono.parse("2024-01-01", ref_time)
     assert zeit4.reference_time == ref_time
 
 
-def test_zeit_parse_errors():
-    """Test Frist.parse error handling."""
+def test_chrono_parse_errors():
+    """Test Chrono.parse error handling."""
     with pytest.raises(ValueError, match="Unable to parse time string"):
-        Frist.parse("invalid-date-format")
+        Chrono.parse("invalid-date-format")
 
     with pytest.raises(ValueError, match="Unable to parse time string"):
-        Frist.parse("not-a-date-at-all")
+        Chrono.parse("not-a-date-at-all")
 
 
-def test_zeit_fiscal_properties():
+def test_chrono_fiscal_properties():
     """Test fiscal year and quarter properties."""
     # Default fiscal year (starts in January)
     target_time = dt.datetime(2024, 2, 15)
-    z = Frist(target_time=target_time)
+    z = Chrono(target_time=target_time)
     assert z.cal.fiscal_year == 2024
     assert z.cal.fiscal_quarter == 1  # Jan-Mar
 
     # Fiscal year starting in April
-    zeit_april = Frist(target_time=target_time, fy_start_month=4)
+    zeit_april = Chrono(target_time=target_time, fy_start_month=4)
     assert zeit_april.cal.fiscal_year == 2023  # Feb is before April start
     assert zeit_april.cal.fiscal_quarter == 4  # Jan-Mar is Q4 for April start
 
     target_time_july = dt.datetime(2024, 7, 15)
-    zeit_july = Frist(target_time=target_time_july, fy_start_month=4)
+    zeit_july = Chrono(target_time=target_time_july, fy_start_month=4)
     assert zeit_july.cal.fiscal_year == 2024
     assert zeit_july.cal.fiscal_quarter == 2  # Jul-Sep is Q2 for April start
 
 
-def test_zeit_holiday_property():
+def test_chrono_holiday_property():
     """Test holiday detection property."""
     holidays = {'2024-01-01', '2024-12-25'}
     target_time = dt.datetime(2024, 1, 1)
-    z = Frist(target_time=target_time, holidays=holidays)
+    z = Chrono(target_time=target_time, holidays=holidays)
     assert z.cal.holiday is True
 
     target_time_not_holiday = dt.datetime(2024, 7, 4)
-    zeit_not = Frist(target_time=target_time_not_holiday, holidays=holidays)
+    zeit_not = Chrono(target_time=target_time_not_holiday, holidays=holidays)
     assert zeit_not.cal.holiday is False
 
     # Empty holidays
-    zeit_empty = Frist(target_time=target_time, holidays=set())
+    zeit_empty = Chrono(target_time=target_time, holidays=set())
     assert zeit_empty.cal.holiday is False
 
 

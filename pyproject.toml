@@ -16,3 +16,6 @@ package-dir = {"" = "src"}
 [tool.setuptools.package-data]
 # This is required for typehints to work in your IDE
 frist = ["py.typed"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

@@ -1,6 +1,6 @@
 
 """
-Constants used throughout the Frist package.
+Constants used throughout the frist package.
 """
 
 from typing import Dict, Final

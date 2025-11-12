@@ -8,23 +8,39 @@ import datetime as dt
 
 import pytest
 
-from frist import Cal, Frist
+from frist import Cal, Chrono
 from frist._cal import normalize_weekday
 
 
-def test_cal_with_zeit():
-    """Test Cal functionality using Frist objects."""
-    # Create a Frist object for January 1, 2024 at noon
+def test_simple_cal_day_windows():
+    """Simple test for Cal: one day apart, check day windows."""
+    # Arrange
+    target_time: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
+    reference_time: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)
+    cal = Cal(target_time, reference_time)
+
+    # Act & Assert
+    assert cal.target_dt == target_time
+    assert cal.ref_dt == reference_time
+    assert cal.in_days(-1)      # Target is yesterday relative to reference
+    assert cal.in_days(-1, 0)   # Target is in range yesterday through today
+    assert not cal.in_days(0)   # Target is not today
+    assert not cal.in_days(-2)  # Target is not two days ago
+
+
+def test_cal_with_chrono():
+    """Test Cal functionality using Chrono objects."""
+    # Create a Chrono object for January 1, 2024 at noon
     target_time = dt.datetime(2024, 1, 1, 12, 0, 0)
     reference_time = dt.datetime(2024, 1, 1, 18, 0, 0)  # Same day, 6 hours later
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # Test that we can access calendar functionality
     assert isinstance(cal, Cal)
-    assert cal.dt_val == target_time
-    assert cal.base_time == reference_time
+    assert cal.target_dt == target_time
+    assert cal.ref_dt == reference_time
 
 
 def test_cal_in_minutes():
@@ -32,7 +48,7 @@ def test_cal_in_minutes():
     target_time = dt.datetime(2024, 1, 1, 12, 30, 0)
     reference_time = dt.datetime(2024, 1, 1, 12, 35, 0)  # 5 minutes later
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # Should be within current minute range
@@ -46,7 +62,7 @@ def test_cal_in_hours():
     target_time = dt.datetime(2024, 1, 1, 10, 30, 0)
     reference_time = dt.datetime(2024, 1, 1, 12, 30, 0)  # 2 hours later
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # Should be within hour ranges
@@ -60,7 +76,7 @@ def test_cal_in_days():
     target_time = dt.datetime(2024, 1, 1, 12, 0, 0)
     reference_time = dt.datetime(2024, 1, 2, 12, 0, 0)  # Next day
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # Test day windows
@@ -76,7 +92,7 @@ def test_cal_in_weeks():
     target_time = dt.datetime(2024, 1, 1, 12, 0, 0)  # Monday
     reference_time = dt.datetime(2024, 1, 8, 12, 0, 0)  # Next Monday
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # Test week windows
@@ -91,7 +107,7 @@ def test_cal_in_weeks_custom_start():
     target_time = dt.datetime(2024, 1, 7, 12, 0, 0)  # Sunday
     reference_time = dt.datetime(2024, 1, 14, 12, 0, 0)  # Next Sunday
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # Test with Sunday week start
@@ -105,7 +121,7 @@ def test_cal_in_months():
     target_time = dt.datetime(2024, 1, 15, 12, 0, 0)  # January 15
     reference_time = dt.datetime(2024, 2, 15, 12, 0, 0)  # February 15
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # Test month windows
@@ -119,7 +135,7 @@ def test_cal_in_quarters():
     target_time = dt.datetime(2024, 1, 15, 12, 0, 0)  # Q1 2024
     reference_time = dt.datetime(2024, 4, 15, 12, 0, 0)  # Q2 2024
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # Test quarter windows
@@ -133,7 +149,7 @@ def test_cal_in_years():
     target_time = dt.datetime(2023, 6, 15, 12, 0, 0)  # 2023
     reference_time = dt.datetime(2024, 6, 15, 12, 0, 0)  # 2024
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # Test year windows
@@ -149,7 +165,7 @@ def test_cal_single_vs_range():
     target_time = dt.datetime(2024, 1, 1, 12, 0, 0)
     reference_time = dt.datetime(2024, 1, 2, 12, 0, 0)
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # Single day (yesterday only)
@@ -197,7 +213,7 @@ def test_cal_edge_cases():
     target_time = dt.datetime(2024, 1, 15, 12, 30, 0)
     reference_time = dt.datetime(2024, 1, 15, 12, 30, 0)
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # All current windows should return True
@@ -216,7 +232,7 @@ def test_cal_month_edge_cases():
     target_time = dt.datetime(2023, 12, 15, 12, 0, 0)  # December 2023
     reference_time = dt.datetime(2024, 1, 15, 12, 0, 0)  # January 2024
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # Should be in the previous month
@@ -227,7 +243,7 @@ def test_cal_month_edge_cases():
     target_time = dt.datetime(2022, 6, 15, 12, 0, 0)  # June 2022
     reference_time = dt.datetime(2024, 1, 15, 12, 0, 0)  # January 2024
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # Should be about 19 months ago
@@ -241,7 +257,7 @@ def test_cal_quarter_edge_cases():
     target_time = dt.datetime(2023, 11, 15, 12, 0, 0)  # Q4 2023
     reference_time = dt.datetime(2024, 2, 15, 12, 0, 0)  # Q1 2024
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # Should be in the previous quarter
@@ -252,7 +268,7 @@ def test_cal_quarter_edge_cases():
     target_time = dt.datetime(2024, 3, 31, 12, 0, 0)  # End of Q1
     reference_time = dt.datetime(2024, 4, 1, 12, 0, 0)  # Start of Q2
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     assert cal.in_quarters(-1)  # Previous quarter
@@ -265,7 +281,7 @@ def test_cal_year_edge_cases():
     target_time = dt.datetime(2023, 12, 31, 23, 59, 59)  # End of 2023
     reference_time = dt.datetime(2024, 1, 1, 0, 0, 1)  # Start of 2024
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # Should be in the previous year
@@ -282,7 +298,7 @@ def test_cal_week_different_starts():
     target_time = dt.datetime(2024, 1, 1, 12, 0, 0)  # Monday, Jan 1
     reference_time = dt.datetime(2024, 1, 8, 12, 0, 0)  # Monday, Jan 8 (next week)
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # With Monday start, target should be exactly one week ago
@@ -293,7 +309,7 @@ def test_cal_week_different_starts():
     target_time = dt.datetime(2024, 1, 7, 12, 0, 0)  # Sunday
     reference_time = dt.datetime(2024, 1, 14, 12, 0, 0)  # Next Sunday
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # Test Sunday-based weeks
@@ -306,7 +322,7 @@ def test_cal_minutes_edge_cases():
     target_time = dt.datetime(2024, 1, 1, 12, 29, 59)  # End of minute 29
     reference_time = dt.datetime(2024, 1, 1, 12, 30, 0)  # Start of minute 30
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # Should be in the previous minute
@@ -323,7 +339,7 @@ def test_cal_hours_edge_cases():
     target_time = dt.datetime(2024, 1, 1, 11, 59, 59)  # End of hour 11
     reference_time = dt.datetime(2024, 1, 1, 12, 0, 0)  # Start of hour 12
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # Should be in the previous hour
@@ -340,7 +356,7 @@ def test_cal_future_windows():
     target_time = dt.datetime(2024, 1, 2, 12, 0, 0)  # Tomorrow
     reference_time = dt.datetime(2024, 1, 1, 12, 0, 0)  # Today
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # Test future windows
@@ -355,7 +371,7 @@ def test_cal_future_windows():
     target_time = dt.datetime(2024, 2, 15, 12, 0, 0)  # Next month
     reference_time = dt.datetime(2024, 1, 15, 12, 0, 0)  # This month
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     assert cal.in_months(1)  # Next month
@@ -364,7 +380,7 @@ def test_cal_future_windows():
     target_time = dt.datetime(2024, 7, 15, 12, 0, 0)  # Q3
     reference_time = dt.datetime(2024, 1, 15, 12, 0, 0)  # Q1
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     assert cal.in_quarters(2)  # 2 quarters from now
@@ -373,7 +389,7 @@ def test_cal_future_windows():
     target_time = dt.datetime(2026, 1, 15, 12, 0, 0)  # 2026
     reference_time = dt.datetime(2024, 1, 15, 12, 0, 0)  # 2024
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     assert cal.in_years(2)  # 2 years from now
@@ -385,7 +401,7 @@ def test_cal_month_complex_calculations():
     target_time = dt.datetime(2021, 3, 15, 12, 0, 0)  # March 2021
     reference_time = dt.datetime(2024, 1, 15, 12, 0, 0)  # January 2024
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # Calculate exact months back: from March 2021 to January 2024
@@ -402,7 +418,7 @@ def test_cal_quarter_complex_calculations():
     target_time = dt.datetime(2021, 7, 15, 12, 0, 0)  # Q3 2021
     reference_time = dt.datetime(2024, 1, 15, 12, 0, 0)  # Q1 2024
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # This should be about 10 quarters ago
@@ -446,19 +462,81 @@ def test_normalize_weekday_comprehensive():
     assert normalize_weekday("w-sat") == 5
 
 
-def test_cal_properties():
-    """Test Cal object properties."""
-    target_time = dt.datetime(2024, 1, 1, 12, 0, 0)
-    reference_time = dt.datetime(2024, 1, 2, 12, 0, 0)
+@pytest.mark.parametrize(
+    "target, ref, holidays, fy_start_month, expected_target, expected_ref, expected_holidays, expected_fy_start",
+    [
+        # datetime/datetime, no holidays, default FY
+        (
+            dt.datetime(2024, 1, 1, 12, 0, 0),
+            dt.datetime(2024, 1, 2, 12, 0, 0),
+            None,
+            1,
+            dt.datetime(2024, 1, 1, 12, 0, 0),
+            dt.datetime(2024, 1, 2, 12, 0, 0),
+            None,
+            1,
+        ),
+        # timestamp/datetime, holidays, custom FY
+        (
+            dt.datetime(2024, 1, 1, 12, 0, 0).timestamp(),
+            dt.datetime(2024, 1, 2, 12, 0, 0),
+            {"2024-01-01"},
+            4,
+            dt.datetime(2024, 1, 1, 12, 0, 0),
+            dt.datetime(2024, 1, 2, 12, 0, 0),
+            {"2024-01-01"},
+            4,
+        ),
+        # datetime/timestamp, holidays, default FY
+        (
+            dt.datetime(2024, 1, 1, 12, 0, 0),
+            dt.datetime(2024, 1, 2, 12, 0, 0).timestamp(),
+            {"2024-01-02"},
+            1,
+            dt.datetime(2024, 1, 1, 12, 0, 0),
+            dt.datetime(2024, 1, 2, 12, 0, 0),
+            {"2024-01-02"},
+            1,
+        ),
+        # timestamp/timestamp, no holidays, custom FY
+        (
+            dt.datetime(2024, 1, 1, 12, 0, 0).timestamp(),
+            dt.datetime(2024, 1, 2, 12, 0, 0).timestamp(),
+            None,
+            7,
+            dt.datetime(2024, 1, 1, 12, 0, 0),
+            dt.datetime(2024, 1, 2, 12, 0, 0),
+            None,
+            7,
+        ),
+    ]
+)
+def test_cal_initialization_variants(
+    target: dt.datetime | float,
+    ref: dt.datetime | float,
+    holidays: set[str] | None,
+    fy_start_month: int,
+    expected_target: dt.datetime,
+    expected_ref: dt.datetime,
+    expected_holidays: set[str] | None,
+    expected_fy_start: int,
+)-> None:
+    """Test Cal initialization with various target/ref types, holidays, and fiscal year starts."""
+    # Arrange: Inputs are parameterized above
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
-    cal = z.cal
+    # Act: Create Cal instance
+    cal = Cal(target, ref, fy_start_month=fy_start_month, holidays=holidays)
 
-    # Test that properties return correct values
-    assert cal.dt_val == target_time
-    assert cal.base_time == reference_time
-    assert cal.time_span == z
+    # Assert: Properties match expectations
+    assert cal.target_dt == expected_target
+    assert cal.ref_dt == expected_ref
 
+    if expected_holidays is None:
+        assert cal.holidays == set()
+    else:
+        assert cal.holidays == expected_holidays
+    
+    assert cal.fy_start_month == expected_fy_start
 
 
 
@@ -470,7 +548,7 @@ def test_cal_month_year_rollover_edge_cases():
     target_time = dt.datetime(2020, 1, 15, 12, 0, 0)
     reference_time = dt.datetime(2024, 12, 15, 12, 0, 0)
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # This should be about 59 months ago
@@ -480,7 +558,7 @@ def test_cal_month_year_rollover_edge_cases():
     target_time = dt.datetime(2028, 12, 15, 12, 0, 0)
     reference_time = dt.datetime(2024, 1, 15, 12, 0, 0)
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # This should be about 59 months in the future
@@ -495,7 +573,7 @@ def test_cal_quarter_year_rollover_edge_cases():
     target_time = dt.datetime(2020, 2, 15, 12, 0, 0)  # Q1 2020
     reference_time = dt.datetime(2024, 11, 15, 12, 0, 0)  # Q4 2024
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # This should be about 19 quarters ago
@@ -505,7 +583,7 @@ def test_cal_quarter_year_rollover_edge_cases():
     target_time = dt.datetime(2029, 8, 15, 12, 0, 0)  # Q3 2029
     reference_time = dt.datetime(2024, 2, 15, 12, 0, 0)  # Q1 2024
 
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     # This should be about 22 quarters in the future
@@ -525,33 +603,7 @@ def test_normalize_weekday_error_with_detailed_message():
     assert "Pandas:" in error_msg
 
 
-def test_cal_direct_instantiation():
-    """Test creating Cal object directly with a TimeSpan-like object."""
-    # Create a simple TimeSpan-like object
-    class SimpleTimeSpan:
-        def __init__(self, target_dt, ref_dt):
-            self._target_dt = target_dt
-            self._ref_dt = ref_dt
 
-        @property
-        def target_dt(self):
-            return self._target_dt
-
-        @property
-        def ref_dt(self):
-            return self._ref_dt
-
-    target_time = dt.datetime(2024, 1, 1, 12, 0, 0)
-    reference_time = dt.datetime(2024, 1, 2, 12, 0, 0)
-
-    time_span = SimpleTimeSpan(target_time, reference_time)
-    cal = Cal(time_span)
-
-    # Test basic functionality
-    assert cal.dt_val == target_time
-    assert cal.base_time == reference_time
-    assert cal.time_span == time_span
-    assert cal.in_days(-1)  # Yesterday
 
 
 def test_cal_type_checking_imports():
@@ -561,7 +613,6 @@ def test_cal_type_checking_imports():
 
     # Check that the module has the expected attributes
     assert hasattr(cal_module, 'Cal')
-    assert hasattr(cal_module, 'TimeSpan')
     assert hasattr(cal_module, 'normalize_weekday')
 
     # Verify TYPE_CHECKING behavior by checking typing imports exist
@@ -576,7 +627,7 @@ def test_cal_type_checking_imports():
 def test_in_xxx_raises_on_backwards_ranges():
     target_time = dt.datetime(2024, 6, 15, 12, 0, 0)
     reference_time = dt.datetime(2024, 6, 15, 12, 0, 0)
-    z = Frist(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_time=target_time, reference_time=reference_time)
     cal = z.cal
 
     with pytest.raises(ValueError):
@@ -598,7 +649,7 @@ def test_in_xxx_raises_on_backwards_ranges():
 def test_fiscal_year_and_quarter_january_start():
     """Fiscal year and quarter with January start (default)."""
     target_time = dt.datetime(2024, 2, 15)  # February 2024
-    z = Frist(target_time=target_time)
+    z = Chrono(target_time=target_time)
     cal = z.cal
     assert z.cal.fiscal_year == 2024
     assert cal.fiscal_year == 2024
@@ -606,7 +657,7 @@ def test_fiscal_year_and_quarter_january_start():
     assert cal.fiscal_quarter == 1
 
     target_time = dt.datetime(2024, 4, 1)  # April 2024
-    z = Frist(target_time=target_time)
+    z = Chrono(target_time=target_time)
     cal = z.cal
     assert z.cal.fiscal_quarter == 2  # Apr-Jun
     assert cal.fiscal_quarter == 2
@@ -615,7 +666,7 @@ def test_fiscal_year_and_quarter_january_start():
 def test_fiscal_year_and_quarter_april_start():
     """Fiscal year and quarter with April start."""
     target_time = dt.datetime(2024, 3, 31)  # March 2024
-    z = Frist(target_time=target_time, fy_start_month=4)
+    z = Chrono(target_time=target_time, fy_start_month=4)
     cal = z.cal
     assert z.cal.fiscal_year == 2023  # Fiscal year starts in April
     assert cal.fiscal_year == 2023
@@ -623,7 +674,7 @@ def test_fiscal_year_and_quarter_april_start():
     assert cal.fiscal_quarter == 4
 
     target_time = dt.datetime(2024, 4, 1)  # April 2024
-    z = Frist(target_time=target_time, fy_start_month=4)
+    z = Chrono(target_time=target_time, fy_start_month=4)
     cal = z.cal
     assert z.cal.fiscal_year == 2024
     assert cal.fiscal_year == 2024
@@ -631,19 +682,19 @@ def test_fiscal_year_and_quarter_april_start():
     assert cal.fiscal_quarter == 1
 
     target_time = dt.datetime(2024, 7, 15)  # July 2024
-    z = Frist(target_time=target_time, fy_start_month=4)
+    z = Chrono(target_time=target_time, fy_start_month=4)
     cal = z.cal
     assert z.cal.fiscal_quarter == 2  # Jul-Sep is Q2 for April start
     assert cal.fiscal_quarter == 2
 
     target_time = dt.datetime(2024, 10, 1)  # October 2024
-    z = Frist(target_time=target_time, fy_start_month=4)
+    z = Chrono(target_time=target_time, fy_start_month=4)
     cal = z.cal
     assert z.cal.fiscal_quarter == 3  # Oct-Dec is Q3 for April start
     assert cal.fiscal_quarter == 3
 
     target_time = dt.datetime(2025, 1, 1)  # January 2025
-    z = Frist(target_time=target_time, fy_start_month=4)
+    z = Chrono(target_time=target_time, fy_start_month=4)
     cal = z.cal
     assert z.cal.fiscal_quarter == 4  # Jan-Mar is Q4 for April start
     assert cal.fiscal_quarter == 4

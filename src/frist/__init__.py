@@ -1,5 +1,5 @@
 """
-Frist: Standalone datetime utility package
+frist: Standalone datetime utility package
 
 Provides robust tools for:
     - Age and duration calculations across multiple time units
@@ -10,17 +10,15 @@ Provides robust tools for:
 Designed for use in any Python project requiring advanced datetime analysis, not limited to file operations.
 
 Exports:
-    Frist   -- Main datetime utility class
+    Chrono   -- Main datetime utility class
     Age       -- Duration and age calculations
     Cal       -- Calendar window and filtering logic
-    TimeSpan  -- Time span representation for advanced calculations
 """
-
 from ._age import Age
-from ._cal import Cal, TimeSpan
-from ._frist import Frist
+from ._cal import Cal
+from ._frist import Chrono
 
 __version__ = "0.8.0"
 __author__ = "Chuck Bass"
 
-__all__ = ["Frist", "Age", "Cal", "TimeSpan"]
+__all__ = ["Chrono", "Age",  "Cal"  ]

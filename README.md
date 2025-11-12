@@ -2,9 +2,9 @@
 
 # Frist
 
-Frist is a property-based date and time utility for Python, designed to make relative date calculations and calendar logic simple and intuitive—without manual math. You create a Frist object with a target time (when something happened) and a reference time (usually "now").
+Frist is a property-based date and time utility for Python, designed to make relative date calculations and calendar logic simple and intuitive—without manual math. You create a Chrono object with a target time (when something happened) and a reference time (usually "now") you can find age and time window information accross time scales from seconds to years.
 
-Frist lets you answer questions like "Did this event happen today, this month, or this year?" using properties such as `in_day`, `in_month`, and `in_year`. These properties check if the target time lands anywhere in the current time unit window—even exactly at the start or end. You can also use ranges, like `in_days(-7, 0)` for "in the last 7 days" or `in_months(-1, 1)` for "from last month to next month." This is different from `.age.days`, which gives you the precise floating-point age in days between the target and reference times.
+Frist lets you answer questions like "Did this event happen today, this month, or this year?" using properties such as `in_day`, `in_month`, and `in_year`. These properties check if the target time lands anywhere in the current time unit window. You can also use ranges, like `in_days(-7, 0)` for "in the last 7 days" or `in_months(-1, 1)` for "from last month to next month." This is different from `.age.days`, which gives you the precise floating-point age in days between the target and reference times.
 
 With Frist, you get instant answers to time-based questions with a single property, instead of writing complex date math. This makes it easy to work with calendar windows, fiscal periods, and custom time ranges.
 
@@ -25,10 +25,10 @@ With Frist, you get instant answers to time-based questions with a single proper
 
 ```python
 import datetime as dt
-from frist import Frist
+from frist import Chrono
 
-# Create a Frist object for a target date
-meeting = Frist(target_time=dt.datetime(2025, 12, 25))
+# Create a Chrono object for a target date
+meeting = Chrono(target_time=dt.datetime(2025, 12, 25))
 
 # Check age properties
 print(meeting.age.days)      # Days since meeting
@@ -46,12 +46,12 @@ print(meeting.fiscal_quarter)   # Fiscal quarter for the meeting
 
 # Holiday detection
 holidays = {'2025-12-25', '2025-01-01'}
-meeting = Frist(target_time=dt.datetime(2025, 12, 25), holidays=holidays)
+meeting = Chrono(target_time=dt.datetime(2025, 12, 25), holidays=holidays)
 if meeting.holiday:
   print("This date is a holiday!")
 
 # Compare to a custom reference time
-project = Frist(target_time=dt.datetime(2025, 1, 1), reference_time=dt.datetime(2025, 2, 1))
+project = Chrono(target_time=dt.datetime(2025, 1, 1), reference_time=dt.datetime(2025, 2, 1))
 print(project.age.days)  # Days between Jan 1 and Feb 1, 2025
 ```
 
@@ -79,11 +79,11 @@ Note: The `end` parameter is optional. If omitted, the function checks for a sin
 
 ## Fiscal Year & Quarter Example
 
-Frist supports fiscal year and quarter calculations with customizable fiscal year start months. For example:
+Chrono objects support fiscal year and quarter calculations with customizable fiscal year start months. For example:
 
 ```python
 # Fiscal year starts in April (fy_start_month=4)
-meeting = Frist(target_time=dt.datetime(2025, 7, 15), fy_start_month=4)
+meeting = Chrono(target_time=dt.datetime(2025, 7, 15), fy_start_month=4)
 print(meeting.fiscal_year)      # 2025 (fiscal year for July 15, 2025)
 print(meeting.fiscal_quarter)   # 2 (Q2: July–September for April start)
 
@@ -107,18 +107,18 @@ holidays = {
 }
 
 # Check a specific date
-meeting = Frist(target_time=dt.datetime(2025, 12, 25), holidays=holidays)
+meeting = Chrono(target_time=dt.datetime(2025, 12, 25), holidays=holidays)
 if meeting.holiday:
   print("Meeting date is a holiday!")
 
 # Check multiple dates
 for date_str in holidays:
   date = dt.datetime.strptime(date_str, '%Y-%m-%d')
-  c = Frist(target_time=date, holidays=holidays)
+  c = Chrono(target_time=date, holidays=holidays)
   print(f"{date.date()}: Holiday? {c.holiday}")
 
 # Use with custom reference time
-project = Frist(target_time=dt.datetime(2025, 7, 4), reference_time=dt.datetime(2025, 7, 5), holidays=holidays)
+project = Chrono(target_time=dt.datetime(2025, 7, 4), reference_time=dt.datetime(2025, 7, 5), holidays=holidays)
 if project.holiday:
   print("Project start date is a holiday!")
 ```
@@ -129,7 +129,7 @@ if project.holiday:
 ### Age Calculation
 
 ```python
-person = Frist(target_time=dt.datetime(1990, 5, 1), reference_time=dt.datetime(2025, 5, 1))
+person = Chrono(target_time=dt.datetime(1990, 5, 1), reference_time=dt.datetime(2025, 5, 1))
 print(f"Age in days: {person.age.days}, Age in years: {person.age.years:.2f}")
 ```
 
@@ -137,7 +137,7 @@ print(f"Age in days: {person.age.days}, Age in years: {person.age.years:.2f}")
 ### Calendar Windows
 
 ```python
-meeting = Frist(target_time=dt.datetime(2025, 12, 25))
+meeting = Chrono(target_time=dt.datetime(2025, 12, 25))
 if meeting.cal.in_days(0):
   print("Meeting is today!")
 if meeting.cal.in_weeks(-1):
@@ -149,7 +149,7 @@ if meeting.cal.in_weeks(-1):
 
 ### Frist
 
-`Frist(target_time: datetime, reference_time: datetime = None, fy_start_month: int = 1, holidays: set[str] = None)`
+`Chrono(target_time: datetime, reference_time: datetime = None, fy_start_month: int = 1, holidays: set[str] = None)`
 
 - **Properties:**
   - `age`: Age object with properties for `.days`, `.hours`, `.minutes`, `.seconds`, `.weeks`, `.months`, `.quarters`, `.years`, `.fiscal_year`, `.fiscal_quarter`.
@@ -160,7 +160,6 @@ if meeting.cal.in_weeks(-1):
 
 ### Cal
 
-`Cal(time_span: TimeSpan, fy_start_month: int = 1, holidays: set[str] = None)`
 
 - **Properties:**
   - `dt_val`: Target datetime.
@@ -168,7 +167,6 @@ if meeting.cal.in_weeks(-1):
   - `fiscal_year`: Fiscal year for `dt_val`.
   - `fiscal_quarter`: Fiscal quarter for `dt_val`.
   - `holiday`: True if `dt_val` is a holiday.
-  - `time_span`: The TimeSpan object.
 
 - **Interval Methods:**
   - `in_minutes(start: int = 0, end: int | None = None) -> bool`
@@ -196,9 +194,6 @@ if meeting.cal.in_weeks(-1):
 - **Properties:**
   - `days`, `hours`, `minutes`, `seconds`, `weeks`, `months`, `quarters`, `years`, `fiscal_year`, `fiscal_quarter`
 
-### TimeSpan (Protocol)
-
-`TimeSpan`
 
 - **Properties:**
   - `target_dt`: Target datetime.

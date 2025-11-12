@@ -1,5 +1,5 @@
 """
-Frist - Comprehensive datetime utility class.
+Chrono - Comprehensive datetime utility class.
 
 Handles age calculations, calendar windows, and datetime parsing for any datetime operations.
 Designed to be reusable beyond file operations.
@@ -11,7 +11,7 @@ from ._age import Age
 from ._cal import Cal
 
 
-class Frist:
+class Chrono:
     """
     Comprehensive datetime utility with age and window calculations.
 
@@ -20,12 +20,12 @@ class Frist:
 
     Examples:
         # Standalone datetime operations
-        meeting = Frist(datetime(2024, 12, 1, 14, 0))
+        meeting = Chrono(datetime(2024, 12, 1, 14, 0))
         if meeting.age.hours < 2:
             print("Meeting was recent")
 
         # Custom reference time
-        project = Frist(start_date, reference_time=deadline)
+        project = Chrono(start_date, reference_time=deadline)
         if project.age.days > 30:
             print("Project overdue")
 
@@ -43,7 +43,7 @@ class Frist:
         holidays: set[str] | None = None,
     ):
         """
-        Initialize Frist with target and reference times.
+        Initialize Chrono with target and reference times.
 
         Args:
             target_time: The datetime to analyze (e.g., file timestamp, meeting time)
@@ -71,11 +71,9 @@ class Frist:
 
         Returns Age object with properties like .seconds, .minutes, .hours, .days, etc.
         """
-        # Convert datetime objects to timestamps for Age class
-        target_timestamp = self.target_time.timestamp()
 
         # Age expects (path, timestamp, base_time) - we pass None for path since standalone
-        return Age(None, target_timestamp, self.reference_time)  # type: ignore
+        return Age(self.target_time, self.reference_time)
 
     @property
     def cal(self):
@@ -85,49 +83,42 @@ class Frist:
 
         Returns Cal object for checking if target_time falls within calendar windows.
         """
-        # Cal can work directly with Frist since we have .target_dt and .ref_dt properties
-        return Cal(self, fy_start_month=self.fy_start_month, holidays=self.holidays)
+        # Cal can work directly with frist since we have .target_dt and .ref_dt properties
+        return Cal(self.target_time,
+                   self.reference_time,
+                   fy_start_month=self.fy_start_month,
+                   holidays=self.holidays,)
 
     @property
     def timestamp(self) -> float:
         """Get the raw timestamp for target_time."""
         return self.target_time.timestamp()
 
-    @property
-    def target_dt(self) -> dt.datetime:
-        """Get the target datetime for TimeSpan compatibility."""
-        return self.target_time
-
-    @property
-    def ref_dt(self) -> dt.datetime:
-        """Get the reference datetime for TimeSpan compatibility."""
-        return self.reference_time
-
 
     @staticmethod
     def parse(time_str: str, reference_time: dt.datetime | None = None):
         """
-        Parse a time string and return a Frist object.
+        Parse a time string and return a frist object.
 
         Args:
             time_str: Time string to parse
             reference_time: Optional reference time for age calculations
 
         Returns:
-            Frist object for the parsed time
+            Chrono object for the parsed time
 
         Examples:
-            "2023-12-25" -> Frist for Dec 25, 2023
-            "2023-12-25 14:30" -> Frist for Dec 25, 2023 2:30 PM
+            "2023-12-25" -> Chrono for Dec 25, 2023
+            "2023-12-25 14:30" -> FrChronoist for Dec 25, 2023 2:30 PM
             "2023-12-25T14:30:00" -> ISO format datetime
-            "1640995200" -> Frist from Unix timestamp
+            "1640995200" -> Chrono from Unix timestamp
         """
         time_str = time_str.strip()
 
         # Handle Unix timestamp (all digits)
         if time_str.isdigit():
             target_time = dt.datetime.fromtimestamp(float(time_str))
-            return Frist(target_time=target_time, reference_time=reference_time)
+            return Chrono(target_time=target_time, reference_time=reference_time)
 
         # Try common datetime formats
         formats = [
@@ -145,7 +136,7 @@ class Frist:
         for fmt in formats:
             try:
                 target_time = dt.datetime.strptime(time_str, fmt)
-                return Frist(target_time=target_time, reference_time=reference_time)
+                return Chrono(target_time=target_time, reference_time=reference_time)
             except ValueError:
                 continue
 
@@ -153,24 +144,24 @@ class Frist:
 
     def with_reference_time(self, reference_time: dt.datetime):
         """
-        Create a new Frist object with a different reference time.
+        Create a new Chrono object with a different reference time.
 
         Args:
             reference_time: New reference time for calculations
 
         Returns:
-            New Frist object with same target_time but different reference_time
+            New Chrono object with same target_time but different reference_time
         """
-        return Frist(target_time=self.target_time, reference_time=reference_time)
+        return Chrono(target_time=self.target_time, reference_time=reference_time)
 
 
     def __repr__(self) -> str:
-        """String representation of Frist object."""
-        return f"Frist(target={self.target_time.isoformat()}, reference={self.reference_time.isoformat()})"
+        """String representation of Chrono object."""
+        return f"Chrono(target={self.target_time.isoformat()}, reference={self.reference_time.isoformat()})"
 
     def __str__(self) -> str:
         """Human-readable string representation."""
-        return f"Frist for {self.target_time.strftime('%Y-%m-%d %H:%M:%S')}"
+        return f"Chrono for {self.target_time.strftime('%Y-%m-%d %H:%M:%S')}"
 
 
-__all__ = ["Frist"]
+__all__ = ["Chrono"]

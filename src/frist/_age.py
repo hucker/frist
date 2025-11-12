@@ -1,12 +1,12 @@
 """
-Age property implementation for Frist package.
+Age property implementation for frist package.
 
 Handles age calculations in various time units, supporting both file-based and standalone usage.
 """
 
 import datetime as dt
+
 import re
-from pathlib import Path
 
 from ._constants import (
     DAYS_PER_MONTH,
@@ -19,23 +19,34 @@ from ._constants import (
     SECONDS_PER_YEAR,
 )
 
-
 class Age:
     """Property class for handling age calculations in various time units."""
 
-    def __init__(self, path: Path | None, timestamp: float, base_time: dt.datetime):
-        self.path = path
-        self.timestamp = timestamp
-        self.base_time = base_time
+    def __init__(
+        self,
+        start_time: dt.datetime | float | int,
+        end_time: dt.datetime | float | int | None = None,
+    ):
+        if isinstance(start_time, (float, int)):
+            self.start_time = dt.datetime.fromtimestamp(start_time)
+        elif isinstance(start_time, dt.datetime): # type: ignore # Explicit type check for runtime safety
+            self.start_time = start_time
+        else:
+            raise TypeError("start_time must be datetime, float, or int")
+
+        if end_time is None:
+            self.end_time = dt.datetime.now()
+        elif isinstance(end_time, (float, int)):
+            self.end_time = dt.datetime.fromtimestamp(end_time)
+        elif isinstance(end_time, dt.datetime): # type: ignore # Explicit type check for runtime safety
+            self.end_time = end_time
+        else:
+            raise TypeError("end_time must be datetime, float, int, or None")
 
     @property
     def seconds(self) -> float:
         """Get age in seconds."""
-        # Only check file existence if we have a path
-        if self.path is not None and not self.path.exists():
-            return 0
-        file_time = dt.datetime.fromtimestamp(self.timestamp)
-        return (self.base_time - file_time).total_seconds()
+        return (self.end_time - self.start_time).total_seconds()
 
     @property
     def minutes(self) -> float:
@@ -83,13 +94,13 @@ class Age:
             "1y" -> 31557600 seconds (1 year)
         """
         age_str = age_str.strip().lower()
-
-        # Handle plain numbers (seconds)
-        if age_str.isdigit():
+        # Handle plain numbers (seconds), including negatives
+        if re.match(r"^-?\d+(?:\.\d+)?$", age_str):
             return float(age_str)
 
-        # Regular expression to parse age with unit
-        match = re.match(r"^(\d+(?:\.\d+)?)\s*([a-zA-Z]+)$", age_str)
+        # Regular expression to parse age with unit, including negatives
+        match = re.match(r"^(-?\d+(?:\.\d+)?)\s*([a-zA-Z]+)$", age_str)
+   
         if not match:
             raise ValueError(f"Invalid age format: {age_str}")
 
@@ -127,6 +138,7 @@ class Age:
             raise ValueError(f"Unknown unit: {unit}")
 
         return value * unit_multipliers[unit]
+
 
 
 __all__ = ["Age"]

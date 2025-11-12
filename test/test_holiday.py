@@ -5,7 +5,7 @@ import datetime as dt
 
 import pytest
 
-from frist import Frist
+from frist import Chrono
 
 
 @pytest.mark.parametrize(
@@ -23,11 +23,11 @@ from frist import Frist
 def test_holiday_detection_param(
     holidays: set[str], target_time: dt.datetime, expected: bool
 ):
-    z = Frist(target_time=target_time, holidays=holidays)
+    z = Chrono(target_time=target_time, holidays=holidays)
     # Defensive: .date() only if target_time is datetime
     date_str:str = target_time.date().isoformat() if hasattr(target_time, "date") else str(target_time)
     holidays_list: list[str] = sorted(holidays)
     assert z.cal.holiday is expected, (
         f"Expected holiday={expected} for target_time={date_str} "
-        f"with holidays={holidays_list}, got {Frist.cal.holiday}"
+        f"with holidays={holidays_list}, got {z.cal.holiday}"
     )
