@@ -227,3 +227,55 @@ def test_age_parse_with_spaces_and_negatives(number, unit, expected_seconds):
         assert Age.parse(pattern) == expected_seconds
 
 
+def test_age_init_invalid_start_type():
+    """AAA: Arrange, Act, Assert
+    Arrange: Provide invalid start_time type
+    Act & Assert: TypeError is raised
+    """
+    import pytest
+    with pytest.raises(TypeError, match="start_time must be datetime, float, or int"):
+        Age("not-a-date")
+
+def test_age_init_invalid_end_type():
+    """AAA: Arrange, Act, Assert
+    Arrange: Provide invalid end_time type
+    Act & Assert: TypeError is raised
+    """
+    import pytest
+    with pytest.raises(TypeError, match="end_time must be datetime, float, int, or None"):
+        Age(dt.datetime.now(), "not-a-date")
+
+def test_age_parse_invalid_format():
+    """AAA: Arrange, Act, Assert
+    Arrange: Provide invalid age string
+    Act & Assert: ValueError is raised
+    """
+    import pytest
+    with pytest.raises(ValueError, match="Invalid age format"):
+        Age.parse("bad-format")
+
+def test_age_parse_unknown_unit():
+    """AAA: Arrange, Act, Assert
+    Arrange: Provide age string with unknown unit
+    Act & Assert: ValueError is raised
+    """
+    import pytest
+    with pytest.raises(ValueError, match="Unknown unit"):
+        Age.parse("5fortnights")
+
+
+def test_age_end_time_defaults_to_now():
+    """AAA: Arrange, Act, Assert
+    Arrange: Create Age with only start_time
+    Act: Get age in seconds
+    Assert: Age end_time is close to now
+    """
+    import time
+    start = dt.datetime.now()
+    age = Age(start)
+    # Sleep briefly to ensure a measurable age
+    time.sleep(0.01)
+    now = dt.datetime.now()
+    assert (now - age.end_time).total_seconds() < 0.1, "end_time should default to current time"
+    assert age.end_time >= start, "end_time should be after start_time"
+

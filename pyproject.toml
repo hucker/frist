@@ -7,6 +7,9 @@ name = "frist"
 version = "0.8.0"
 description = "Test Package"
 authors = [{name = "Chuck Bass"}]
+dependencies = [
+    "pytest-cov>=7.0.0",
+]
 
 [tool.setuptools]
 packages = ["frist"]
@@ -19,3 +22,13 @@ frist = ["py.typed"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.coverage.json]
+output = "coverage.json"
+pretty_print = true

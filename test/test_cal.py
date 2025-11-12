@@ -698,3 +698,38 @@ def test_fiscal_year_and_quarter_april_start():
     cal = z.cal
     assert z.cal.fiscal_quarter == 4  # Jan-Mar is Q4 for April start
     assert cal.fiscal_quarter == 4
+
+def test_cal_init_invalid_target_type():
+    """AAA: Arrange, Act, Assert
+    Arrange: Provide invalid target_dt type
+    Act & Assert: TypeError is raised
+    """
+    with pytest.raises(TypeError, match="target_dt must be datetime, float, or int"):
+        Cal("not-a-date", dt.datetime.now())
+
+def test_cal_init_invalid_ref_type():
+    """AAA: Arrange, Act, Assert
+    Arrange: Provide invalid ref_dt type
+    Act & Assert: TypeError is raised
+    """
+    with pytest.raises(TypeError, match="ref_dt must be datetime, float, or int"):
+        Cal(dt.datetime.now(), "not-a-date")
+
+@pytest.mark.parametrize("method", [
+    "in_days", "in_hours", "in_minutes", "in_months", "in_quarters",
+    "in_years", "in_weeks", "in_workdays", "in_fiscal_quarters", "in_fiscal_years"
+])
+def test_cal_window_start_greater_than_end(method):
+    """AAA: Arrange, Act, Assert
+    Arrange: Create Cal and call window method with start > end
+    Act & Assert: ValueError is raised
+    """
+    cal = Cal(dt.datetime(2024, 1, 2), dt.datetime(2024, 1, 1))
+    func = getattr(cal, method)
+    with pytest.raises(ValueError, match="start.*must not be greater than end"):
+        # For in_weeks, pass week_start as well
+        if method == "in_weeks":
+            func(2, 1, "monday")
+        else:
+            func(2, 1)
+
