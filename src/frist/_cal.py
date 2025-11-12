@@ -218,6 +218,58 @@ class Cal:
 
         return start_date <= target_date <= end_date
 
+
+    def in_workdays(self, start: int = 0, end: int | None = None) -> bool:
+        """
+        True if target_dt falls within the working day window(s) from start to end,
+        counting only working days (Monday-Friday, not holidays).
+
+        The window is defined by moving exactly `start` and `end` working days from ref_dt,
+        skipping weekends and holidays. The check is inclusive: start_workday <= target_dt <= end_workday.
+
+        Args:
+            start: Working days from reference to start range (negative = past, 0 = today, positive = future)
+            end: Working days from reference to end range (defaults to start for single working day)
+
+        Examples:
+            cal.in_workdays(0)          # Today only, if today is a working day
+            cal.in_workdays(-1)         # Previous working day only
+            cal.in_workdays(-5, 5)      # From 5 working days ago through 5 working days ahead
+        """
+        if end is None:
+            end = start
+        if start > end:
+            raise ValueError(f"start ({start}) must not be greater than end ({end})")
+
+        ref_date = self.ref_dt.date()
+        target_date = self.target_dt.date()
+        holidays = self.holidays
+
+        def move_workdays(date: dt.date, n: int) -> dt.date:
+            """Move n working days from date, skipping weekends and holidays."""
+            step = 1 if n > 0 else -1
+            count = 0
+            current = date
+            while count < abs(n):
+                current += dt.timedelta(days=step)
+                if current.weekday() < 5 and current.strftime('%Y-%m-%d') not in holidays:
+                    count += 1
+            return current
+
+        start_workday = move_workdays(ref_date, start)
+        end_workday = move_workdays(ref_date, end)
+
+        # Ensure correct ordering
+        if start_workday > end_workday:
+            start_workday, end_workday = end_workday, start_workday
+
+        # Target must be a workday (Mon-Fri, not holiday)
+        is_workday = (
+            target_date.weekday() < 5 and target_date.strftime('%Y-%m-%d') not in holidays
+        )
+        return is_workday and (start_workday <= target_date <= end_workday)
+
+
     def in_months(self, start: int = 0, end: int | None = None) -> bool:
         """True if timestamp falls within the month window(s) from start to end.
 
@@ -480,3 +532,15 @@ class Cal:
         offset = (dt.month - fy_start_month) % 12 if dt.month >= fy_start_month else (dt.month + 12 - fy_start_month) % 12
         return (offset // 3) + 1
 
+    @staticmethod
+    def count_working_days(start: dt.date, end: dt.date, holidays: set[str]) -> int:
+        """Count working days between start and end dates (inclusive)."""
+        count = 0
+        current = start
+        while current <= end:
+            weekday = current.weekday()
+            date_str = current.strftime('%Y-%m-%d')
+            if weekday < 5 and date_str not in holidays:  # 0-4 are Mon-Fri
+                count += 1
+            current += dt.timedelta(days=1)
+        return count
