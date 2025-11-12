@@ -1,34 +1,39 @@
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
 
 [project]
 name = "frist"
-version = "0.8.0"
-description = "Test Package"
-authors = [{name = "Chuck Bass"}]
-dependencies = [
-    "pytest-cov>=7.0.0",
+version = "0.9.0"
+description = "Calendar-based time window filtering, age calculations, and business logic for dates and times."
+authors = [
+    { name = "Chuck Hucker", email = "chuck@hucker.com" }
+]
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
 ]
 
-[tool.setuptools]
-packages = ["frist"]
-package-dir = {"" = "src"}
 
 
-[tool.setuptools.package-data]
-# This is required for typehints to work in your IDE
-frist = ["py.typed"]
+# frist has no runtime dependencies
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
-
-[tool.coverage.run]
-branch = true
-
-[tool.coverage.report]
-show_missing = true
-
-[tool.coverage.json]
+testpaths = ["test"]
+addopts = "--cov=src/frist --cov-report=term-missing"
 output = "coverage.json"
 pretty_print = true
+
+[project.urls]
+Homepage = "https://github.com/hucker/frist"
+Repository = "https://github.com/hucker/frist"
+Issues = "https://github.com/hucker/frist/issues"

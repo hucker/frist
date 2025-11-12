@@ -1,83 +1,117 @@
 
 
-# Frist
 
-Frist is a property-based date and time utility for Python, designed to make relative date calculations and calendar logic simple and intuitive—without manual math. You create a Chrono object with a target time (when something happened) and a reference time (usually "now") you can find age and time window information accross time scales from seconds to years.
+# Frist: Property-Based Date and Time Operations
 
-Frist lets you answer questions like "Did this event happen today, this month, or this year?" using properties such as `in_day`, `in_month`, and `in_year`. These properties check if the target time lands anywhere in the current time unit window. You can also use ranges, like `in_days(-7, 0)` for "in the last 7 days" or `in_months(-1, 1)` for "from last month to next month." This is different from `.age.days`, which gives you the precise floating-point age in days between the target and reference times.
+Frist is a modern Python library for calendar, age, and time window calculations. Its API is property-driven—most operations are performed by accessing properties or calling simple methods, with minimal need for manual math or low-level datetime manipulation.
 
-With Frist, you get instant answers to time-based questions with a single property, instead of writing complex date math. This makes it easy to work with calendar windows, fiscal periods, and custom time ranges.
+**In German, "Frist" means "deadline" or "time limit." This reflects the package's focus on time windows, periods, and calendar logic.**
 
 ---
 
-**Note:** In German, "Frist" means "deadline" or "time limit." This reflects the package's focus on time windows, periods, and calendar logic.
 
-## Key Concepts
+## Key Features
 
-- **Property-based API:** Most calculations are exposed as properties (e.g., `.age.days`, `.fiscal_year`, `.holiday`), not methods, so you rarely need to call functions or do arithmetic.
-- **Minimal math required:** You can answer most date and calendar questions by accessing properties, not by writing formulas.
-- **Flexible reference time:** Zeit lets you compare any target date/time to any reference date/time, not just "now".
-- **Calendar and fiscal logic:** Built-in support for calendar windows (days, weeks, months, quarters, years) and fiscal year/quarter calculations.
-- **Holiday detection:** Pass a set of holiday dates and instantly check if a date is a holiday.
+- **Property-based API:** Access date and time information through properties and high-level methods.
+- **Calendar windows:** Easily check if a date falls within a day, week, month, quarter, fiscal period, or custom working day window.
+- **Working day and holiday logic:** Built-in support for excluding weekends and holidays from all calendar calculations. Simply provide a set of holiday dates and Frist will automatically skip them in working day windows and related queries.
+- **Customizable business calendars:** Define your own holiday sets and fiscal year start months for precise business logic.
+- **Age calculations:** Compute age spans and durations using flexible input types.
+- **No manual math required:** Most operations are declarative and require no arithmetic or direct datetime handling.
 
+---
 
-## Quick Start
+## Installation
 
-```python
-import datetime as dt
-from frist import Chrono
-
-# Create a Chrono object for a target date
-meeting = Chrono(target_time=dt.datetime(2025, 12, 25))
-
-# Check age properties
-print(meeting.age.days)      # Days since meeting
-print(meeting.age.hours)     # Hours since meeting
-
-# Calendar windows
-if meeting.cal.in_days(0):
-  print("Meeting is today!")
-if meeting.cal.in_weeks(-1):
-  print("Meeting was last week.")
-
-# Fiscal year and quarter
-print(meeting.fiscal_year)      # Fiscal year for the meeting
-print(meeting.fiscal_quarter)   # Fiscal quarter for the meeting
-
-# Holiday detection
-holidays = {'2025-12-25', '2025-01-01'}
-meeting = Chrono(target_time=dt.datetime(2025, 12, 25), holidays=holidays)
-if meeting.holiday:
-  print("This date is a holiday!")
-
-# Compare to a custom reference time
-project = Chrono(target_time=dt.datetime(2025, 1, 1), reference_time=dt.datetime(2025, 2, 1))
-print(project.age.days)  # Days between Jan 1 and Feb 1, 2025
+```bash
+pip install frist
+```
+Or clone the repository and install locally:
+```bash
+git clone https://github.com/hucker/frist.git
+cd frist
+pip install .
 ```
 
-## Features
+---
 
-## Time Scale Properties Table
+## Usage
 
-| Time Scale    | Age Property         | Window Function(s)                    |
-|-------------- |----------------------|---------------------------------------|
-| Seconds       | `.age.seconds`       | `.cal.in_seconds(start, end)`         |
-| Minutes       | `.age.minutes`       | `.cal.in_minutes(start, end)`         |
-| Hours         | `.age.hours`         | `.cal.in_hours(start, end)`           |
-| Days          | `.age.days`          | `.cal.in_days(start, end)`            |
-| Weeks         | `.age.weeks`         | `.cal.in_weeks(start, end)`           |
-| Months        | `.age.months`        | `.cal.in_months(start, end)`          |
-| Quarters      | `.age.quarters`      | `.cal.in_quarters(start, end)`        |
-| Years         | `.age.years`         | `.cal.in_years(start, end)`           |
-| Fiscal Years  | `.age.fiscal_year`   | `.cal.in_fiscal_years(start, end)`    |
-| Fiscal Qtrs   | `.age.fiscal_quarter`| `.cal.in_fiscal_quarters(start, end)` |
+### Calendar Operations
 
-Each age property gives the precise floating-point difference in that unit. Each window function generates a boolean if the target time falls within the specified range of time units relative to the reference time.
-Age properties (like `.age.days`) are designed for direct comparisons—use them to ask questions like `>`, `<`, `==`, or `!=` between the target and reference times. In contrast, the `in_*` window functions (like `.cal.in_days()`) return `True` or `False` depending on whether the target time falls within the specified range.
-Note: The `end` parameter is optional. If omitted, the function checks for a single time unit (e.g., `.cal.in_days(0)` means "today").
+```python
+from frist import Cal
+import datetime as dt
 
+cal = Cal(target_dt=dt.datetime(2024, 5, 8), ref_dt=dt.datetime(2024, 5, 6), holidays={"2024-05-08"})
+print(cal.in_workdays(-2, 2))  # True/False
+print(cal.in_months(0))        # True/False
+print(cal.in_fiscal_quarters(0)) # True/False
+```
 
-## Fiscal Year & Quarter Example
+### Age Calculations
+
+```python
+from frist import Age
+import datetime as dt
+
+age = Age(dt.datetime(2000, 1, 1), dt.datetime(2024, 1, 1))
+print(age.years)  # Property: number of years
+print(age.days)   # Property: number of days
+
+age_now = Age(dt.datetime(2000, 1, 1))
+print(age_now.years)
+```
+
+---
+
+## API Highlights
+
+### Cal
+
+- `target_dt`, `ref_dt`: Properties for target and reference datetimes
+- `in_days`, `in_weeks`, `in_months`, `in_quarters`, `in_years`, `in_workdays`, `in_fiscal_quarters`, `in_fiscal_years`: Methods to check if the target date falls within various calendar windows
+- `holiday`, `fiscal_year`, `fiscal_quarter`: Properties for holiday and fiscal calculations
+
+### Age
+
+- `years`, `months`, `days`, `seconds`: Properties for age span
+- Flexible initialization: accepts datetimes, timestamps, or protocols
+
+---
+
+## Configuration
+
+- **Holidays:** Pass a set of date strings (YYYY-MM-DD) to exclude from working day calculations
+- **Fiscal year start:** Set `fy_start_month` for fiscal calculations
+
+---
+
+## Testing
+
+- Comprehensive test suite covers edge cases, holidays, weekends, and exception handling
+- Run tests with:
+```bash
+pytest
+```
+
+---
+
+## Contributing
+
+Pull requests and issues are welcome! See the repository for guidelines.
+
+---
+
+## License
+
+MIT License
+
+---
+
+## Acknowledgments
+
+Inspired by real-world business calendar needs and designed for clarity and ease of use.
 
 Chrono objects support fiscal year and quarter calculations with customizable fiscal year start months. For example:
 

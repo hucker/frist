@@ -18,7 +18,7 @@ from ._age import Age
 from ._cal import Cal
 from ._frist import Chrono
 
-__version__ = "0.8.0"
+__version__ = "0.9.0"
 __author__ = "Chuck Bass"
 
 __all__ = ["Chrono", "Age",  "Cal"  ]
