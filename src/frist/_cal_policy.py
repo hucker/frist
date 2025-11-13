@@ -24,7 +24,17 @@ class CalendarPolicy:
     end_of_business: dt.time = dt.time(17, 0)
     holidays: Set[str] = field(default_factory=set)
     
-
+    def __post_init__(self):
+        if not (1 <= self.fiscal_year_start_month <= 12):
+            raise ValueError(f"fiscal_year_start_month must be in 1..12, got {self.fiscal_year_start_month}")
+        if not isinstance(self.workdays, list):
+            raise TypeError("workdays must be a list of integers")
+        if not (0 <= len(self.workdays) <= 7):
+            raise ValueError(f"workdays must have 0 to 7 values, got {len(self.workdays)}")
+        for wd in self.workdays:
+            if not isinstance(wd, int) or not (0 <= wd <= 6):
+                raise ValueError(f"workdays must contain only integers 0..6, got {wd}")
+   
     def is_weekend(self, value: int | dt.date | dt.datetime) -> bool:
         """
         Return True if the given date or datetime is not a workday.

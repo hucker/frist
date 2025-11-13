@@ -19,6 +19,8 @@ from ._constants import (
     SECONDS_PER_YEAR,
 )
 
+from ._cal_policy import CalendarPolicy
+
 class Age:
     """Property class for handling age calculations in various time units."""
 
@@ -26,6 +28,7 @@ class Age:
         self,
         start_time: dt.datetime | float | int,
         end_time: dt.datetime | float | int | None = None,
+        cal_policy: CalendarPolicy | None = None,
     ):
         if isinstance(start_time, (float, int)):
             self.start_time = dt.datetime.fromtimestamp(start_time)
@@ -42,6 +45,16 @@ class Age:
             self.end_time = end_time
         else:
             raise TypeError("end_time must be datetime, float, int, or None")
+
+        if cal_policy is None:
+            self._cal_policy: CalendarPolicy = CalendarPolicy()
+        else:
+            self._cal_policy: CalendarPolicy = cal_policy
+
+    @property
+    def cal_policy(self) -> CalendarPolicy:
+        """Return the calendar policy object used by this Age instance."""
+        return self._cal_policy
 
     @property
     def seconds(self) -> float:
