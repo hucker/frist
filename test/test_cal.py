@@ -10,6 +10,7 @@ import pytest
 
 from frist import Cal, Chrono
 from frist._cal import normalize_weekday
+from frist._cal_policy import CalendarPolicy
 
 
 def test_simple_cal_day_windows():
@@ -525,18 +526,22 @@ def test_cal_initialization_variants(
     # Arrange: Inputs are parameterized above
 
     # Act: Create Cal instance
-    cal = Cal(target, ref, fy_start_month=fy_start_month, holidays=holidays)
+    policy: CalendarPolicy= CalendarPolicy(
+        fiscal_year_start_month=fy_start_month,
+        holidays=holidays if holidays is not None else set()
+    )
+    cal = Cal(target, ref, cal_policy=policy)
 
     # Assert: Properties match expectations
     assert cal.target_dt == expected_target
     assert cal.ref_dt == expected_ref
 
     if expected_holidays is None:
-        assert cal.holidays == set()
+        assert cal.cal_policy.holidays == set()
     else:
-        assert cal.holidays == expected_holidays
+        assert cal.cal_policy.holidays == expected_holidays
     
-    assert cal.fy_start_month == expected_fy_start
+    assert cal.cal_policy.fiscal_year_start_month == expected_fy_start
 
 
 

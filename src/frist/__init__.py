@@ -13,12 +13,14 @@ Exports:
     Chrono   -- Main datetime utility class
     Age       -- Duration and age calculations
     Cal       -- Calendar window and filtering logic
+    CalendarPolicy -- Configurable calendar policies (fiscal year start, holidays)
 """
 from ._age import Age
 from ._cal import Cal
+from ._cal_policy import CalendarPolicy
 from ._frist import Chrono
 
 __version__ = "0.9.0"
 __author__ = "Chuck Bass"
 
-__all__ = ["Chrono", "Age",  "Cal"  ]
+__all__ = ["Chrono", "Age",  "Cal" ,"CalendarPolicy" ]

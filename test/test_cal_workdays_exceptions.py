@@ -1,6 +1,6 @@
 import datetime as dt
 import pytest
-from frist._cal import Cal
+from frist._cal import Cal,CalendarPolicy
 
 def test_in_workdays_start_greater_than_end():
     """AAA: Arrange, Act, Assert
@@ -29,6 +29,7 @@ def test_in_workdays_target_is_holiday():
     Assert: Returns False
     """
     # Wednesday May 8, 2024, holiday
-    cal = Cal(dt.datetime(2024, 5, 8), dt.datetime(2024, 5, 6), holidays={"2024-05-08"})
+    policy = CalendarPolicy(holidays={"2024-05-08"})
+    cal = Cal(dt.datetime(2024, 5, 8), dt.datetime(2024, 5, 6), cal_policy=policy)
     result = cal.in_workdays(0, 2)
     assert result is False, "Should return False for holiday target date"

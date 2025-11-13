@@ -9,6 +9,7 @@ import datetime as dt
 
 from ._age import Age
 from ._cal import Cal
+from ._cal_policy import CalendarPolicy
 
 
 class Chrono:
@@ -84,10 +85,13 @@ class Chrono:
         Returns Cal object for checking if target_time falls within calendar windows.
         """
         # Cal can work directly with frist since we have .target_dt and .ref_dt properties
+        cal_policy = CalendarPolicy(
+            fiscal_year_start_month=self.fy_start_month,
+            holidays=self.holidays
+        )
         return Cal(self.target_time,
                    self.reference_time,
-                   fy_start_month=self.fy_start_month,
-                   holidays=self.holidays,)
+                   cal_policy=cal_policy)
 
     @property
     def timestamp(self) -> float:

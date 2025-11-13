@@ -1,5 +1,7 @@
 import datetime as dt
 from frist._cal import Cal
+from frist._cal_policy import CalendarPolicy
+
 
 def test_in_workdays_swap_branch():
     """
@@ -14,13 +16,15 @@ def test_in_workdays_swap_branch():
     - So, swap only happens if start < end, but holidays/weekends make start_workday > end_workday.
     """
     import datetime as dt
-    from frist._cal import Cal
+
 
     ref = dt.datetime(2024, 5, 10)      # Friday
     target = dt.datetime(2024, 5, 13)   # Monday (holiday)
     holidays = {"2024-05-13"}           # Monday is a holiday
 
-    cal = Cal(target, ref, holidays=holidays)
+    policy = CalendarPolicy(holidays=holidays)
+    cal = Cal(target, ref, cal_policy=policy)
+
     # start=1: Monday May 13 (holiday)
     # end=2: Tuesday May 14
     # start_workday (May 13) > end_workday (May 14) if holidays/weekends are set up
@@ -47,8 +51,9 @@ def test_in_workdays_swap_branch_hits():
     ref = dt.datetime(2024, 5, 10)      # Friday
     target = dt.datetime(2024, 5, 13)   # Monday (holiday)
     holidays = {"2024-05-10"}           # Friday is a holiday
-
-    cal = Cal(target, ref, holidays=holidays)
+    from frist._cal_policy import CalendarPolicy
+    policy = CalendarPolicy(holidays=holidays)
+    cal = Cal(target, ref, cal_policy=policy)
     # start=0: Friday May 10 (holiday, so not a workday)
     # end=1: Monday May 13
     # start_workday: skip Friday (holiday), lands on next workday (Monday May 13)
@@ -61,8 +66,8 @@ def test_in_workdays_swap_branch_hits():
     ref = dt.datetime(2024, 5, 11)      # Saturday
     target = dt.datetime(2024, 5, 13)   # Monday
     holidays = {"2024-05-12"}           # Sunday is a holiday
-
-    cal = Cal(target, ref, holidays=holidays)
+    policy = CalendarPolicy(holidays=holidays)
+    cal = Cal(target, ref, cal_policy=policy)
     # start=0: Saturday (weekend, not a workday), so next workday is Monday May 13
     # end=1: move one workday from Saturday, skip Sunday (holiday), lands on Monday May 13
     # Both start_workday and end_workday are Monday May 13, so no swap.

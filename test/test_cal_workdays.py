@@ -7,6 +7,7 @@ Covers scenarios with weekends, holidays, and various window ranges.
 import datetime as dt
 import pytest
 from frist import Cal
+from frist._cal_policy import CalendarPolicy
 
 @pytest.mark.parametrize(
     "ref_date, target_date, holidays, start, end, expected, case",
@@ -101,7 +102,9 @@ def test_in_workdays_various_cases(
     Assert: Result matches expected
     """
     # Arrange
-    cal = Cal(target_date, ref_date, holidays=holidays)
+
+    policy = CalendarPolicy(holidays=holidays)
+    cal = Cal(target_date, ref_date, cal_policy=policy)
     # Act
     result = cal.in_workdays(start, end)
     # Assert

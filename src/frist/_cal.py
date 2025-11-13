@@ -95,16 +95,16 @@ def verify_start_end(func):
     return wrapper
 
 
-class Cal:
+from ._cal_policy import CalendarPolicy
 
+class Cal:
     """Calendar window filtering functionality for direct datetime/timestamp inputs."""
 
     def __init__(
         self,
         target_dt: dt.datetime | float | int,
         ref_dt: dt.datetime | float | int,
-        fy_start_month: int = 1,
-        holidays: set[str] | None = None,
+        cal_policy: CalendarPolicy | None = None,
     ) -> None:
         # Convert to datetime if needed
         if isinstance(target_dt, (float, int)):
@@ -121,8 +121,10 @@ class Cal:
         else:
             raise TypeError("ref_dt must be datetime, float, or int")
 
-        self.fy_start_month: int = fy_start_month
-        self.holidays: set[str] = holidays if holidays is not None else set()
+        if cal_policy is None:
+            self.cal_policy = CalendarPolicy()
+        else:
+            self.cal_policy = cal_policy
 
 
     @property
@@ -137,30 +139,22 @@ class Cal:
     
     @property
     def holiday(self) -> bool:
-        """Return True if target_dt is a holiday (in holidays set)."""
-        date_str = self.target_dt.strftime('%Y-%m-%d')
-        return date_str in self.holidays
+        """Return True if target_dt is a holiday according to calendar policy."""
+        return self.cal_policy.is_holiday(self.target_dt)
 
     @property
     def fiscal_year(self) -> int:
-        """Return the fiscal year for target_dt based on fy_start_month."""
-        month = self.target_dt.month
-        year = self.target_dt.year
-        if month >= self.fy_start_month:
-            return year
-        else:
-            return year - 1
+        """Return the fiscal year for target_dt based on CalendarPolicy."""
+        return self.__class__.get_fiscal_year(self.target_dt, self.cal_policy.fiscal_year_start_month)
 
     @property
     def fiscal_quarter(self) -> int:
-        """Return the fiscal quarter for target_dt based on fy_start_month."""
-        month = self.target_dt.month
-        offset = (month - self.fy_start_month) % 12
-        return (offset // 3) + 1
+        """Return the fiscal quarter for target_dt based on CalendarPolicy."""
+        return self.__class__.get_fiscal_quarter(self.target_dt, self.cal_policy.fiscal_year_start_month)
 
 
     @verify_start_end
-    def in_minutes(self, start: int = 0, end: int | None = None) -> bool:
+    def in_minutes(self, start: int = 0, end: int = 0) -> bool:
         """
         True if timestamp falls within the minute window(s) from start to end.
 
@@ -183,13 +177,13 @@ class Cal:
         start_time = self.ref_dt + dt.timedelta(minutes=start)
         start_minute = start_time.replace(second=0, microsecond=0)
 
-        end_time = self.ref_dt + dt.timedelta(minutes=int(end))
+        end_time = self.ref_dt + dt.timedelta(minutes=end)
         end_minute = end_time.replace(second=0, microsecond=0) + dt.timedelta(minutes=1)
 
         return start_minute <= target_time < end_minute
 
     @verify_start_end
-    def in_hours(self, start: int = 0, end: int | None = None) -> bool:
+    def in_hours(self, start: int = 0, end: int = 0) -> bool:
         """
         True if timestamp falls within the hour window(s) from start to end.
 
@@ -212,13 +206,13 @@ class Cal:
         start_time = self.ref_dt + dt.timedelta(hours=start)
         start_hour = start_time.replace(minute=0, second=0, microsecond=0)
 
-        end_time = self.ref_dt + dt.timedelta(hours=int(end))
+        end_time = self.ref_dt + dt.timedelta(hours=end)
         end_hour = end_time.replace(minute=0, second=0, microsecond=0) + dt.timedelta(hours=1)
 
         return start_hour <= target_time < end_hour
 
     @verify_start_end
-    def in_days(self, start: int = 0, end: int | None = None) -> bool:
+    def in_days(self, start: int = 0, end: int = 0) -> bool:
         """True if timestamp falls within the day window(s) from start to end.
 
         Args:
@@ -236,19 +230,19 @@ class Cal:
 
         # Calculate the date range boundaries
         start_date = (self.ref_dt + dt.timedelta(days=start)).date()
-        end_date = (self.ref_dt + dt.timedelta(days=int(end))).date()
+        end_date = (self.ref_dt + dt.timedelta(days=end)).date()
 
         return start_date <= target_date <= end_date
 
 
     @verify_start_end
-    def in_workdays(self, start: int = 0, end: int | None = None) -> bool:
+    def in_workdays(self, start: int = 0, end: int = 0) -> bool:
         """
         True if target_dt falls within the working day window(s) from start to end,
-        counting only working days (Monday-Friday, not holidays).
+        counting only working days as defined by CalendarPolicy (workdays, holidays).
 
         The window is defined by moving exactly `start` and `end` working days from ref_dt,
-        skipping weekends and holidays. The check is inclusive: start_workday <= target_dt <= end_workday.
+        skipping non-workdays and holidays. The check is inclusive: start_workday <= target_dt <= end_workday.
 
         Args:
             start: Working days from reference to start range (negative = past, 0 = today, positive = future)
@@ -259,38 +253,34 @@ class Cal:
             cal.in_workdays(-1)         # Previous working day only
             cal.in_workdays(-5, 5)      # From 5 working days ago through 5 working days ahead
         """
-
         ref_date = self.ref_dt.date()
         target_date = self.target_dt.date()
-        holidays = self.holidays
 
         def move_workdays(date: dt.date, n: int) -> dt.date:
-            """Move n working days from date, skipping weekends and holidays."""
+            """Move n working days from date, skipping non-workdays and holidays."""
             step = 1 if n > 0 else -1
             count = 0
             current = date
             while count < abs(n):
                 current += dt.timedelta(days=step)
-                if current.weekday() < 5 and current.strftime('%Y-%m-%d') not in holidays:
+                if self.cal_policy.is_workday(current) and not self.cal_policy.is_holiday(current):
                     count += 1
             return current
 
         start_workday = move_workdays(ref_date, start)
-        end_workday = move_workdays(ref_date, int(end))
+        end_workday = move_workdays(ref_date, end)
 
         # Ensure correct ordering
         if start_workday > end_workday:
             start_workday, end_workday = end_workday, start_workday
 
-        # Target must be a workday (Mon-Fri, not holiday)
-        is_workday = (
-            target_date.weekday() < 5 and target_date.strftime('%Y-%m-%d') not in holidays
-        )
+        # Target must be a workday (per CalendarPolicy)
+        is_workday = self.cal_policy.is_workday(target_date) and not self.cal_policy.is_holiday(target_date)
         return is_workday and (start_workday <= target_date <= end_workday)
 
 
     @verify_start_end
-    def in_months(self, start: int = 0, end: int | None = None) -> bool:
+    def in_months(self, start: int = 0, end: int = 0) -> bool:
         """True if timestamp falls within the month window(s) from start to end.
 
         Args:
@@ -319,7 +309,7 @@ class Cal:
             start_year += 1
 
         # Calculate the end month (latest)
-        end_month = base_month + int(end)
+        end_month = base_month + end
         end_year = base_year
         while end_month <= 0:
             end_month += 12
@@ -336,7 +326,7 @@ class Cal:
         return start_month_index <= file_month_index <= end_month_index
 
     @verify_start_end
-    def in_quarters(self, start: int = 0, end: int | None = None) -> bool:
+    def in_quarters(self, start: int = 0, end: int = 0) -> bool:
         """
         True if timestamp falls within the quarter window(s) from start to end.
 
@@ -367,7 +357,7 @@ class Cal:
             return year, quarter
 
         start_year, start_quarter = normalize_quarter_year(start)
-        end_year, end_quarter = normalize_quarter_year(int(end))
+        end_year, end_quarter = normalize_quarter_year(end)
 
         # Get target's quarter
         target_quarter = ((target_time.month - 1) // 3) + 1
@@ -382,7 +372,7 @@ class Cal:
         return start_tuple <= target_tuple < (end_tuple[0], end_tuple[1] + 1)
 
     @verify_start_end
-    def in_years(self, start: int = 0, end: int | None = None) -> bool:
+    def in_years(self, start: int = 0, end: int = 0) -> bool:
         """True if timestamp falls within the year window(s) from start to end.
 
         Args:
@@ -401,13 +391,13 @@ class Cal:
 
         # Calculate year range boundaries
         start_year = base_year + start
-        end_year = base_year + int(end)
+        end_year = base_year + end
 
         return start_year <= target_year <= end_year
     
     @verify_start_end
     def in_weeks(
-        self, start: int = 0, end: int | None = None, week_start: str = "monday"
+        self, start: int = 0, end: int = 0, week_start: str = "monday"
     ) -> bool:
         """True if timestamp falls within the week window(s) from start to end.
 
@@ -438,7 +428,7 @@ class Cal:
 
         # Calculate week boundaries
         start_week_start = current_week_start + dt.timedelta(weeks=start)
-        end_week_start = current_week_start + dt.timedelta(weeks=int(end))
+        end_week_start = current_week_start + dt.timedelta(weeks=end)
         end_week_end = end_week_start + dt.timedelta(
             days=6
         )  # End of week (6 days after start)
@@ -447,7 +437,7 @@ class Cal:
 
 
     @verify_start_end
-    def in_fiscal_quarters(self, start: int = 0, end: int | None = None) -> bool:
+    def in_fiscal_quarters(self, start: int = 0, end: int = 0) -> bool:
         """
         True if timestamp falls within the fiscal quarter window(s) from start to end.
 
@@ -463,10 +453,8 @@ class Cal:
             zeit.cal.in_fiscal_quarters(-4, -1)     # From 4 fiscal quarters ago through last fiscal quarter
             zeit.cal.in_fiscal_quarters(-8, 0)      # Last 8 fiscal quarters through this fiscal quarter
         """
-
-        fy_start_month = self.fy_start_month
-
-        base_time = self.ref_dt  # <-- FIXED HERE
+        fy_start_month = self.cal_policy.fiscal_year_start_month
+        base_time = self.ref_dt
         fy = Cal.get_fiscal_year(base_time, fy_start_month)
         fq = Cal.get_fiscal_quarter(base_time, fy_start_month)
 
@@ -477,7 +465,7 @@ class Cal:
             return year, quarter
 
         start_year, start_quarter = normalize_fiscal_quarter_year(start)
-        end_year, end_quarter = normalize_fiscal_quarter_year(int(end))
+        end_year, end_quarter = normalize_fiscal_quarter_year(end)
 
         target_fy = Cal.get_fiscal_year(self.target_dt, fy_start_month)
         target_fq = Cal.get_fiscal_quarter(self.target_dt, fy_start_month)
@@ -490,7 +478,7 @@ class Cal:
 
 
     @verify_start_end
-    def in_fiscal_years(self, start: int = 0, end: int | None = None) -> bool:
+    def in_fiscal_years(self, start: int = 0, end: int = 0) -> bool:
         """
         True if timestamp falls within the fiscal year window(s) from start to end.
 
@@ -506,13 +494,11 @@ class Cal:
             zeit.cal.in_fiscal_years(-5, -1)     # From 5 fiscal years ago through last fiscal year
             zeit.cal.in_fiscal_years(-10, 0)     # Last 10 fiscal years through this fiscal year
         """
-
-        fy_start_month = self.fy_start_month
-
-        base_time = self.ref_dt  # <-- FIXED HERE
+        fy_start_month = self.cal_policy.fiscal_year_start_month
+        base_time = self.ref_dt
         fy = Cal.get_fiscal_year(base_time, fy_start_month)
         start_year = fy + start
-        end_year = fy + int(end)
+        end_year = fy + end
 
         target_fy = Cal.get_fiscal_year(self.target_dt, fy_start_month)
 
@@ -531,13 +517,23 @@ class Cal:
 
     @staticmethod
     def count_working_days(start: dt.date, end: dt.date, holidays: set[str]) -> int:
-        """Count working days between start and end dates (inclusive)."""
+        """
+        Count working days between start and end dates (inclusive).
+        Uses Monday-Friday as workdays and provided holidays set.
+        Args:
+            start: Start date (inclusive)
+            end: End date (inclusive)
+            holidays: Set of holiday date strings (YYYY-MM-DD)
+        Returns:
+            int: Number of working days
+        """
+        workdays = {0, 1, 2, 3, 4}  # Monday=0 ... Friday=4
         count = 0
         current = start
         while current <= end:
             weekday = current.weekday()
             date_str = current.strftime('%Y-%m-%d')
-            if weekday < 5 and date_str not in holidays:  # 0-4 are Mon-Fri
+            if weekday in workdays and date_str not in holidays:
                 count += 1
             current += dt.timedelta(days=1)
         return count
