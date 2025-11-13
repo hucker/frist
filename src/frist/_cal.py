@@ -5,8 +5,12 @@ Calendar-based time window filtering for frist package.
 Provides calendar window filtering functionality for Chronoobjects).
 """
 
+
+import functools
+
 import datetime as dt
 from typing import TYPE_CHECKING
+
 
 from ._constants import WEEKDAY_INDEX
 
@@ -61,7 +65,22 @@ def normalize_weekday(day_spec: str) -> int:
 
 
 
+
+def verify_start_end(func):
+    """Decorator to ensure start <= end for in_* methods."""
+    @functools.wraps(func)
+    def wrapper(self: Any, start: int = 0, end: int | None = None, *args: Any, **kwargs: Any) -> Any:
+        if end is None:
+            end = start
+        if start > end:
+            func_name = getattr(func, "__name__", repr(func))
+            raise ValueError(f"{func_name}: start ({start}) must not be greater than end ({end})")
+        return func(self, start, end, *args, **kwargs)
+    return wrapper
+
+
 class Cal:
+
     """Calendar window filtering functionality for direct datetime/timestamp inputs."""
 
     def __init__(
@@ -124,6 +143,7 @@ class Cal:
         return (offset // 3) + 1
 
 
+    @verify_start_end
     def in_minutes(self, start: int = 0, end: int | None = None) -> bool:
         """
         True if timestamp falls within the minute window(s) from start to end.
@@ -140,11 +160,6 @@ class Cal:
             zeit.cal.in_minutes(-10, -5)    # From 10 minutes ago through 5 minutes ago
             zeit.cal.in_minutes(-30, 0)     # Last 30 minutes through now
         """
-        if end is None:
-            end = start
-
-        if start > end:
-            raise ValueError(f"start ({start}) must not be greater than end ({end})")
 
         target_time = self.target_dt
 
@@ -152,11 +167,12 @@ class Cal:
         start_time = self.ref_dt + dt.timedelta(minutes=start)
         start_minute = start_time.replace(second=0, microsecond=0)
 
-        end_time = self.ref_dt + dt.timedelta(minutes=end)
+        end_time = self.ref_dt + dt.timedelta(minutes=int(end))
         end_minute = end_time.replace(second=0, microsecond=0) + dt.timedelta(minutes=1)
 
         return start_minute <= target_time < end_minute
 
+    @verify_start_end
     def in_hours(self, start: int = 0, end: int | None = None) -> bool:
         """
         True if timestamp falls within the hour window(s) from start to end.
@@ -173,11 +189,6 @@ class Cal:
             zeit.cal.in_hours(-6, -1)     # From 6 hours ago through 1 hour ago
             zeit.cal.in_hours(-24, 0)     # Last 24 hours through now
         """
-        if end is None:
-            end = start
-
-        if start > end:
-            raise ValueError(f"start ({start}) must not be greater than end ({end})")
 
         target_time = self.target_dt
 
@@ -185,11 +196,12 @@ class Cal:
         start_time = self.ref_dt + dt.timedelta(hours=start)
         start_hour = start_time.replace(minute=0, second=0, microsecond=0)
 
-        end_time = self.ref_dt + dt.timedelta(hours=end)
+        end_time = self.ref_dt + dt.timedelta(hours=int(end))
         end_hour = end_time.replace(minute=0, second=0, microsecond=0) + dt.timedelta(hours=1)
 
         return start_hour <= target_time < end_hour
 
+    @verify_start_end
     def in_days(self, start: int = 0, end: int | None = None) -> bool:
         """True if timestamp falls within the day window(s) from start to end.
 
@@ -203,22 +215,17 @@ class Cal:
             cal.in_days(-7, -1)     # From 7 days ago through yesterday
             cal.in_days(-30, 0)     # Last 30 days through today
         """
-        if end is None:
-            end = start
-
-        if start > end:
-            msg = f"start ({start}) must not be greater than end ({end})"
-            raise ValueError(msg)
 
         target_date = self.target_dt.date()
 
         # Calculate the date range boundaries
         start_date = (self.ref_dt + dt.timedelta(days=start)).date()
-        end_date = (self.ref_dt + dt.timedelta(days=end)).date()
+        end_date = (self.ref_dt + dt.timedelta(days=int(end))).date()
 
         return start_date <= target_date <= end_date
 
 
+    @verify_start_end
     def in_workdays(self, start: int = 0, end: int | None = None) -> bool:
         """
         True if target_dt falls within the working day window(s) from start to end,
@@ -236,10 +243,6 @@ class Cal:
             cal.in_workdays(-1)         # Previous working day only
             cal.in_workdays(-5, 5)      # From 5 working days ago through 5 working days ahead
         """
-        if end is None:
-            end = start
-        if start > end:
-            raise ValueError(f"start ({start}) must not be greater than end ({end})")
 
         ref_date = self.ref_dt.date()
         target_date = self.target_dt.date()
@@ -257,7 +260,7 @@ class Cal:
             return current
 
         start_workday = move_workdays(ref_date, start)
-        end_workday = move_workdays(ref_date, end)
+        end_workday = move_workdays(ref_date, int(end))
 
         # Ensure correct ordering
         if start_workday > end_workday:
@@ -270,6 +273,7 @@ class Cal:
         return is_workday and (start_workday <= target_date <= end_workday)
 
 
+    @verify_start_end
     def in_months(self, start: int = 0, end: int | None = None) -> bool:
         """True if timestamp falls within the month window(s) from start to end.
 
@@ -283,11 +287,6 @@ class Cal:
             zeit.cal.in_months(-6, -1)     # From 6 months ago through last month
             zeit.cal.in_months(-12, 0)     # Last 12 months through this month
         """
-        if end is None:
-            end = start
-
-        if start > end:
-            raise ValueError(f"start ({start}) must not be greater than end ({end})")
 
         target_time = self.target_dt
         base_year = self.ref_dt.year
@@ -304,7 +303,7 @@ class Cal:
             start_year += 1
 
         # Calculate the end month (latest)
-        end_month = base_month + end
+        end_month = base_month + int(end)
         end_year = base_year
         while end_month <= 0:
             end_month += 12
@@ -320,6 +319,7 @@ class Cal:
 
         return start_month_index <= file_month_index <= end_month_index
 
+    @verify_start_end
     def in_quarters(self, start: int = 0, end: int | None = None) -> bool:
         """
         True if timestamp falls within the quarter window(s) from start to end.
@@ -336,11 +336,6 @@ class Cal:
             zeit.cal.in_quarters(-4, -1)     # From 4 quarters ago through last quarter
             zeit.cal.in_quarters(-8, 0)      # Last 8 quarters through this quarter
         """
-        if end is None:
-            end = start
-
-        if start > end:
-            raise ValueError(f"start ({start}) must not be greater than end ({end})")
 
         target_time = self.target_dt
         base_time = self.ref_dt
@@ -356,7 +351,7 @@ class Cal:
             return year, quarter
 
         start_year, start_quarter = normalize_quarter_year(start)
-        end_year, end_quarter = normalize_quarter_year(end)
+        end_year, end_quarter = normalize_quarter_year(int(end))
 
         # Get target's quarter
         target_quarter = ((target_time.month - 1) // 3) + 1
@@ -370,6 +365,7 @@ class Cal:
         # Check if target falls within the quarter range: start <= target < end
         return start_tuple <= target_tuple < (end_tuple[0], end_tuple[1] + 1)
 
+    @verify_start_end
     def in_years(self, start: int = 0, end: int | None = None) -> bool:
         """True if timestamp falls within the year window(s) from start to end.
 
@@ -383,21 +379,17 @@ class Cal:
             zeit.cal.in_years(-5, -1)     # From 5 years ago through last year
             zeit.cal.in_years(-10, 0)     # Last 10 years through this year
         """
-        if end is None:
-            end = start
-
-        if start > end:
-            raise ValueError(f"start ({start}) must not be greater than end ({end})")
 
         target_year = self.target_dt.year
         base_year = self.ref_dt.year
 
         # Calculate year range boundaries
         start_year = base_year + start
-        end_year = base_year + end
+        end_year = base_year + int(end)
 
         return start_year <= target_year <= end_year
-
+    
+    @verify_start_end
     def in_weeks(
         self, start: int = 0, end: int | None = None, week_start: str = "monday"
     ) -> bool:
@@ -418,11 +410,6 @@ class Cal:
             zeit.cal.in_weeks(-4, 0)                 # Last 4 weeks through this week
             zeit.cal.in_weeks(-2, -1, 'sunday')      # 2-1 weeks ago (Sunday weeks)
         """
-        if end is None:
-            end = start
-
-        if start > end:
-            raise ValueError(f"start ({start}) must not be greater than end ({end})")
 
         week_start_day = normalize_weekday(week_start)
 
@@ -435,7 +422,7 @@ class Cal:
 
         # Calculate week boundaries
         start_week_start = current_week_start + dt.timedelta(weeks=start)
-        end_week_start = current_week_start + dt.timedelta(weeks=end)
+        end_week_start = current_week_start + dt.timedelta(weeks=int(end))
         end_week_end = end_week_start + dt.timedelta(
             days=6
         )  # End of week (6 days after start)
@@ -443,6 +430,7 @@ class Cal:
         return start_week_start <= target_date <= end_week_end
 
 
+    @verify_start_end
     def in_fiscal_quarters(self, start: int = 0, end: int | None = None) -> bool:
         """
         True if timestamp falls within the fiscal quarter window(s) from start to end.
@@ -459,10 +447,6 @@ class Cal:
             zeit.cal.in_fiscal_quarters(-4, -1)     # From 4 fiscal quarters ago through last fiscal quarter
             zeit.cal.in_fiscal_quarters(-8, 0)      # Last 8 fiscal quarters through this fiscal quarter
         """
-        if end is None:
-            end = start
-        if start > end:
-            raise ValueError(f"start ({start}) must not be greater than end ({end})")
 
         fy_start_month = self.fy_start_month
 
@@ -477,7 +461,7 @@ class Cal:
             return year, quarter
 
         start_year, start_quarter = normalize_fiscal_quarter_year(start)
-        end_year, end_quarter = normalize_fiscal_quarter_year(end)
+        end_year, end_quarter = normalize_fiscal_quarter_year(int(end))
 
         target_fy = Cal.get_fiscal_year(self.target_dt, fy_start_month)
         target_fq = Cal.get_fiscal_quarter(self.target_dt, fy_start_month)
@@ -489,6 +473,7 @@ class Cal:
         return start_tuple <= target_tuple < (end_tuple[0], end_tuple[1] + 1)
 
 
+    @verify_start_end
     def in_fiscal_years(self, start: int = 0, end: int | None = None) -> bool:
         """
         True if timestamp falls within the fiscal year window(s) from start to end.
@@ -505,17 +490,13 @@ class Cal:
             zeit.cal.in_fiscal_years(-5, -1)     # From 5 fiscal years ago through last fiscal year
             zeit.cal.in_fiscal_years(-10, 0)     # Last 10 fiscal years through this fiscal year
         """
-        if end is None:
-            end = start
-        if start > end:
-            raise ValueError(f"start ({start}) must not be greater than end ({end})")
 
         fy_start_month = self.fy_start_month
 
         base_time = self.ref_dt  # <-- FIXED HERE
         fy = Cal.get_fiscal_year(base_time, fy_start_month)
         start_year = fy + start
-        end_year = fy + end
+        end_year = fy + int(end)
 
         target_fy = Cal.get_fiscal_year(self.target_dt, fy_start_month)
 
