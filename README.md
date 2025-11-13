@@ -1,6 +1,4 @@
 
-
-
 # Frist: Property-Based Date and Time Operations
 
 Frist is a modern Python library for calendar, age, and time window calculations. Its API is property-driven—most operations are performed by accessing properties or calling simple methods, with minimal need for manual math or low-level datetime manipulation.
@@ -8,7 +6,6 @@ Frist is a modern Python library for calendar, age, and time window calculations
 **In German, "Frist" means "deadline" or "time limit." This reflects the package's focus on time windows, periods, and calendar logic.**
 
 ---
-
 
 ## Key Features
 
@@ -26,7 +23,9 @@ Frist is a modern Python library for calendar, age, and time window calculations
 ```bash
 pip install frist
 ```
+
 Or clone the repository and install locally:
+
 ```bash
 git clone https://github.com/hucker/frist.git
 cd frist
@@ -91,6 +90,7 @@ print(age_now.years)
 
 - Comprehensive test suite covers edge cases, holidays, weekends, and exception handling
 - Run tests with:
+
 ```bash
 pytest
 ```
@@ -128,7 +128,6 @@ if meeting.cal.in_fiscal_years(0):
   print("Meeting is in the current fiscal year.")
 ```
 
-
 ## Holiday Detection Example
 
 Frist can instantly check if a date is a holiday using a set of holiday dates:
@@ -159,14 +158,12 @@ if project.holiday:
 
 ## Short Examples
 
-
 ### Age Calculation
 
 ```python
 person = Chrono(target_time=dt.datetime(1990, 5, 1), reference_time=dt.datetime(2025, 5, 1))
 print(f"Age in days: {person.age.days}, Age in years: {person.age.years:.2f}")
 ```
-
 
 ### Calendar Windows
 
@@ -180,7 +177,6 @@ if meeting.cal.in_weeks(-1):
 
 ## API Reference
 
-
 ### Frist
 
 `Chrono(target_time: datetime, reference_time: datetime = None, fy_start_month: int = 1, holidays: set[str] = None)`
@@ -193,7 +189,6 @@ if meeting.cal.in_weeks(-1):
   - `holiday`: True if target time is a holiday (if holidays set provided).
 
 ### Cal
-
 
 - **Properties:**
   - `dt_val`: Target datetime.
@@ -221,13 +216,12 @@ if meeting.cal.in_weeks(-1):
   - All interval methods raise `ValueError` if `start > end`.
   - `normalize_weekday(day_spec: str) -> int` raises `ValueError` for invalid day specifications, with detailed error messages.
 
-### Age
+## Age
 
 `Age(target_time: datetime, reference_time: datetime)`
 
 - **Properties:**
   - `days`, `hours`, `minutes`, `seconds`, `weeks`, `months`, `quarters`, `years`, `fiscal_year`, `fiscal_quarter`
-
 
 - **Properties:**
   - `target_dt`: Target datetime.

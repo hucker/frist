@@ -1,13 +1,22 @@
+"""
+Business calendar policy module for frist.
+
+Defines the CalendarPolicy dataclass, which centralizes fiscal year, workdays, business hours, and holiday logic for business calendar calculations.
+All date and time logic is property-based and configurable for flexible business rules.
+"""
+
 import datetime as dt
 from dataclasses import dataclass, field
 from typing import List, Set
 
-"""
-Business calendar policy for fiscal years, workdays, business hours, and holidays.
-"""
 
 @dataclass
 class CalendarPolicy:
+    """
+    Centralized business calendar policy for fiscal years, workdays, business hours, and holidays.
+
+    All date and time logic is property-based and configurable for flexible business rules.
+    """
 
     fiscal_year_start_month: int = 1
     workdays: List[int] = field(default_factory=lambda: [0, 1, 2, 3, 4])  # Monday=0 ... Friday=4
@@ -50,10 +59,25 @@ class CalendarPolicy:
         """
         return self.start_of_business <= time < self.end_of_business
 
-    def is_holiday(self, date_str: str) -> bool:
+    def is_holiday(self, value: str | dt.date | dt.datetime) -> bool:
         """
-        Return True if the date string (YYYY-MM-DD) is a holiday according to policy.
+        Return True if the given value is a holiday according to policy.
+
+        Accepts:
+            - str (YYYY-MM-DD)
+            - datetime.date
+            - datetime.datetime
         """
+        if isinstance(value, str):
+            date_str = value
+        elif isinstance(value, dt.datetime):
+            date_str = value.strftime('%Y-%m-%d')
+        elif isinstance(value, dt.date):
+            date_str = value.strftime('%Y-%m-%d')
+        else:
+            raise TypeError(
+                f"is_holiday expects str (YYYY-MM-DD), datetime.date, or datetime.datetime, got {type(value).__name__}"
+            )
         return date_str in self.holidays
     
     def business_day_fraction(self, dt_obj: dt.datetime) -> float:
