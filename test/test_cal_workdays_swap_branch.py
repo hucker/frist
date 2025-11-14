@@ -5,7 +5,7 @@ from frist._cal_policy import CalendarPolicy
 
 def test_in_workdays_swap_branch():
     """
-    AAA: Arrange, Act, Assert
+    Arrange, Act, Assert
     Arrange: Use start < end, but holidays/weekends make start_workday > end_workday.
     - ref: Friday May 10, 2024
     - start=0: Friday May 10
@@ -34,7 +34,7 @@ def test_in_workdays_swap_branch():
 
 def test_in_workdays_swap_branch_hits():
     """
-    AAA: Arrange, Act, Assert
+    Arrange, Act, Assert
     Arrange: Use start < end, but holidays/weekends make start_workday > end_workday.
     - ref: Friday May 10, 2024
     - holidays: Monday May 13, Tuesday May 14

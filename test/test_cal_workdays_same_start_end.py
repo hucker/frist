@@ -3,7 +3,7 @@ from frist._cal import Cal
 from frist._cal_policy import CalendarPolicy
 
 def test_in_workdays_start_equals_end():
-    """AAA: Arrange, Act, Assert
+    """Arrange, Act, Assert
     Arrange: start and end are the same, target is a workday
     Act: Call in_workdays
     Assert: Returns True if target is a workday, False otherwise

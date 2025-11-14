@@ -6,7 +6,7 @@ Tests the Age class as a standalone utility without file dependencies.
 
 import datetime as dt
 import pytest
-from frist import Age
+from frist import Age, CalendarPolicy
 
 
 @pytest.mark.parametrize(
@@ -212,7 +212,11 @@ def test_age_negative_time_difference():
         (-30, "", -30.0),
     ],
 )
-def test_age_parse_with_spaces_and_negatives(number, unit, expected_seconds):
+def test_age_parse_with_spaces_and_negatives(
+    number: float,
+    unit: str,
+    expected_seconds: float
+) -> None:
     # Arrange
     patterns = [
         f"{number}{unit}",
@@ -227,26 +231,26 @@ def test_age_parse_with_spaces_and_negatives(number, unit, expected_seconds):
         assert Age.parse(pattern) == expected_seconds
 
 
-def test_age_init_invalid_start_type():
-    """AAA: Arrange, Act, Assert
+def test_age_init_invalid_start_type() -> None:
+    """Arrange, Act, Assert
     Arrange: Provide invalid start_time type
     Act & Assert: TypeError is raised
     """
     import pytest
     with pytest.raises(TypeError, match="start_time must be datetime, float, or int"):
-        Age("not-a-date")
+        Age("not-a-date") # type: ignore # Exception expected
 
-def test_age_init_invalid_end_type():
-    """AAA: Arrange, Act, Assert
+def test_age_init_invalid_end_type() -> None:
+    """Arrange, Act, Assert
     Arrange: Provide invalid end_time type
     Act & Assert: TypeError is raised
     """
     import pytest
     with pytest.raises(TypeError, match="end_time must be datetime, float, int, or None"):
-        Age(dt.datetime.now(), "not-a-date")
+        Age(dt.datetime.now(), "not-a-date") # type: ignore # Exception expected
 
-def test_age_parse_invalid_format():
-    """AAA: Arrange, Act, Assert
+def test_age_parse_invalid_format() -> None:
+    """Arrange, Act, Assert
     Arrange: Provide invalid age string
     Act & Assert: ValueError is raised
     """
@@ -254,8 +258,8 @@ def test_age_parse_invalid_format():
     with pytest.raises(ValueError, match="Invalid age format"):
         Age.parse("bad-format")
 
-def test_age_parse_unknown_unit():
-    """AAA: Arrange, Act, Assert
+def test_age_parse_unknown_unit() -> None:
+    """Arrange, Act, Assert
     Arrange: Provide age string with unknown unit
     Act & Assert: ValueError is raised
     """
@@ -264,8 +268,8 @@ def test_age_parse_unknown_unit():
         Age.parse("5fortnights")
 
 
-def test_age_end_time_defaults_to_now():
-    """AAA: Arrange, Act, Assert
+def test_age_end_time_defaults_to_now() -> None:
+    """Arrange, Act, Assert
     Arrange: Create Age with only start_time
     Act: Get age in seconds
     Assert: Age end_time is close to now
@@ -279,3 +283,70 @@ def test_age_end_time_defaults_to_now():
     assert (now - age.end_time).total_seconds() < 0.1, "end_time should default to current time"
     assert age.end_time >= start, "end_time should be after start_time"
 
+
+def test_working_days_basic_weekday() -> None:
+    """Age.working_days returns 1.0 for a full weekday."""
+    start = dt.datetime(2024, 1, 2, 0, 0, 0)  # Tuesday
+    end = dt.datetime(2024, 1, 2, 23, 59, 59)
+    age = Age(start, end)
+    assert abs(age.working_days - 1.0) < 1e-6, "Should be 1.0 for full weekday"
+
+
+def test_working_days_weekend() -> None:
+    """Age.working_days returns 0.0 for a weekend day."""
+    start = dt.datetime(2024, 1, 6, 0, 0, 0)  # Saturday
+    end = dt.datetime(2024, 1, 6, 23, 59, 59)
+    age = Age(start, end)
+    assert age.working_days == 0.0, "Should be 0.0 for weekend"
+
+
+def test_working_days_partial_day() -> None:
+    start: dt.datetime
+    end: dt.datetime
+    """Age.working_days returns correct fraction for partial weekday."""
+    start = dt.datetime(2024, 1, 2, 12, 0, 0)  # Tuesday noon
+    end = dt.datetime(2024, 1, 2, 18, 0, 0)
+    age = Age(start, end)
+    # Business hours: 9:00 to 17:00 (8 hours)
+    # Noon to 17:00 = 5 hours (within business hours)
+    # 17:00 to 18:00 is outside business hours, so only noon to 17:00 counts
+    expected = 5 / 8  # 5 hours out of 8 business hours
+    assert abs(age.working_days - expected) < 1e-6, "Should match fraction of business hours"
+
+
+def test_working_days_multiple_days() -> None:
+    start: dt.datetime
+    end: dt.datetime
+    """Age.working_days sums multiple weekdays, skips weekends."""
+    start = dt.datetime(2024, 1, 5, 12, 0, 0)  # Friday noon
+    end = dt.datetime(2024, 1, 8, 12, 0, 0)    # Monday noon
+    age = Age(start, end)
+    # Friday: half day, Saturday/Sunday: 0, Monday: half day
+    expected = 0.5 + 0.5
+    assert abs(age.working_days - expected) < 1e-6, "Should sum only working day fractions"
+
+
+def test_working_days_holiday() -> None:
+    cal: CalendarPolicy
+    start: dt.datetime
+    end: dt.datetime
+    """Age.working_days returns 0.0 for a holiday (using custom CalendarPolicy)."""
+    from frist._cal_policy import CalendarPolicy
+    # Jan 2, 2024 is a holiday
+    cal = CalendarPolicy(holidays={"2024-01-02"})
+    start = dt.datetime(2024, 1, 2, 0, 0, 0)
+    end = dt.datetime(2024, 1, 2, 23, 59, 59)
+    age = Age(start, end, cal_policy=cal)
+    assert age.working_days == 0.0, "Should be 0.0 for holiday"
+
+
+def test_working_days_start_after_end() -> None:
+    start: dt.datetime
+    end: dt.datetime
+    """Age.working_days returns 0.0 if start_time > end_time."""
+    start = dt.datetime(2024, 1, 3, 12, 0, 0)
+    end = dt.datetime(2024, 1, 2, 12, 0, 0)
+    import pytest
+    age = Age(start, end)
+    with pytest.raises(ValueError, match="start_time must not be after end_time"):
+        _ = age.working_days

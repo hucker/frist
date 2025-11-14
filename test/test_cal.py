@@ -705,7 +705,7 @@ def test_fiscal_year_and_quarter_april_start():
     assert cal.fiscal_quarter == 4
 
 def test_cal_init_invalid_target_type():
-    """AAA: Arrange, Act, Assert
+    """Arrange, Act, Assert
     Arrange: Provide invalid target_dt type
     Act & Assert: TypeError is raised
     """
@@ -713,7 +713,7 @@ def test_cal_init_invalid_target_type():
         Cal("not-a-date", dt.datetime.now())
 
 def test_cal_init_invalid_ref_type():
-    """AAA: Arrange, Act, Assert
+    """Arrange, Act, Assert
     Arrange: Provide invalid ref_dt type
     Act & Assert: TypeError is raised
     """
@@ -725,7 +725,7 @@ def test_cal_init_invalid_ref_type():
     "in_years", "in_weeks", "in_workdays", "in_fiscal_quarters", "in_fiscal_years"
 ])
 def test_cal_window_start_greater_than_end(method):
-    """AAA: Arrange, Act, Assert
+    """Arrange, Act, Assert
     Arrange: Create Cal and call window method with start > end
     Act & Assert: ValueError is raised
     """

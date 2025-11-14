@@ -96,7 +96,7 @@ def test_in_workdays_various_cases(
     case: str,
 ) -> None:
     """
-    AAA: Arrange, Act, Assert
+    Arrange, Act, Assert
     Arrange: Setup Cal with ref_date, target_date, holidays
     Act: Call in_workdays with start, end
     Assert: Result matches expected

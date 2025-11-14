@@ -13,8 +13,8 @@ from typing import Any
 import datetime as dt
 from typing import TYPE_CHECKING
 
-
 from ._constants import WEEKDAY_INDEX
+from ._cal_policy import CalendarPolicy
 
 if TYPE_CHECKING:  # pragma: no cover
     pass
@@ -95,7 +95,6 @@ def verify_start_end(func):
     return wrapper
 
 
-from ._cal_policy import CalendarPolicy
 
 class Cal:
     """Calendar window filtering functionality for direct datetime/timestamp inputs."""

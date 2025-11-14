@@ -3,7 +3,7 @@ import pytest
 from frist._cal import Cal,CalendarPolicy
 
 def test_in_workdays_start_greater_than_end():
-    """AAA: Arrange, Act, Assert
+    """Arrange, Act, Assert
     Arrange: Create Cal and call in_workdays with start > end
     Act & Assert: ValueError is raised
     """
@@ -12,7 +12,7 @@ def test_in_workdays_start_greater_than_end():
         cal.in_workdays(2, 1)
 
 def test_in_workdays_target_is_weekend():
-    """AAA: Arrange, Act, Assert
+    """Arrange, Act, Assert
     Arrange: Target date is a Saturday
     Act: Call in_workdays
     Assert: Returns False
@@ -23,7 +23,7 @@ def test_in_workdays_target_is_weekend():
     assert result is False, "Should return False for weekend target date"
 
 def test_in_workdays_target_is_holiday():
-    """AAA: Arrange, Act, Assert
+    """Arrange, Act, Assert
     Arrange: Target date is a holiday
     Act: Call in_workdays
     Assert: Returns False
