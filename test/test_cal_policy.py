@@ -52,3 +52,46 @@ def test_is_holiday_invalid_type():
         policy.is_holiday(12345)  #type: ignore # Intentional wrong type for test
     with pytest.raises(TypeError, match="is_holiday expects str"):
         policy.is_holiday(["2025-11-13"]) #type: ignore # Intentional wrong type for test
+
+def test_calendar_policy_invalid_workdays_type() -> None:
+    """
+    Test that CalendarPolicy raises TypeError if workdays is not a list.
+    """
+    with pytest.raises(TypeError, match="workdays must be a list"):
+        CalendarPolicy(workdays=(0, 1, 2, 3, 4))  # tuple instead of list
+    with pytest.raises(TypeError, match="workdays must be a list"):
+        CalendarPolicy(workdays="01234")  # string instead of list
+    with pytest.raises(TypeError, match="workdays must be a list"):
+        CalendarPolicy(workdays=None)  # None instead of list
+
+def test_calendar_policy_invalid_holidays_type() -> None:
+    """
+    Test that CalendarPolicy raises TypeError if holidays is not a set.
+    """
+    with pytest.raises(TypeError, match="holidays must be a set"):
+        CalendarPolicy(holidays=["2025-11-13"])  # list instead of set
+    with pytest.raises(TypeError, match="holidays must be a set"):
+        CalendarPolicy(holidays="2025-11-13")  # string instead of set
+    with pytest.raises(TypeError, match="holidays must be a set"):
+        CalendarPolicy(holidays=None)  # None instead of set
+
+def test_calendar_policy_invalid_fiscal_year_start_month() -> None:
+    """
+    Test that CalendarPolicy raises ValueError for invalid fiscal_year_start_month (coverage for __post_init__ line 31).
+    """
+    import pytest
+    with pytest.raises(ValueError, match="fiscal_year_start_month must be in 1..12"):
+        CalendarPolicy(fiscal_year_start_month=0)
+    with pytest.raises(ValueError, match="fiscal_year_start_month must be in 1..12"):
+        CalendarPolicy(fiscal_year_start_month=13)
+def test_fiscal_year_start_month_validation() -> None:
+    """
+    Test CalendarPolicy raises ValueError for invalid fiscal_year_start_month.
+    """
+    import pytest
+    # Invalid: 0
+    with pytest.raises(ValueError, match="fiscal_year_start_month must be in 1..12"):
+        CalendarPolicy(fiscal_year_start_month=0)
+    # Invalid: 13
+    with pytest.raises(ValueError, match="fiscal_year_start_month must be in 1..12"):
+        CalendarPolicy(fiscal_year_start_month=13)

@@ -74,7 +74,7 @@ def test_large_time_differences():
 
     # Should handle large differences without overflow
     expected_years: float = 24.0
-    assert z.age.years == pytest.approx(expected_years, rel=0.01)
+    assert z.age.years == pytest.approx(expected_years, rel=0.01) # type: ignore
 
 
 

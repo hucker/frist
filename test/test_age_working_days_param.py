@@ -56,7 +56,7 @@ CASES = [
 
 @pytest.mark.parametrize("start,end,expected,desc", CASES)
 def test_working_days_param_cases(start: dt.datetime, end: dt.datetime, expected: float, desc: str) -> None:
-    """AAA: Parameterized edge case test for Age.working_days with custom calendar policy."""
+    """Parameterized edge case test for Age.working_days with custom calendar policy."""
     age = Age(start, end, cal_policy=CAL_POLICY)
     result = age.working_days
     assert abs(result - expected) < 1e-6, f"{desc}: got {result}, expected {expected}"

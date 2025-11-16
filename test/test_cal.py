@@ -1,3 +1,19 @@
+def test_in_months_edge_cases():
+    """
+    Test Cal.in_months for edge cases: negative, zero, positive, and range.
+    AAA: Arrange, Act, Assert
+    """
+    target = dt.datetime(2024, 1, 15)
+    ref = dt.datetime(2024, 1, 1)
+    cal = Cal(target, ref)
+    # This month
+    assert cal.in_months(0)
+    # Last month
+    assert not cal.in_months(-1)
+    # Next month
+    assert not cal.in_months(1)
+    # Range: last 12 months through this month
+    assert cal.in_months(-12, 0)
 """
 Test file for standalone Cal (calendar) functionality.
 

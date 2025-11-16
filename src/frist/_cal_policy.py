@@ -28,12 +28,14 @@ class CalendarPolicy:
         if not (1 <= self.fiscal_year_start_month <= 12):
             raise ValueError(f"fiscal_year_start_month must be in 1..12, got {self.fiscal_year_start_month}")
         if not isinstance(self.workdays, list):
-            raise TypeError("workdays must be a list of integers")
+            raise TypeError("workdays must be a list")
         if not (0 <= len(self.workdays) <= 7):
             raise ValueError(f"workdays must have 0 to 7 values, got {len(self.workdays)}")
         for wd in self.workdays:
             if not isinstance(wd, int) or not (0 <= wd <= 6):
                 raise ValueError(f"workdays must contain only integers 0..6, got {wd}")
+        if not isinstance(self.holidays, set):
+            raise TypeError("holidays must be a set")
    
     def is_weekend(self, value: int | dt.date | dt.datetime) -> bool:
         """
@@ -82,7 +84,7 @@ class CalendarPolicy:
             date_str = value
         elif isinstance(value, dt.datetime):
             date_str = value.strftime('%Y-%m-%d')
-        elif isinstance(value, dt.date):
+        elif isinstance(value, dt.date): # type:ignore # Run time type checker
             date_str = value.strftime('%Y-%m-%d')
         else:
             raise TypeError(

@@ -136,7 +136,7 @@ def test_business_day_fraction(dt_obj: dt.datetime, expected: float) -> None:
     result = policy.business_day_fraction(dt_obj)
     # Assert
     if expected == 0.5:
-        assert pytest.approx(result, 0.01) == expected, (
+        assert pytest.approx(result, 0.01) == expected, (           # type: ignore
             f"business_day_fraction({dt_obj!r}) expected approx {expected}, got {result}"
         )
     else:

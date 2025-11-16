@@ -350,3 +350,22 @@ def test_working_days_start_after_end() -> None:
     age = Age(start, end)
     with pytest.raises(ValueError, match="start_time must not be after end_time"):
         _ = age.working_days
+
+
+def test_set_times_invalid_start_type() -> None:
+    """
+    Arrange: Create Age object, call set_times with invalid start_time type
+    Act & Assert: TypeError is raised
+    """
+    age = Age(dt.datetime(2020, 1, 1), dt.datetime(2021, 1, 1))
+    with pytest.raises(TypeError, match="start_time must be datetime, float, or int"):
+        age.set_times(start_time="not-a-date") # type: ignore
+
+def test_set_times_invalid_end_type() -> None:
+    """
+    Arrange: Create Age object, call set_times with invalid end_time type
+    Act & Assert: TypeError is raised
+    """
+    age = Age(dt.datetime(2020, 1, 1), dt.datetime(2021, 1, 1))
+    with pytest.raises(TypeError, match="end_time must be datetime, float, int, or None"):
+        age.set_times(end_time="not-a-date") # type: ignore

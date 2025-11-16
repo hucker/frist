@@ -53,7 +53,7 @@ def test_chrono_age_property():
     assert age.minutes == 1440.0
     assert age.hours == 24.0
     assert age.days == 1.0
-    assert age.weeks == pytest.approx(1.0 / 7.0)
+    assert age.weeks == pytest.approx(1.0 / 7.0) # type: ignore
 
 
 def test_chrono_calendar_property():

@@ -1,4 +1,5 @@
 
+
 [project]
 name = "frist"
 version = "0.10.0"
@@ -30,10 +31,21 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["test"]
 addopts = "--cov=src/frist --cov-report=term-missing"
-output = "coverage.json"
-pretty_print = true
 
 [project.urls]
 Homepage = "https://github.com/hucker/frist"
 Repository = "https://github.com/hucker/frist"
 Issues = "https://github.com/hucker/frist/issues"
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py310,py311,py312,py313,py314
+
+[testenv]
+deps =
+    pytest
+    pytest-cov
+commands =
+    pytest --cov=src/frist --cov-report=term-missing
+"""

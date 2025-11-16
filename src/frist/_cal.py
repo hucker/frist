@@ -8,7 +8,7 @@ Provides calendar window filtering functionality for Chronoobjects).
 
 
 import functools
-from typing import Any
+from typing import Any, Callable
 
 import datetime as dt
 from typing import TYPE_CHECKING
@@ -68,7 +68,7 @@ def normalize_weekday(day_spec: str) -> int:
 
 
 
-def verify_start_end(func):
+def verify_start_end(func: Callable[..., Any]) -> Callable[..., Any]:
     """
     Decorator for calendar window methods to validate input ranges.
 
@@ -141,15 +141,16 @@ class Cal:
         """Return True if target_dt is a holiday according to calendar policy."""
         return self.cal_policy.is_holiday(self.target_dt)
 
+
     @property
     def fiscal_year(self) -> int:
         """Return the fiscal year for target_dt based on CalendarPolicy."""
-        return self.__class__.get_fiscal_year(self.target_dt, self.cal_policy.fiscal_year_start_month)
+        return Cal.get_fiscal_year(self.target_dt, self.cal_policy.fiscal_year_start_month)
 
     @property
     def fiscal_quarter(self) -> int:
         """Return the fiscal quarter for target_dt based on CalendarPolicy."""
-        return self.__class__.get_fiscal_quarter(self.target_dt, self.cal_policy.fiscal_year_start_month)
+        return Cal.get_fiscal_quarter(self.target_dt, self.cal_policy.fiscal_year_start_month)
 
 
     @verify_start_end
@@ -269,9 +270,6 @@ class Cal:
         start_workday = move_workdays(ref_date, start)
         end_workday = move_workdays(ref_date, end)
 
-        # Ensure correct ordering
-        if start_workday > end_workday:
-            start_workday, end_workday = end_workday, start_workday
 
         # Target must be a workday (per CalendarPolicy)
         is_workday = self.cal_policy.is_workday(target_date) and not self.cal_policy.is_holiday(target_date)
