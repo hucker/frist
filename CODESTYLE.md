@@ -1,4 +1,4 @@
-# Zeit Project Code Style Guide
+# Frist Project Code Style Guide
 
 ## Python Formatting
 
@@ -27,6 +27,12 @@
 ## Linting
 
 - All code must pass Ruff checks with no errors or warnings.
+
+## Typechecking
+- Type checking is highly encouraged for all code
+- There are some exceptions to this rule where inline comment tags can be added to disable type warnings
+- OK to ignore type warnings on pytest.approx
+- OK to ignore code warning when performing runtime checks on parameters
 
 ## General
 

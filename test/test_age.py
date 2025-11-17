@@ -93,7 +93,7 @@ def test_age_fractional_calculations():
     assert age.minutes == 720.0
     assert age.hours == 12.0
     assert age.days == 0.5
-    assert age.weeks == pytest.approx(0.5 / 7.0)
+    assert age.weeks == pytest.approx(0.5 / 7.0) # type: ignore
 
 
 def test_age_parse_static_method():

@@ -10,6 +10,73 @@ import datetime as dt
 from ._age import Age
 from ._cal import Cal
 from ._cal_policy import CalendarPolicy
+from ._constants import CHRONO_DATETIME_FORMATS
+
+
+def time_pair(
+    *,
+    start_time: dt.datetime | dt.date | float | int | str | None = None,
+    end_time: dt.datetime | dt.date | float | int | str | None = None,
+    formats__: list[str]|None = None,
+) -> tuple[dt.datetime, dt.datetime]:
+    """
+    Normalize and validate a pair of time values.
+
+    Accepts start_time and end_time as keyword arguments, which may be datetime objects,
+    POSIX timestamps (float or int), strings in allowed formats, or None.
+    Converts timestamps and strings to datetime objects.
+    If end_time is None, defaults to the current time. If start_time is None, raises TypeError.
+    The allowed string formats are defined in _constants.py and can be overridden.
+
+    Args:
+        start_time (datetime | float | int | str | None): The start time. Must not be None.
+        end_time (datetime | float | int | str | None): The end time. If None, defaults to now.
+        formats__ (list[str], optional): List of datetime formats to use for string parsing.
+
+    Returns:
+        tuple[datetime, datetime]: Normalized (start_time, end_time) as datetime objects.
+
+    Raises:
+        TypeError: If start_time is None or either value is not a supported type.
+
+    Example:
+        time_pair(start_time=dt.datetime(2020, 1, 1))
+        time_pair(end_time=dt.datetime(2024, 1, 1))
+        time_pair(start_time=1700000000.0)  # POSIX timestamp
+        time_pair(start_time="2023-12-25 14:30:00")  # String format
+        time_pair(start_time="2023-12-25")  # String format
+    """
+    formats:list[str] = formats__ or CHRONO_DATETIME_FORMATS
+
+    def to_datetime(val: dt.datetime | dt.date | float | int | str )->dt.datetime:
+        
+        # In order of expected frequency of use
+        if isinstance(val, dt.datetime):
+            return val        
+        elif isinstance(val, dt.date):
+            return dt.datetime(val.year, val.month, val.day)
+        elif isinstance(val, (float, int)):
+            return dt.datetime.fromtimestamp(val)
+        elif isinstance(val, str):  # type: ignore # Run time type checker
+            for format in formats:
+                try:
+                    return dt.datetime.strptime(val,format)
+                except ValueError:
+                    continue
+            raise TypeError(f"Unrecognized datetime string format: {val}")
+        else:
+            raise TypeError("Value must be datetime, float, int, or str")
+
+    if start_time is None:
+        raise TypeError("start_time cannot be None")
+    normalized_start_time: dt.datetime = to_datetime(start_time)
+
+    if end_time is None:
+        normalized_end_time: dt.datetime = dt.datetime.now()
+    else:
+        normalized_end_time: dt.datetime = to_datetime(end_time)
+
+    return normalized_start_time, normalized_end_time
 
 
 class Chrono:
@@ -31,89 +98,83 @@ class Chrono:
             print("Project overdue")
 
         # Calendar windows
-    if meeting.cal.in_days(0):
+        if meeting.cal.in_days(0):
             print("Meeting was today")
     """
 
     def __init__(
         self,
         *,
-        target_time: dt.datetime,
-        reference_time: dt.datetime | None = None,
-        fy_start_month: int = 1,
-        holidays: set[str] | None = None,
+        target_time: dt.datetime | float | int,
+        reference_time: dt.datetime | float | int| None = None,
+        policy: CalendarPolicy | None = None,
     ):
         """
-        Initialize Chrono with target and reference times.
+        Initialize Chrono with target and reference times and an optional CalendarPolicy.
 
         Args:
-            target_time: The datetime to analyze (e.g., file timestamp, meeting time)
-            reference_time: Reference time for calculations (defaults to now)
-            fy_start_month: Fiscal year start month (1=Jan, 2=Feb, ... 12=Dec)
-            holidays: Set of date strings (YYYY-MM-DD) that are holidays
+            target_time (datetime): The datetime to analyze (e.g., file timestamp, event time).
+            reference_time (datetime, optional): The reference datetime for calculations (defaults to now).
+            policy (CalendarPolicy, optional): CalendarPolicy object for business rules (defaults to fiscal year Jan, 9-5, no holidays).
 
         Raises:
-            ValueError: If fy_start_month is not between 1 and 12
+            ValueError: If target_time is not a datetime instance.
+
+        Examples:
+            >>> Chrono(target_time=datetime(2024, 5, 1))
+            >>> Chrono(target_time=datetime(2024, 5, 1), reference_time=datetime(2025, 5, 1))
+            >>> Chrono(target_time=datetime(2024, 5, 1), policy=CalendarPolicy(fiscal_year_start_month=4))
         """
-        if not (1 <= fy_start_month <= 12):
-            raise ValueError(f"fy_start_month must be between 1 and 12, got {fy_start_month}")
-        if not isinstance(target_time, dt.datetime):
-            raise ValueError(f"target_time must be a datetime instance, got {type(target_time)}")
-        self.target_time:dt.datetime = target_time
-        self.reference_time :dt.datetime= reference_time or dt.datetime.now()
-        self.fy_start_month:int = fy_start_month
-        self.holidays :set[str]= holidays if holidays is not None else set()
+        
+        # Normalize target and reference for both age and cal objects
+        target,ref = time_pair(start_time=target_time,end_time=reference_time) 
+
+        # This keeps the typechecker happy
+        self.target_time:dt.datetime = target
+        self.reference_time:dt.datetime = ref
+
+        # Forward the policy to both objects
+        self.policy: CalendarPolicy = policy or CalendarPolicy()
+
+        # Now we have syncronized reference times with no possiblity of the reference time being different
+        # in the case that now() is used in both cases.  If you didn't do this it would be up to you
+        # to ensure the same reference time.  This could make VERY hard to find bugs if the reference time
+        # for the two objects occurred accross a hour/day/month/quarter/year boundary.
+        self._age: Age = Age(self.target_time,self.reference_time, cal_policy=self.policy)
+        self._cal: Cal = Cal(self.target_time, self.reference_time, cal_policy=self.policy)
 
 
     @property
     def age(self) -> Age:
-        """
-        Get age of target_time relative to reference_time.
-
-        Returns Age object with properties like .seconds, .minutes, .hours, .days, etc.
-        """
-
-        # Age expects (path, timestamp, base_time) - we pass None for path since standalone
-        return Age(self.target_time, self.reference_time)
+        """Return the Age object for this Chrono."""
+        return self._age
 
     @property
-    def cal(self):
-
-        """
-        Get calendar window functionality for target_time.
-
-        Returns Cal object for checking if target_time falls within calendar windows.
-        """
-        # Cal can work directly with frist since we have .target_dt and .ref_dt properties
-        cal_policy = CalendarPolicy(
-            fiscal_year_start_month=self.fy_start_month,
-            holidays=self.holidays
-        )
-        return Cal(self.target_time,
-                   self.reference_time,
-                   cal_policy=cal_policy)
+    def cal(self) -> Cal:
+        """Return the Cal object for this Chrono."""
+        return self._cal
 
     @property
     def timestamp(self) -> float:
         """Get the raw timestamp for target_time."""
         return self.target_time.timestamp()
 
-
     @staticmethod
-    def parse(time_str: str, reference_time: dt.datetime | None = None):
+    def parse(time_str: str, reference_time: dt.datetime | None = None, policy: CalendarPolicy | None = None):
         """
-        Parse a time string and return a frist object.
+        Parse a time string and return a Chrono object.
 
         Args:
             time_str: Time string to parse
             reference_time: Optional reference time for age calculations
+            policy: Optional CalendarPolicy for business rules
 
         Returns:
             Chrono object for the parsed time
 
         Examples:
             "2023-12-25" -> Chrono for Dec 25, 2023
-            "2023-12-25 14:30" -> FrChronoist for Dec 25, 2023 2:30 PM
+            "2023-12-25 14:30" -> Chrono for Dec 25, 2023 2:30 PM
             "2023-12-25T14:30:00" -> ISO format datetime
             "1640995200" -> Chrono from Unix timestamp
         """
@@ -122,7 +183,7 @@ class Chrono:
         # Handle Unix timestamp (all digits)
         if time_str.isdigit():
             target_time = dt.datetime.fromtimestamp(float(time_str))
-            return Chrono(target_time=target_time, reference_time=reference_time)
+            return Chrono(target_time=target_time, reference_time=reference_time, policy=policy)
 
         # Try common datetime formats
         formats = [
@@ -140,7 +201,7 @@ class Chrono:
         for fmt in formats:
             try:
                 target_time = dt.datetime.strptime(time_str, fmt)
-                return Chrono(target_time=target_time, reference_time=reference_time)
+                return Chrono(target_time=target_time, reference_time=reference_time, policy=policy)
             except ValueError:
                 continue
 
@@ -156,8 +217,7 @@ class Chrono:
         Returns:
             New Chrono object with same target_time but different reference_time
         """
-        return Chrono(target_time=self.target_time, reference_time=reference_time)
-
+        return Chrono(target_time=self.target_time, reference_time=reference_time, policy=self.policy)
 
     def __repr__(self) -> str:
         """String representation of Chrono object."""
@@ -166,6 +226,3 @@ class Chrono:
     def __str__(self) -> str:
         """Human-readable string representation."""
         return f"Chrono for {self.target_time.strftime('%Y-%m-%d %H:%M:%S')}"
-
-
-__all__ = ["Chrono"]

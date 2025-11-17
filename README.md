@@ -1,338 +1,202 @@
-# Frist: Unified Age and Calendar Logic
+# `Frist`: Unified Age and Calendar Logic
 
-Frist is a modern Python library for property-based calendar, age, and time window calculations. Most operations are performed by accessing properties or calling simple methods—no manual math or low-level datetime manipulation required.
+`Frist`is a modern Python library designed to make working with time, dates, and intervals simple and expressive—whether you’re analyzing file ages, tracking events, or handling business calendars. `Frist` provides two core property-based APIs: `Age` and `Cal`. The `Age` object lets you answer “How old is this?” for any two datetimes (often defaulting to “now”), making it perfect for file aging, log analysis, or event tracking. The `Cal` object lets you ask “Is this date in a specific window?”—such as today, yesterday, this month, this quarter, or this fiscal year—using intuitive properties for calendar logic. Calendar ranges are always aligned to a calendar time scale, day, business day, month, year, quarter, hour.
 
----
+You never need to do manual calendar math. `Frist`’s property-based API gives you direct answers to common time and calendar questions. For business and operational use cases, `Frist`’s  policy object lets you define workdays, holidays, and business hours, so your calendar calculations match your real-world rules. Whether you need precise age calculations, flexible date windows, or custom business logic, `Frist` unifies these features in a clean, easy-to-use API built entirely around properties.
 
-## Chrono: Age and Calendar in One Place
-
-The `Chrono` class is the central interface for time-based logic in Frist. You provide a `target_time` (the date/time you want to analyze) and a `reference_time` (often just "now"). Chrono lets you ask both age-related and calendar window questions using simple properties and methods.
-
-```text
-Timeline and Window Boundaries for Half-Open Intervals
-
-Suppose you want to know if your target date falls within a window around your reference date. Frist makes this easy:
-
-  |-----------|------------|------------|------------|
-  2024-05-06   2024-05-07   2024-05-08   2024-05-09   Date
-   2DaysAgo     YesterDay     Target      Ref          Description
-    -2           -1           0           +1         Window Index
-
-With Chrono, you specify both dates and the window:
-
-```python
-from frist import Chrono
-import datetime as dt
-
-target = dt.datetime(2024, 5, 8)
-reference = dt.datetime(2024, 5, 9)
-chrono = Chrono(target_time=target, reference_time=reference)
-
-print(chrono.cal.in_days(-1))   # True: target is 1 day before reference
-print(chrono.cal.in_days(0))    # False: target is not the same day as reference
-print(chrono.cal.in_days(-2, 0)) # True: target is in the window from 2 days ago up to reference
+```pycon
+>>> from frist import Chrono
+>>> import datetime as dt
+>>> meeting_time = dt.datetime(2025, 4, 25, 15, 0)  # Meeting 5 days ago
+>>> today = dt.datetime(2025, 4, 30)
+>>> meeting = Chrono(target_time=meeting_time, reference_time=today)
+>>> f"Meeting age: {meeting.age.days:.2f} days"
+'Meeting age: 5.00 days'
+>>> meeting.cal.in_days(0)
+False
+>>> meeting.cal.in_days(-5)
+True
+>>> meeting.cal.in_months(0)
+True
+>>> meeting.cal.in_months(0, 2)
+True
+>>> meeting.cal.in_months(-2)
+False
+>>> other_day = dt.datetime(2025, 5, 1)
+>>> meeting_other = Chrono(target_time=meeting_time, reference_time=other_day)
+>>> meeting_other.cal.in_days(0)
+False
+>>> meeting_other.cal.in_months(0)
+True
+>>> meeting_other.cal.in_months(0, 2)
+False
+>>> meeting_other.cal.in_months(-2)
+True
 ```
 
-In the diagram above, the window for `in_days(-2, 0)` covers 2024-05-06, 2024-05-07, and 2024-05-08 (target), but not 2024-05-09 (reference). The API answers: is the target in the window? Yes or no.
+## CalendarPolicy
 
-This windowing works for any time scale—days, weeks, months, etc.—and always uses half-open intervals: the left boundary is inclusive, the right is exclusive.
+The `CalendarPolicy` object lets you customize business logic for calendar calculations using half open intervals You can define:
 
-print(chrono.cal.in_days(-1, 1))    # Is target within 1 day before/after reference?
-```
+- **Workdays:** Any combination of weekdays (e.g., Mon, Wed, Fri, Sun)
+- **Holidays:** Any set of dates to exclude from working day calculations
+- **Business hours:** Custom start/end times for each day
+- **Fiscal year start:** Set the starting month for fiscal calculations
 
-```text
+**Default Policy:**
 
-# Timeline and Window Boundaries for Half Open Intervals*
-# Calendar Functions for in_day(start,end)
-#
-#       |-----------|------------|------------|------------|
-#        2024-05-06   2024-05-07   2024-05-08   2024-05-09   Date
-#         2DaysAgo     YesterDay     Today       Tomorrow    Description
-#                       Target        Ref                    Var Names
-#            -2           -1           0           +1        Start/End Indexes
-#         
-c = Chrono(target_date=may_05,ref_date=05)
-print(c.in_days(-1))   #  True,  the target day is 1 day ago
-print(c.in_Days(0))    #  False, the target time did not happen on day 0
-print(c.in_days(-2,0)) #  True,  the target day is in the range
-```
+If you do not provide a `CalendarPolicy`, Frist uses a default policy:
 
-* What is a half open interval?  A half open inverval is used for setting up ranges along a number line.  By having one boundary <= and the other being ==, you are guarenteed that sequential window checks won't be true for the same value in sequential windows.  This has the side effect that if you ask for data in the range -1,0 it only returns data for 1 day ago
+- Workdays: Monday–Friday (0–4)
+- Work hours: 9AM–5PM
+- Holidays: none
 
-## Explicit Reference Time
+This is suitable for most standard business use cases. You only need to provide a custom `CalendarPolicy` if your calendar logic requires non-standard workweeks, holidays, or business hours.
 
-You can always specify a custom reference time if you want to compare two specific dates:
+Example (custom policy):
 
-```python
-target = dt.datetime(2000, 1, 1)
-reference = dt.datetime(2024, 1, 1)
-chrono = Chrono(target_time=target, reference_time=reference)
-print(chrono.age.years)   # Years between 2000 and 2024
-# Example output: 24.0
-print(chrono.cal.in_days(0))        # Is target the same day as reference?
-# Example output: False
-```
-
-## Age and Cal Standalone
-
-You can also use `Age` and `Cal` directly, but Chrono is recommended for unified logic:
-
-```python
-from frist import Age, Cal
-
-age = Age(target_time=target, ref_time=reference)
-print(age.years)  # Example output: 24.0
-print(age.days)   # Example output: 8766
-
-cal = Cal(target_dt=target, ref_dt=reference)
-print(cal.in_days(0))      # Example output: False
-print(cal.in_days(-2, 2))  # Example output: False
-```
-
-**Calendar Policy:**
-The calendar object can calculate workdays, business hours, holidays, and more (details in a later section). By default, the policy is:
-
-* Workdays: Monday–Friday
-* Work hours: 9AM–5PM
-* Holidays: none
-  
-This policy can easily be changed to fit your needs.
-
----
-
-## Key Features
-
-* **Property-based API:** Access date and time information through properties and high-level methods.
-* **Calendar windows:** Easily check if a date falls within a day, week, month, quarter, fiscal period, or custom working day window.
-* **Working day and holiday logic:** Built-in support for excluding weekends and holidays from all calendar calculations. Simply provide a set of holiday dates and Frist will automatically skip them in working day windows and related queries.
-* **Customizable business calendars:** Define your own holiday sets and fiscal year start months for precise business logic.
-* **Age calculations:** Compute age spans and durations using flexible input types.
-* **No manual math required:** Most operations are declarative and require no arithmetic or direct datetime handling.
-
----
-
-## Installation
-
-```bash
-pip install frist
-```
-
-Or clone the repository and install locally:
-
-```bash
-git clone https://github.com/hucker/frist.git
-cd frist
-pip install .
+```pycon
+>>> from frist import CalendarPolicy
+>>> import datetime as dt
+>>> policy = CalendarPolicy(workdays={0,1,2,3,4}, holidays={"2025-1-1"}, work_hours=(9,17), fy_start_month=4)
+>>> date = dt.datetime(2025, 5, 15)
+>>> policy.get_fiscal_year(date)
+2026
+>>> policy.get_fiscal_quarter(date)
+1
+>>> policy.is_holiday(dt.datetime(year=2025,month=1,day=1))
+True
 ```
 
 ---
-
-## Usage
-
-### Calendar Operations
-
-```python
-from frist import Cal
-import datetime as dt
-
-cal = Cal(target_dt=dt.datetime(2024, 5, 8), ref_dt=dt.datetime(2024, 5, 6), holidays={"2024-05-08"})
-print(cal.in_workdays(-2, 2))  # True/False
-print(cal.in_months(0))        # True/False
-print(cal.in_fiscal_quarters(0)) # True/False
-```
-
-### Age Calculations
-
-```python
-from frist import Age
-import datetime as dt
-
-age = Age(dt.datetime(2000, 1, 1), dt.datetime(2024, 1, 1))
-print(age.years)  # Property: number of years
-print(age.days)   # Property: number of days
-
-age_now = Age(dt.datetime(2000, 1, 1))
-print(age_now.years)
-```
-
----
-
-## API Highlights
-
-### Cal
-
-* `target_dt`, `ref_dt`: Properties for target and reference datetimes
-* `in_days`, `in_weeks`, `in_months`, `in_quarters`, `in_years`, `in_workdays`, `in_fiscal_quarters`, `in_fiscal_years`: Methods to check if the target date falls within various calendar windows
-* `holiday`, `fiscal_year`, `fiscal_quarter`: Properties for holiday and fiscal calculations
-
-
-### Age
-
-* `years`, `months`, `days`, `seconds`: Properties for age span
-* `working_days`: Property for fractional working days between two datetimes, fully respects custom calendar policies
-* Flexible initialization: accepts datetimes, timestamps, or protocols
-
-#### Years Calculation: Approximation Note
-
-The `years` property uses an approximate value of 365.25 days per year, averaging leap and non-leap years for simplicity. If you require exact calendar year calculations (counting 365-day and 366-day years precisely), you will need to implement custom logic to count regular and leap years and handle fractional years carefully. This is left as an exercise for the reader, as it complicates the implementation and is rarely needed for most business use cases.
-
-**Example:**
-
-```python
-age = Age(dt.datetime(2000, 1, 1), dt.datetime(2024, 1, 1))
-print(age.years)  # Uses 365.25 days/year for approximation
-```
-
-#### Arbitrary Calendar Policy Support
-
-The `Age.working_days` property supports arbitrary calendar policies:
-
-* Workdays can be any combination of weekdays (e.g., Mon, Wed, Fri, Sun)
-* Holidays can be irregular and non-contiguous
-* Business hours can vary per day
-* No assumptions about contiguous workweeks or regular schedules
-
-**Correctness is prioritized over efficiency.**
-The algorithm iterates day-by-day, checking each date against the calendar policy for workdays, holidays, and business hours. This ensures accurate results for any custom business calendar, even if workdays, holidays, or hours are highly irregular. Optimization is possible, but correctness is preferred unless efficiency is shown to be a bottleneck.
-
----
-
-## Configuration
-
-* **Holidays:** Pass a set of date strings (YYYY-MM-DD) to exclude from working day calculations
-* **Fiscal year start:** Set `fy_start_month` for fiscal calculations
-
----
-
-## Testing
-
-* Comprehensive test suite covers edge cases, holidays, weekends, and exception handling
-* Run tests with:
-
-```bash
-pytest
-```
-
----
-
-## Contributing
-
-Pull requests and issues are welcome! See the repository for guidelines.
-
----
-
-## License
-
-MIT License
-
----
-
-## Acknowledgments
-
-Inspired by real-world business calendar needs and designed for clarity and ease of use.
-
-Chrono objects support fiscal year and quarter calculations with customizable fiscal year start months. For example:
-
-```python
-# Fiscal year starts in April (fy_start_month=4)
-meeting = Chrono(target_time=dt.datetime(2025, 7, 15), fy_start_month=4)
-print(meeting.fiscal_year)      # 2025 (fiscal year for July 15, 2025)
-print(meeting.fiscal_quarter)   # 2 (Q2: July–September for April start)
-
-# Check if a date is in a fiscal quarter or year window
-if meeting.cal.in_fiscal_quarters(0):
-  print("Meeting is in the current fiscal quarter.")
-if meeting.cal.in_fiscal_years(0):
-  print("Meeting is in the current fiscal year.")
-```
-
-## Holiday Detection Example
-
-Frist can instantly check if a date is a holiday using a set of holiday dates:
-
-```python
-holidays = {
-  '2025-12-25',  # Christmas
-  '2025-01-01',  # New Year's Day
-if project.holiday:
-  print("Project start date is a holiday!")
-```
-
-## Short Examples
-
-### Age Calculation
-
-```python
-person = Chrono(target_time=dt.datetime(1990, 5, 1), reference_time=dt.datetime(2025, 5, 1))
-print(f"Age in days: {person.age.days}, Age in years: {person.age.years:.2f}")
-```
-
-### Calendar Windows
-
-```python
-meeting = Chrono(target_time=dt.datetime(2025, 12, 25))
-if meeting.cal.in_days(0):
-  print("Meeting is today!")
-if meeting.cal.in_weeks(-1):
-  print("Meeting was last week.")
-```
 
 ## API Reference
 
-### Frist
+### Age Object
+```pycon
+>>> from frist import Age
+>>> import datetime as dt
+>>> start = dt.datetime(2000, 1, 1)
+>>> end = dt.datetime(2025, 5, 1)
+>>> age = Age(start_time=start, end_time=end)
+>>> age.years
+25.33
+>>> age.days
+9252
+>>> age.months
+303.98
+>>> age.working_days
+6573.0
+```
 
-`Chrono(target_time: datetime, reference_time: datetime = None, fy_start_month: int = 1, holidays: set[str] = None)`
+`Age(start_time: datetime, end_time: datetime = None, cal_policy: CalendarPolicy = None)`
 
-- **Properties:**
-  * `age`: Age object with properties for `.days`, `.hours`, `.minutes`, `.seconds`, `.weeks`, `.months`, `.quarters`, `.years`, `.fiscal_year`, `.fiscal_quarter`.
-  *- `cal`: Cal object for calendar window logic.
-  * `fiscal_year`: Fiscal year for the target time.
-  * `fiscal_quarter`: Fiscal quarter for the target time.
-  * `holiday`: True if target time is a holiday (if holidays set provided).
+| Property         | Description                                              |
+|------------------|----------------------------------------------------------|
+| `seconds`        | Age in seconds                                           |
+| `minutes`        | Age in minutes                                           |
+| `hours`          | Age in hours                                             |
+| `days`           | Age in days                                              |
+| `weeks`          | Age in weeks                                             |
+| `months`         | Age in months (approximate, 30.44 days)                  |
+| `months_precise` | Age in months (precise, calendar-based)                  |
+| `years`          | Age in years (approximate, 365.25 days)                  |
+| `years_precise`  | Age in years (precise, calendar-based)                   |
+| `working_days`   | Fractional working days between start and end, per policy|
+| `fiscal_year`    | Fiscal year for start_time                               |
+| `fiscal_quarter` | Fiscal quarter for start_time                            |
+| `start_time`     | Start datetime                                           |
+| `end_time`       | End datetime                                             |
+| `cal_policy`     | CalendarPolicy used for business logic                   |
 
-### Cal
+| Method           | Description                                              |
+|------------------|----------------------------------------------------------|
+| `set_times(start_time=None, end_time=None)` | Update start/end times         |
+| `parse(age_str)` | Parse age string to seconds                              |
 
-* **Properties:**
-  * `dt_val`: Target datetime.
-  * `base_time`: Reference datetime.
-  * `fiscal_year`: Fiscal year for `dt_val`.
-  * `fiscal_quarter`: Fiscal quarter for `dt_val`.
-  * `holiday`: True if `dt_val` is a holiday.
-
-* **Interval Methods:**
-  * `in_minutes(start: int = 0, end: int | None = None) -> bool`
-  * `in_hours(start: int = 0, end: int | None = None) -> bool`
-  * `in_days(start: int = 0, end: int | None = None) -> bool`
-  * `in_weeks(start: int = 0, end: int | None = None, week_start: str = "monday") -> bool`
-  * `in_months(start: int = 0, end: int | None = None) -> bool`
-  * `in_quarters(start: int = 0, end: int | None = None) -> bool`
-  * `in_years(start: int = 0, end: int | None = None) -> bool`
-  * `in_fiscal_quarters(start: int = 0, end: int | None = None) -> bool`
-  * `in_fiscal_years(start: int = 0, end: int | None = None) -> bool`
-
-* **Static Methods:**
-  * `get_fiscal_year(dt: datetime, fy_start_month: int) -> int`
-  * `get_fiscal_quarter(dt: datetime, fy_start_month: int) -> int`
-
-*  **Exceptions:**
-  * All interval methods raise `ValueError` if `start > end`.
-  * `normalize_weekday(day_spec: str) -> int` raises `ValueError` for invalid day specifications, with detailed error messages.
-
-### Age
-
-`Age(target_time: datetime, reference_time: datetime)`
-
-* **Properties:**
-  * `days`, `hours`, `minutes`, `seconds`, `weeks`, `months`, `quarters`, `years`, `fiscal_year`, `fiscal_quarter`
-
-* **Properties:**
-  * `target_dt`: Target datetime.
-  * `ref_dt`: Reference datetime.
+The `months_precise` and `years_precise` properties calculate the exact number of calendar months or years between two dates, accounting for the actual length of each month and year. Unlike the approximate versions (which use averages like 30.44 days/month or 365.25 days/year), these properties provide results that match real-world calendar boundaries. They are more intuitively correct but may be slower to compute, especially for long time spans.
 
 ---
 
-## Testing and Support
+### Cal Object
 
-[![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13%20|%203.14-blue?logo=python&logoColor=white)](https://www.python.org/)
-[![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen)](https://github.com/hucker/zeit/actions)
-[![Ruff](https://img.shields.io/badge/ruff-100%25%20clean-brightgreen?logo=ruff&logoColor=white)](https://github.com/charliermarsh/ruff)
+The Cal object provides a family of `in_*` methods (e.g., `in_days`, `in_months`, `in_years` etc) to check if the target date falls within a calendar window relative to the reference date. These methods use calendar units (not elapsed time) using half-open intervals. The start is inclusive, the end is exclusive. This makes it easy to check if a date is in a specific calendar range (e.g., last week, next month, fiscal quarter) using intuitive, unit-based logic.
+
+```pycon
+>>> from frist import Cal
+>>> import datetime as dt
+>>> target = dt.datetime(2025, 4, 29)
+>>> reference = dt.datetime(2025, 4, 30)
+>>> cal = Cal(target_dt=target, ref_dt=reference)
+>>> cal.in_days(-1)
+True  # Target is yesterday
+>>> cal.in_days(0)
+False # Target is not today
+>>> cal.in_days(-1, 1)
+True  # Target is within ±1 day of reference
+```
+
+- `in_days(-1)`: Is the target date yesterday?
+- `in_days(-1, 1)`: Is the target date within ±1 calendar day of the reference?
+
+`Cal(target_dt: datetime, ref_dt: datetime, fy_start_month: int = 1, holidays: set[str] = None)`
+
+| Property         | Description                                 |
+|------------------|---------------------------------------------|
+| `dt_val`         | Target datetime                             |
+| `base_time`      | Reference datetime                          |
+| `fiscal_year`    | Fiscal year for `dt_val`                    |
+| `fiscal_quarter` | Fiscal quarter for `dt_val`                 |
+| `holiday`        | True if `dt_val` is a holiday               |
+
+| Interval Method  | Description                                 |
+|------------------|---------------------------------------------|
+| `in_minutes(start=0, end=None)`         | Is target in minute window         |
+| `in_hours(start=0, end=None)`           | Is target in hour window           |
+| `in_days(start=0, end=None)`            | Is target in day window            |
+| `in_weeks(start=0, end=None, week_start="monday")` | Is target in week window |
+| `in_months(start=0, end=None)`          | Is target in month window          |
+| `in_quarters(start=0, end=None)`        | Is target in quarter window        |
+| `in_years(start=0, end=None)`           | Is target in year window           |
+| `in_fiscal_quarters(start=0, end=None)` | Is target in fiscal quarter window |
+| `in_fiscal_years(start=0, end=None)`    | Is target in fiscal year window    |
+
+---
+
+### Chrono Object
+
+`Chrono(target_time: datetime, reference_time: datetime = None, fy_start_month: int = 1, holidays: set[str] = None)`
+
+| Property      | Description                                                      |
+|--------------|------------------------------------------------------------------|
+| `age`        | Age object for span calculations (see Age above)                  |
+| `cal`        | Cal object for calendar window logic (see Cal above)              |
+| `fiscal_year`| Fiscal year for the target time                                   |
+| `fiscal_quarter` | Fiscal quarter for the target time                            |
+| `holiday`    | True if target time is a holiday (if holidays set provided)       |
+
+### Status
+
+[![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13%20|%203.14-blue?logo=python&logoColor=white)](https://www.python.org/) [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/hucker/frist/actions) [![Pytest](https://img.shields.io/badge/pytest-100%25%20pass%20%7C%20349%20tests-blue?logo=pytest&logoColor=white)](https://docs.pytest.org/en/stable/) [![Ruff](https://img.shields.io/badge/ruff-100%25-brightgreen?logo=ruff&logoColor=white)](https://github.com/charliermarsh/ruff) [![Tox](https://img.shields.io/badge/tox-tested%20%7C%20multi%20envs-green?logo=tox&logoColor=white)](https://tox.readthedocs.io/)
+
+### Pytest
+
+```text
+src\frist\__init__.py                          7      0      0      0   100%
+src\frist\_age.py                            149      0     46      0   100%
+src\frist\_cal.py                            202      0     34      0   100%
+src\frist\_cal_policy.py                      79      0     38      0   100%
+src\frist\_constants.py                       15      0      0      0   100%
+src\frist\_frist.py                           66      0     18      0   100%
+```
+
+### Tox
+
+```text
+  py310: OK (15.17=setup[12.99]+cmd[2.18] seconds)
+  py311: OK (10.57=setup[7.96]+cmd[2.61] seconds)
+  py312: OK (11.98=setup[9.45]+cmd[2.53] seconds)
+  py313: OK (10.74=setup[8.46]+cmd[2.29] seconds)
+  py314: OK (11.04=setup[8.61]+cmd[2.43] seconds)
+  congratulations :) (59.61 seconds)
+```

@@ -34,6 +34,14 @@ WEEKDAY_INDEX: Final[Dict[str, int]] = {
     "saturday": 5, "sat": 5, "sa": 5,
     "sunday": 6, "sun": 6, "su": 6,
 }
+
+
+CHRONO_DATETIME_FORMATS:list[str] = [
+    "%Y-%m-%d %H:%M:%S",
+    "%Y-%m-%d",
+]
+
+
 __all__ = [
     "SECONDS_PER_MINUTE",
     "SECONDS_PER_HOUR",
@@ -47,4 +55,7 @@ __all__ = [
     "DAYS_PER_WEEK",
     "MONTHS_PER_YEAR",
     "WEEKDAY_INDEX",
+    "CHRONO_DATETIME_FORMATS",
 ]
+
+

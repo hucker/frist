@@ -58,40 +58,131 @@ def test_calendar_policy_invalid_workdays_type() -> None:
     Test that CalendarPolicy raises TypeError if workdays is not a list.
     """
     with pytest.raises(TypeError, match="workdays must be a list"):
-        CalendarPolicy(workdays=(0, 1, 2, 3, 4))  # tuple instead of list
+        CalendarPolicy(workdays=(0, 1, 2, 3, 4))  # type: ignore # should be bad type
     with pytest.raises(TypeError, match="workdays must be a list"):
-        CalendarPolicy(workdays="01234")  # string instead of list
+        CalendarPolicy(workdays="01234")  # type:ignore # should be bad type
     with pytest.raises(TypeError, match="workdays must be a list"):
-        CalendarPolicy(workdays=None)  # None instead of list
+        CalendarPolicy(workdays=None)  # type:ignore # should be bad type
 
 def test_calendar_policy_invalid_holidays_type() -> None:
     """
     Test that CalendarPolicy raises TypeError if holidays is not a set.
     """
     with pytest.raises(TypeError, match="holidays must be a set"):
-        CalendarPolicy(holidays=["2025-11-13"])  # list instead of set
+        CalendarPolicy(holidays=["2025-11-13"])  # type:ignore # should be bad type
     with pytest.raises(TypeError, match="holidays must be a set"):
-        CalendarPolicy(holidays="2025-11-13")  # string instead of set
+        CalendarPolicy(holidays="2025-11-13")  # type:ignore # should be bad type
     with pytest.raises(TypeError, match="holidays must be a set"):
-        CalendarPolicy(holidays=None)  # None instead of set
+        CalendarPolicy(holidays=None)  # type:ignore # should be bad type
 
 def test_calendar_policy_invalid_fiscal_year_start_month() -> None:
     """
     Test that CalendarPolicy raises ValueError for invalid fiscal_year_start_month (coverage for __post_init__ line 31).
     """
-    import pytest
     with pytest.raises(ValueError, match="fiscal_year_start_month must be in 1..12"):
         CalendarPolicy(fiscal_year_start_month=0)
     with pytest.raises(ValueError, match="fiscal_year_start_month must be in 1..12"):
         CalendarPolicy(fiscal_year_start_month=13)
+
 def test_fiscal_year_start_month_validation() -> None:
     """
     Test CalendarPolicy raises ValueError for invalid fiscal_year_start_month.
     """
-    import pytest
     # Invalid: 0
     with pytest.raises(ValueError, match="fiscal_year_start_month must be in 1..12"):
         CalendarPolicy(fiscal_year_start_month=0)
     # Invalid: 13
     with pytest.raises(ValueError, match="fiscal_year_start_month must be in 1..12"):
         CalendarPolicy(fiscal_year_start_month=13)
+
+@pytest.mark.parametrize("good_date", [
+    "1900-01-01",
+    "1999-12-31",
+    "2025-11-13",
+    "2099-12-31",
+])
+def test_valid_date_str_true(good_date:str):
+    policy = CalendarPolicy()
+    assert policy.valid_date_str(good_date) is True, f"valid_date_str('{good_date}') should be True"
+
+def test_is_business_day_invalid_type():
+    """
+    Test is_business_day raises TypeError for invalid input types.
+    """
+    policy = CalendarPolicy()
+    with pytest.raises(TypeError, match="is_business_day expects date, or datetime"):
+        policy.is_business_day(12345)  # type: ignore
+    with pytest.raises(TypeError, match="is_business_day expects date, or datetime"):
+        policy.is_business_day("2025-11-13")  # type: ignore
+    with pytest.raises(TypeError, match="is_business_day expects date, or datetime"):
+        policy.is_business_day([dt.date(2025, 11, 13)])  # type: ignore
+
+@pytest.mark.parametrize("bad_str", [
+    "2024-02-30",  # impossible date
+    "2024-13-01",  # invalid month
+    "2024-00-10",  # invalid month
+    "2024-8-8",    # invalid format
+    "1899-01-01",  # year out of range
+    "2100-01-01",  # year out of range
+])
+def test_is_holiday_valueerror_for_bad_str(bad_str):
+    policy = CalendarPolicy()
+    with pytest.raises(ValueError):
+        policy.is_holiday(bad_str)
+
+def test_is_business_day_typeerror():
+    policy = CalendarPolicy()
+    with pytest.raises(TypeError, match="is_business_day expects date, or datetime"):
+        policy.is_business_day(42)  # int, not date/datetime
+    with pytest.raises(TypeError, match="is_business_day expects date, or datetime"):
+        policy.is_business_day("2025-11-13")  # str, not date/datetime
+
+def test_is_holiday_typeerror():
+    policy = CalendarPolicy()
+    with pytest.raises(TypeError, match="is_holiday expects str"):
+        policy.is_holiday(42)  # int, not str/date/datetime
+    with pytest.raises(TypeError, match="is_holiday expects str"):
+        policy.is_holiday([2025, 11, 13])  # list, not str/date/datetime
+
+def test_is_business_day_typeerror_none():
+    policy = CalendarPolicy()
+    with pytest.raises(TypeError, match="is_business_day expects date, or datetime"):
+        policy.is_business_day(None)  # NoneType
+
+def test_is_business_day_true_false():
+    policy = CalendarPolicy(holidays={"2025-11-13"})
+    # Workday, not holiday
+    date = dt.date(2025, 11, 12)  # Wednesday
+    assert policy.is_business_day(date) is True, "Should be business day (workday, not holiday)"
+    # Holiday
+    date_holiday = dt.date(2025, 11, 13)  # Thursday
+    assert policy.is_business_day(date_holiday) is False, "Should not be business day (holiday)"
+    # Weekend
+    date_weekend = dt.date(2025, 11, 15)  # Saturday
+    assert policy.is_business_day(date_weekend) is False, "Should not be business day (weekend)"
+    # Workday, not holiday, as datetime
+    dt_obj = dt.datetime(2025, 11, 12, 10, 0)
+    assert policy.is_business_day(dt_obj) is True, "Should be business day (datetime)"
+    # Holiday, as datetime
+    dt_obj_holiday = dt.datetime(2025, 11, 13, 10, 0)
+    assert policy.is_business_day(dt_obj_holiday) is False, "Should not be business day (holiday, datetime)"
+    # Weekend, as datetime
+    dt_obj_weekend = dt.datetime(2025, 11, 15, 10, 0)
+    assert policy.is_business_day(dt_obj_weekend) is False, "Should not be business day (weekend, datetime)"
+
+@pytest.mark.parametrize("bad_type", [
+    12345,
+    None,
+    "2025-11-13",
+    [dt.date(2025, 11, 13)],
+    object(),
+])
+def test_is_business_day_typeerror_for_bad_types(bad_type):
+    policy = CalendarPolicy()
+    with pytest.raises(TypeError):
+        policy.is_business_day(bad_type)
+
+@pytest.mark.parametrize("bad_type", [12345, None, ["2025-11-13"], {"date": "2025-11-13"}, object()])
+def test_valid_date_str_non_string(bad_type):
+    policy = CalendarPolicy()
+    assert policy.valid_date_str(bad_type) is False

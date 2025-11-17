@@ -85,7 +85,7 @@ def verify_start_end(func: Callable[..., Any]) -> Callable[..., Any]:
         '<function>: start (<start>) must not be greater than end (<end>)'
     """
     @functools.wraps(func)
-    def wrapper(self: Any, start: int = 0, end: int | None = None, *args: Any, **kwargs: Any) -> Any:
+    def wrapper(self: Any, start: int = 0, end: int | None = None, *args: Any, **kwargs: Any) -> bool:
         if end is None:
             end = start
         if start > end:
@@ -165,10 +165,10 @@ class Cal:
             end: Minutes from now to end range (defaults to start for single minute)
 
         Examples:
-            zeit.cal.in_minutes(0)          # This minute (now)
-            zeit.cal.in_minutes(-5)         # 5 minutes ago only
-            zeit.cal.in_minutes(-10, -5)    # From 10 minutes ago through 5 minutes ago
-            zeit.cal.in_minutes(-30, 0)     # Last 30 minutes through now
+            chrono.cal.in_minutes(0)          # This minute (now)
+            chrono.cal.in_minutes(-5)         # 5 minutes ago only
+            chrono.cal.in_minutes(-10, -5)    # From 10 minutes ago through 5 minutes ago
+            chrono.cal.in_minutes(-30, 0)     # Last 30 minutes through now
         """
 
         target_time = self.target_dt
@@ -194,10 +194,10 @@ class Cal:
             end: Hours from now to end range (defaults to start for single hour)
 
         Examples:
-            zeit.cal.in_hours(0)          # This hour (now)
-            zeit.cal.in_hours(-2)         # 2 hours ago only
-            zeit.cal.in_hours(-6, -1)     # From 6 hours ago through 1 hour ago
-            zeit.cal.in_hours(-24, 0)     # Last 24 hours through now
+            chrono.cal.in_hours(0)          # This hour (now)
+            chrono.cal.in_hours(-2)         # 2 hours ago only
+            chrono.cal.in_hours(-6, -1)     # From 6 hours ago through 1 hour ago
+            chrono.cal.in_hours(-24, 0)     # Last 24 hours through now
         """
 
         target_time = self.target_dt
@@ -285,10 +285,10 @@ class Cal:
             end: Months from now to end range (defaults to start for single month)
 
         Examples:
-            zeit.cal.in_months(0)          # This month
-            zeit.cal.in_months(-1)         # Last month only
-            zeit.cal.in_months(-6, -1)     # From 6 months ago through last month
-            zeit.cal.in_months(-12, 0)     # Last 12 months through this month
+            chrono.cal.in_months(0)          # This month
+            chrono.cal.in_months(-1)         # Last month only
+            chrono.cal.in_months(-6, -1)     # From 6 months ago through last month
+            chrono.cal.in_months(-12, 0)     # Last 12 months through this month
         """
 
         target_time = self.target_dt
@@ -334,10 +334,10 @@ class Cal:
             end: Quarters from now to end range (defaults to start for single quarter)
 
         Examples:
-            zeit.cal.in_quarters(0)          # This quarter (Q1: Jan-Mar, Q2: Apr-Jun, Q3: Jul-Sep, Q4: Oct-Dec)
-            zeit.cal.in_quarters(-1)         # Last quarter
-            zeit.cal.in_quarters(-4, -1)     # From 4 quarters ago through last quarter
-            zeit.cal.in_quarters(-8, 0)      # Last 8 quarters through this quarter
+            chrono.cal.in_quarters(0)          # This quarter (Q1: Jan-Mar, Q2: Apr-Jun, Q3: Jul-Sep, Q4: Oct-Dec)
+            chrono.cal.in_quarters(-1)         # Last quarter
+            chrono.cal.in_quarters(-4, -1)     # From 4 quarters ago through last quarter
+            chrono.cal.in_quarters(-8, 0)      # Last 8 quarters through this quarter
         """
 
         target_time = self.target_dt
@@ -377,10 +377,10 @@ class Cal:
             end: Years from now to end range (defaults to start for single year)
 
         Examples:
-            zeit.cal.in_years(0)          # This year
-            zeit.cal.in_years(-1)         # Last year only
-            zeit.cal.in_years(-5, -1)     # From 5 years ago through last year
-            zeit.cal.in_years(-10, 0)     # Last 10 years through this year
+            chrono.cal.in_years(0)          # This year
+            chrono.cal.in_years(-1)         # Last year only
+            chrono.cal.in_years(-5, -1)     # From 5 years ago through last year
+            chrono.cal.in_years(-10, 0)     # Last 10 years through this year
         """
 
         target_year = self.target_dt.year
@@ -408,10 +408,10 @@ class Cal:
                 - Case insensitive
 
         Examples:
-            zeit.cal.in_weeks(0)                     # This week (Monday start)
-            zeit.cal.in_weeks(-1, week_start='sun')  # Last week (Sunday start)
-            zeit.cal.in_weeks(-4, 0)                 # Last 4 weeks through this week
-            zeit.cal.in_weeks(-2, -1, 'sunday')      # 2-1 weeks ago (Sunday weeks)
+            chrono.cal.in_weeks(0)                     # This week (Monday start)
+            chrono.cal.in_weeks(-1, week_start='sun')  # Last week (Sunday start)
+            chrono.cal.in_weeks(-4, 0)                 # Last 4 weeks through this week
+            chrono.cal.in_weeks(-2, -1, 'sunday')      # 2-1 weeks ago (Sunday weeks)
         """
 
         week_start_day = normalize_weekday(week_start)
@@ -445,10 +445,10 @@ class Cal:
             end: Fiscal quarters from now to end range (defaults to start for single fiscal quarter)
 
         Examples:
-            zeit.cal.in_fiscal_quarters(0)          # This fiscal quarter
-            zeit.cal.in_fiscal_quarters(-1)         # Last fiscal quarter
-            zeit.cal.in_fiscal_quarters(-4, -1)     # From 4 fiscal quarters ago through last fiscal quarter
-            zeit.cal.in_fiscal_quarters(-8, 0)      # Last 8 fiscal quarters through this fiscal quarter
+            chrono.cal.in_fiscal_quarters(0)          # This fiscal quarter
+            chrono.cal.in_fiscal_quarters(-1)         # Last fiscal quarter
+            chrono.cal.in_fiscal_quarters(-4, -1)     # From 4 fiscal quarters ago through last fiscal quarter
+            chrono.cal.in_fiscal_quarters(-8, 0)      # Last 8 fiscal quarters through this fiscal quarter
         """
         fy_start_month = self.cal_policy.fiscal_year_start_month
         base_time = self.ref_dt
@@ -486,10 +486,10 @@ class Cal:
             end: Fiscal years from now to end range (defaults to start for single fiscal year)
 
         Examples:
-            zeit.cal.in_fiscal_years(0)          # This fiscal year
-            zeit.cal.in_fiscal_years(-1)         # Last fiscal year
-            zeit.cal.in_fiscal_years(-5, -1)     # From 5 fiscal years ago through last fiscal year
-            zeit.cal.in_fiscal_years(-10, 0)     # Last 10 fiscal years through this fiscal year
+            chrono.cal.in_fiscal_years(0)          # This fiscal year
+            chrono.cal.in_fiscal_years(-1)         # Last fiscal year
+            chrono.cal.in_fiscal_years(-5, -1)     # From 5 fiscal years ago through last fiscal year
+            chrono.cal.in_fiscal_years(-10, 0)     # Last 10 fiscal years through this fiscal year
         """
         fy_start_month = self.cal_policy.fiscal_year_start_month
         base_time = self.ref_dt
