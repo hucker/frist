@@ -20,7 +20,7 @@ from ._cal import Cal
 from ._cal_policy import CalendarPolicy
 from ._frist import Chrono
 
-__version__ = "0.10.0"
+__version__ = "0.11.0"
 __author__ = "Chuck Bass"
 
 __all__ = ["Chrono", "Age",  "Cal" ,"CalendarPolicy" ]
