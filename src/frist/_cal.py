@@ -5,11 +5,6 @@ Calendar-based time window filtering for frist package.
 Provides calendar window filtering functionality for Chronoobjects).
 """
 
-
-
-import functools
-from typing import Any, Callable
-
 import datetime as dt
 from typing import TYPE_CHECKING
 
@@ -67,8 +62,6 @@ def normalize_weekday(day_spec: str) -> int:
 
 
 
-
-def verify_start_end(func: Callable[..., Any]) -> Callable[..., Any]:
     """
     Decorator for calendar window methods to validate input ranges.
 
@@ -103,7 +96,6 @@ class Cal:
         self,
         target_dt: dt.datetime | float | int,
         ref_dt: dt.datetime | float | int,
-        cal_policy: CalendarPolicy | None = None,
     ) -> None:
         # Convert to datetime if needed
         if isinstance(target_dt, (float, int)):
@@ -120,11 +112,6 @@ class Cal:
         else:
             raise TypeError("ref_dt must be datetime, float, or int")
 
-        if cal_policy is None:
-            self.cal_policy = CalendarPolicy()
-        else:
-            self.cal_policy = cal_policy
-
 
     @property
     def target_dt(self) -> dt.datetime:
@@ -136,21 +123,7 @@ class Cal:
         """Get the reference datetime."""
         return self._ref_dt
     
-    @property
-    def holiday(self) -> bool:
-        """Return True if target_dt is a holiday according to calendar policy."""
-        return self.cal_policy.is_holiday(self.target_dt)
 
-
-    @property
-    def fiscal_year(self) -> int:
-        """Return the fiscal year for target_dt based on CalendarPolicy."""
-        return Cal.get_fiscal_year(self.target_dt, self.cal_policy.fiscal_year_start_month)
-
-    @property
-    def fiscal_quarter(self) -> int:
-        """Return the fiscal quarter for target_dt based on CalendarPolicy."""
-        return Cal.get_fiscal_quarter(self.target_dt, self.cal_policy.fiscal_year_start_month)
 
 
     @verify_start_end
@@ -235,45 +208,7 @@ class Cal:
         return start_date <= target_date <= end_date
 
 
-    @verify_start_end
-    def in_workdays(self, start: int = 0, end: int = 0) -> bool:
-        """
-        True if target_dt falls within the working day window(s) from start to end,
-        counting only working days as defined by CalendarPolicy (workdays, holidays).
 
-        The window is defined by moving exactly `start` and `end` working days from ref_dt,
-        skipping non-workdays and holidays. The check is inclusive: start_workday <= target_dt <= end_workday.
-
-        Args:
-            start: Working days from reference to start range (negative = past, 0 = today, positive = future)
-            end: Working days from reference to end range (defaults to start for single working day)
-
-        Examples:
-            cal.in_workdays(0)          # Today only, if today is a working day
-            cal.in_workdays(-1)         # Previous working day only
-            cal.in_workdays(-5, 5)      # From 5 working days ago through 5 working days ahead
-        """
-        ref_date = self.ref_dt.date()
-        target_date = self.target_dt.date()
-
-        def move_workdays(date: dt.date, n: int) -> dt.date:
-            """Move n working days from date, skipping non-workdays and holidays."""
-            step = 1 if n > 0 else -1
-            count = 0
-            current = date
-            while count < abs(n):
-                current += dt.timedelta(days=step)
-                if self.cal_policy.is_workday(current) and not self.cal_policy.is_holiday(current):
-                    count += 1
-            return current
-
-        start_workday = move_workdays(ref_date, start)
-        end_workday = move_workdays(ref_date, end)
-
-
-        # Target must be a workday (per CalendarPolicy)
-        is_workday = self.cal_policy.is_workday(target_date) and not self.cal_policy.is_holiday(target_date)
-        return is_workday and (start_workday <= target_date <= end_workday)
 
 
     @verify_start_end

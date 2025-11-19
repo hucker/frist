@@ -73,6 +73,7 @@
   -
 - Prefer parameterized tests when checking multiple cases (e.g., using pytest.mark.parametrize).
 - Always use temporary folders (e.g., pytest's tmp_path fixture) for filesystem interaction in tests to ensure cleanup.
+- Always type hint paramerized arguments to test functions
 
 ---
 

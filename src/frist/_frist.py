@@ -9,6 +9,7 @@ import datetime as dt
 
 from ._age import Age
 from ._cal import Cal
+from ._biz import Biz
 from ._cal_policy import CalendarPolicy
 from ._constants import CHRONO_DATETIME_FORMATS
 
@@ -142,7 +143,8 @@ class Chrono:
         # for the two objects occurred accross a hour/day/month/quarter/year boundary.
         self._age: Age = Age(self.target_time,self.reference_time, cal_policy=self.policy)
         self._cal: Cal = Cal(self.target_time, self.reference_time, cal_policy=self.policy)
-
+        self._biz: Biz = Biz(self.target_time, self.reference_time, self.policy)
+        
 
     @property
     def age(self) -> Age:
@@ -154,6 +156,11 @@ class Chrono:
         """Return the Cal object for this Chrono."""
         return self._cal
 
+    @property
+    def biz(self) -> Biz:
+        """Return the Biz object for this Chrono."""
+        return self._biz
+    
     @property
     def timestamp(self) -> float:
         """Get the raw timestamp for target_time."""
