@@ -135,19 +135,19 @@ def test_is_business_day_typeerror():
     with pytest.raises(TypeError, match="is_business_day expects date, or datetime"):
         policy.is_business_day(42)  # int, not date/datetime
     with pytest.raises(TypeError, match="is_business_day expects date, or datetime"):
-        policy.is_business_day("2025-11-13")  # str, not date/datetime
+        policy.is_business_day("2025-11-13")   # type: ignore # Intentional wrong type for test
 
 def test_is_holiday_typeerror():
     policy = CalendarPolicy()
     with pytest.raises(TypeError, match="is_holiday expects str"):
         policy.is_holiday(42)  # int, not str/date/datetime
     with pytest.raises(TypeError, match="is_holiday expects str"):
-        policy.is_holiday([2025, 11, 13])  # list, not str/date/datetime
+        policy.is_holiday([2025, 11, 13])  # type: ignore # Intentional wrong type for test
 
 def test_is_business_day_typeerror_none():
     policy = CalendarPolicy()
     with pytest.raises(TypeError, match="is_business_day expects date, or datetime"):
-        policy.is_business_day(None)  # NoneType
+        policy.is_business_day(None)   # type: ignore # Intentional wrong type for test
 
 def test_is_business_day_true_false():
     policy = CalendarPolicy(holidays={"2025-11-13"})
@@ -180,9 +180,9 @@ def test_is_business_day_true_false():
 def test_is_business_day_typeerror_for_bad_types(bad_type):
     policy = CalendarPolicy()
     with pytest.raises(TypeError):
-        policy.is_business_day(bad_type)
+        policy.is_business_day(bad_type)  # type: ignore # Intentional wrong type for test
 
 @pytest.mark.parametrize("bad_type", [12345, None, ["2025-11-13"], {"date": "2025-11-13"}, object()])
 def test_valid_date_str_non_string(bad_type):
     policy = CalendarPolicy()
-    assert policy.valid_date_str(bad_type) is False
+    assert policy.valid_date_str(bad_type) is False  # type: ignore # Intentional wrong type for test

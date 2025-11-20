@@ -36,11 +36,12 @@ WEEKDAY_INDEX: Final[Dict[str, int]] = {
 }
 
 
-CHRONO_DATETIME_FORMATS:list[str] = [
-    "%Y-%m-%d %H:%M:%S",
-    "%Y-%m-%d",
+CHRONO_DATETIME_FORMATS: list[str] = [
+    "%Y-%m-%d %H:%M:%S",  # "YYYY-MM-DD HH:MM:SS" e.g. 2023-12-25 14:30:00
+    "%Y-%m-%d",           # "YYYY-MM-DD"            e.g. 2023-12-25
+    "%Y-%m-%dT%H:%M:%S",   # ISO 8601 (datetime)     e.g. 2023-12-25T14:30:00
+    "%Y-%m-%dT%H:%M:%SZ",  # ISO 8601 (UTC/Z)        e.g. 2023-12-25T14:30:00Z
 ]
-
 
 __all__ = [
     "SECONDS_PER_MINUTE",

@@ -127,7 +127,7 @@ class Chrono:
             >>> Chrono(target_time=datetime(2024, 5, 1), policy=CalendarPolicy(fiscal_year_start_month=4))
         """
         
-        # Normalize target and reference for both age and cal objects
+        # Normalize target and reference so we get clean  datetime objects
         target,ref = time_pair(start_time=target_time,end_time=reference_time) 
 
         # This keeps the typechecker happy
@@ -141,9 +141,10 @@ class Chrono:
         # in the case that now() is used in both cases.  If you didn't do this it would be up to you
         # to ensure the same reference time.  This could make VERY hard to find bugs if the reference time
         # for the two objects occurred accross a hour/day/month/quarter/year boundary.
-        self._age: Age = Age(self.target_time, self.reference_time, cal_policy=self.policy)
-        # `Cal` is policy-free (operates on pure calendar windows). Biz handles policy-aware calculations.
+        self._age: Age = Age(self.target_time, self.reference_time)
         self._cal: Cal = Cal(self.target_time, self.reference_time)
+
+        # Biz gets the policy since that is how it figures things out.
         self._biz: Biz = Biz(self.target_time, self.reference_time, self.policy)
         
 

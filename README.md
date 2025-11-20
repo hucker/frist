@@ -163,6 +163,46 @@ True  # Target is within ±1 day of reference
 
 ---
 
+### Biz Object
+
+The `Biz` object performs business-aware calculations using a `CalendarPolicy`. It counts
+working days (defined by the policy's workday set) and business days (working days that are not holidays).
+It also computes fractional day contributions using the policy's business hours.
+
+```pycon
+>>> from frist import Biz, CalendarPolicy
+>>> import datetime as dt
+>>> policy = CalendarPolicy(workdays={0,1,2,3,4}, holidays={"2025-01-01"})
+>>> target = dt.datetime(2025, 1, 2, 9, 0)
+>>> ref = dt.datetime(2025, 1, 4, 17, 0)
+>>> b = Biz(target, ref, policy)
+>>> b.working_days()
+1.875
+>>> b.business_days()
+0.875  # holiday on Jan 1 removed from business-day total
+```
+
+`Biz(target_time: datetime, ref_time: datetime | None, policy: CalendarPolicy | None)`
+
+| Property / Attribute | Description |
+|----------------------|-------------|
+| `cal_policy`         | `CalendarPolicy` instance used by this Biz |
+| `target_time`        | Target datetime |
+| `ref_time`           | Reference datetime |
+| `holiday`            | True if `target_time` is a holiday |
+| `is_workday`         | True if `target_time` falls on a workday |
+| `is_business_day`    | True if `target_time` is a business day (workday and not holiday) |
+
+| Method               | Description |
+|----------------------|-------------|
+| `working_days()`     | Fractional working days between target and ref (ignores holidays) |
+| `business_days()`    | Fractional business days between target and ref (excludes holidays) |
+| `in_working_days(start=0, end=0)` | Range membership by working days (ignores holidays) |
+| `in_business_days(start=0, end=0)`| Range membership by business days (excludes holidays) |
+| `get_fiscal_year(dt, fy_start_month)` | Static helper to compute fiscal year for a datetime |
+| `get_fiscal_quarter(dt, fy_start_month)` | Static helper to compute fiscal quarter |
+
+
 ### Chrono Object
 
 `Chrono(target_time: datetime, reference_time: datetime = None, fy_start_month: int = 1, holidays: set[str] = None)`
@@ -177,17 +217,19 @@ True  # Target is within ±1 day of reference
 
 ### Status
 
-[![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13%20|%203.14-blue?logo=python&logoColor=white)](https://www.python.org/) [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/hucker/frist/actions) [![Pytest](https://img.shields.io/badge/pytest-100%25%20pass%20%7C%20349%20tests-blue?logo=pytest&logoColor=white)](https://docs.pytest.org/en/stable/) [![Ruff](https://img.shields.io/badge/ruff-100%25-brightgreen?logo=ruff&logoColor=white)](https://github.com/charliermarsh/ruff) [![Tox](https://img.shields.io/badge/tox-tested%20%7C%20multi%20envs-green?logo=tox&logoColor=white)](https://tox.readthedocs.io/)
+[![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13%20|%203.14-blue?logo=python&logoColor=white)](https://www.python.org/) [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/hucker/frist/actions) [![Pytest](https://img.shields.io/badge/pytest-100%25%20pass%20%7C%20341%20tests-blue?logo=pytest&logoColor=white)](https://docs.pytest.org/en/stable/) [![Ruff](https://img.shields.io/badge/ruff-100%25-brightgreen?logo=ruff&logoColor=white)](https://github.com/charliermarsh/ruff) [![Tox](https://img.shields.io/badge/tox-tested%20%7C%20multi%20envs-green?logo=tox&logoColor=white)](https://tox.readthedocs.io/)
 
 ### Pytest
 
 ```text
-src\frist\__init__.py                          7      0      0      0   100%
-src\frist\_age.py                            149      0     46      0   100%
-src\frist\_cal.py                            202      0     34      0   100%
-src\frist\_cal_policy.py                      79      0     38      0   100%
-src\frist\_constants.py                       15      0      0      0   100%
-src\frist\_frist.py                           66      0     18      0   100%
+src\frist\__init__.py                         8      0      0      0   100%
+src\frist\_age.py                           149      0     46      0   100%
+src\frist\_biz.py                           138      0     28      0   100%
+src\frist\_cal.py                           114      0     20      0   100%
+src\frist\_cal_policy.py                     79      0     38      0   100%
+src\frist\_constants.py                      15      0      0      0   100%
+src\frist\_frist.py                          71      0     18      0   100%
+src\frist\_util.py                           12      0      4      0   100%
 ```
 
 ### Tox

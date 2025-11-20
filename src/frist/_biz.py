@@ -12,7 +12,7 @@ from ._cal_policy import CalendarPolicy
 from ._util import verify_start_end
 
 class Biz:
-    def __init__(self, target_time: dt.datetime, ref_time: dt.datetime | None, policy: CalendarPolicy | None) -> None:
+    def __init__(self, target_time: dt.datetime, ref_time: dt.datetime | None=None, policy: CalendarPolicy | None=None) -> None:
         self.cal_policy: CalendarPolicy = policy or CalendarPolicy()
         self.target_time: dt.datetime = target_time
         self.ref_time: dt.datetime = ref_time or dt.datetime.now()
@@ -79,7 +79,7 @@ class Biz:
         (which returns 0.0 for holidays).
         """
         if self.target_time > self.ref_time:
-            raise ValueError("target_time must not be after ref_time")
+            raise ValueError(f"{self.target_time=} must not be after {self.ref_time=}")
 
         if frac_fn is None:
             frac_fn = self.cal_policy.business_day_fraction
@@ -108,6 +108,7 @@ class Biz:
         return total
 
     # ---------- Public calculations ----------
+    @property
     def business_days(self) -> float:
         """Fractional business days between target_time and ref_time.
 
@@ -118,6 +119,7 @@ class Biz:
 
         return self._age_days_helper(check)
 
+    @property
     def working_days(self) -> float:
         """Fractional working days between target_time and ref_time.
 

@@ -19,7 +19,6 @@ from ._constants import (
     SECONDS_PER_YEAR,
 )
 
-from ._cal_policy import CalendarPolicy
 
 class Age:
     """
@@ -33,10 +32,9 @@ class Age:
         - Allows updating start and end times via the `set_times` method (kwargs-only, preserves previous values if None).
 
     Initialization:
-        Age(start_time, end_time=None, cal_policy=None)
+        Age(start_time, end_time=None)
         - start_time: dt.datetime, float, or int (required)
         - end_time: dt.datetime, float, int, or None (defaults to now)
-        - cal_policy: CalendarPolicy (optional)
 
     Updating times:
         age.set_times(start_time=..., end_time=...)
@@ -58,15 +56,10 @@ class Age:
         self,
         start_time: dt.datetime | float | int,
         end_time: dt.datetime | float | int | None = None,
-        cal_policy: CalendarPolicy | None = None,
     ):
         self._start_time: dt.datetime
         self._end_time: dt.datetime
         self.set_times(start_time=start_time, end_time=end_time)
-        if cal_policy is None:
-            self._cal_policy: CalendarPolicy = CalendarPolicy()
-        else:
-            self._cal_policy: CalendarPolicy = cal_policy
 
 
     @staticmethod
@@ -133,10 +126,6 @@ class Age:
 
     # Suggestion: You can use set_times inside __init__ to centralize type handling and validation for start/end times. This makes future updates easier and keeps logic DRY.
 
-    @property
-    def cal_policy(self) -> CalendarPolicy:
-        """Return the calendar policy object used by this Age instance."""
-        return self._cal_policy
 
     @property
     def seconds(self) -> float:
@@ -248,68 +237,6 @@ class Age:
         # Full years in between
         full_years = end.year - start.year - 1
         return first_year_fraction + full_years + last_year_fraction
-
-    @property
-    def working_days(self) -> float:
-        """
-        Calculate the fractional number of working days between start_time and end_time using the calendar policy.
-
-        This method uses full datetimes (date and time), not just dates, for all calculations.
-        Partial days are counted based on the time component and business hours in the calendar policy.
-
-        Supports arbitrary calendar policies, including:
-        - Non-contiguous workdays (e.g., Mon, Wed, Fri, Sun)
-        - Variable business hours per day
-        - Irregular holiday schedules
-        - Any combination of workdays and holidays as defined in CalendarPolicy
-
-        Algorithm:
-        - Iterates from start_time to end_time (inclusive, by date)
-        - For each day, checks if it is a workday and not a holiday per cal_policy
-        - For valid workdays, calculates the fraction of the business day worked using the time component
-        - Handles partial days for first and last day based on business hours
-        - Sums all valid fractions to return the total working days (may be fractional)
-        - Raises ValueError if start_time > end_time
-
-        Note:
-        - This implementation prioritizes correctness and flexibility over efficiency.
-        - It is designed to support arbitrary policies where workdays, holidays, and business hours may vary and are not contiguous or regular.
-        - Optimization is possible, but correctness is preferred unless efficiency is shown to be a bottleneck.
-
-        Returns:
-            float: Total fractional working days in the interval
-        """
-        # Supports arbitrary calendar policies: workdays, holidays, business hours may be non-contiguous or irregular.
-        # Correctness is prioritized over efficiency; optimize only if proven necessary.
-        if self.start_time > self.end_time:
-            raise ValueError("start_time must not be after end_time")
-
-        cal_policy = self.cal_policy or CalendarPolicy()
-        current = self.start_time
-        end = self.end_time
-
-        total = 0.0
-        while current.date() <= end.date():
-            is_workday = cal_policy.is_workday(current) and not cal_policy.is_holiday(current)
-            if is_workday:
-                # First day
-                if current.date() == self.start_time.date():
-                    start_dt = self.start_time
-                    end_dt = min(end, dt.datetime.combine(current.date(), cal_policy.end_of_business))
-                # Last day
-                elif current.date() == end.date():
-                    start_dt = dt.datetime.combine(current.date(), cal_policy.start_of_business)
-                    end_dt = end
-                # Middle days
-                else:
-                    start_dt = dt.datetime.combine(current.date(), cal_policy.start_of_business)
-                    end_dt = dt.datetime.combine(current.date(), cal_policy.end_of_business)
-
-                # Calculate fraction
-                fraction = cal_policy.business_day_fraction(end_dt) - cal_policy.business_day_fraction(start_dt)
-                total += max(fraction, 0.0)
-            current += dt.timedelta(days=1)
-        return total
 
     @staticmethod
     def parse(age_str: str) -> float:
