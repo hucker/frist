@@ -13,7 +13,7 @@ import datetime as dt
 import itertools
 import pytest
 
-from frist import Chrono, CalendarPolicy
+from frist import Chrono, CalendarPolicy,Biz
 
 
 def test_fiscal_year_and_quarter_january_start():
@@ -26,17 +26,17 @@ def test_fiscal_year_and_quarter_january_start():
     # Arrange
     target_time = dt.datetime(2024, 2, 15)  # February 2024
     # Act
-    cal = Chrono(target_time=target_time).cal
+    biz:Biz = Chrono(target_time=target_time).biz
     # Assert
-    assert cal.fiscal_year == 2024, "Fiscal year should be 2024 for Feb 2024 with January start"
-    assert cal.fiscal_quarter == 1, "Fiscal quarter should be 1 (Jan-Mar) for Feb 2024 with January start"
+    assert biz.fiscal_year == 2024, "Fiscal year should be 2024 for Feb 2024 with January start"
+    assert biz.fiscal_quarter == 1, "Fiscal quarter should be 1 (Jan-Mar) for Feb 2024 with January start"
 
     # Arrange
     target_time = dt.datetime(2024, 4, 1)  # April 2024
     # Act
-    cal = Chrono(target_time=target_time).cal
+    biz:Biz = Chrono(target_time=target_time).biz
     # Assert
-    assert cal.fiscal_quarter == 2, "Fiscal quarter should be 2 (Apr-Jun) for April 2024 with January start"
+    assert biz.fiscal_quarter == 2, "Fiscal quarter should be 2 (Apr-Jun) for April 2024 with January start"
 
 
 def test_fiscal_year_and_quarter_april_start():
@@ -54,35 +54,35 @@ def test_fiscal_year_and_quarter_april_start():
 
     # Act
     target_time = dt.datetime(2024, 3, 31)  # March 2024
-    cal = Chrono(target_time=target_time, policy=policy).cal
+    biz:Biz = Chrono(target_time=target_time, policy=policy).biz
     # Assert
-    assert cal.fiscal_year == 2023, "Fiscal year should be 2023 for Mar 2024 with April start"
-    assert cal.fiscal_quarter == 4, "Fiscal quarter should be 4 (Jan-Mar) for Mar 2024 with April start"
+    assert biz.fiscal_year == 2023, "Fiscal year should be 2023 for Mar 2024 with April start"
+    assert biz.fiscal_quarter == 4, "Fiscal quarter should be 4 (Jan-Mar) for Mar 2024 with April start"
 
     # Act
     target_time = dt.datetime(2024, 4, 1)  # April 2024
-    cal = Chrono(target_time=target_time, policy=policy).cal
+    biz = Chrono(target_time=target_time, policy=policy).biz
     # Assert
-    assert cal.fiscal_year == 2024, "Fiscal year should be 2024 for Apr 2024 with April start"
-    assert cal.fiscal_quarter == 1, "Fiscal quarter should be 1 (Apr-Jun) for Apr 2024 with April start"
+    assert biz.fiscal_year == 2024, "Fiscal year should be 2024 for Apr 2024 with April start"
+    assert biz.fiscal_quarter == 1, "Fiscal quarter should be 1 (Apr-Jun) for Apr 2024 with April start"
 
     # Act
     target_time = dt.datetime(2024, 7, 15)  # July 2024
-    cal = Chrono(target_time=target_time, policy=policy).cal
+    biz:Biz = Chrono(target_time=target_time, policy=policy).biz
     # Assert
-    assert cal.fiscal_quarter == 2, "Fiscal quarter should be 2 (Jul-Sep) for Jul 2024 with April start"
+    assert biz.fiscal_quarter == 2, "Fiscal quarter should be 2 (Jul-Sep) for Jul 2024 with April start"
 
     # Act
     target_time = dt.datetime(2024, 10, 1)  # October 2024
-    cal = Chrono(target_time=target_time,policy=policy).cal
+    biz:Biz = Chrono(target_time=target_time,policy=policy).biz
     # Assert
-    assert cal.fiscal_quarter == 3, "Fiscal quarter should be 3 (Oct-Dec) for Oct 2024 with April start"
+    assert biz.fiscal_quarter == 3, "Fiscal quarter should be 3 (Oct-Dec) for Oct 2024 with April start"
 
     # Act
     target_time = dt.datetime(2025, 1, 1)  # January 2025
-    cal = Chrono(target_time=target_time,policy=policy).cal
+    biz:Biz = Chrono(target_time=target_time,policy=policy).biz
     # Assert
-    assert cal.fiscal_quarter == 4, "Fiscal quarter should be 4 (Jan-Mar) for Jan 2025 with April start"
+    assert biz.fiscal_quarter == 4, "Fiscal quarter should be 4 (Jan-Mar) for Jan 2025 with April start"
 
 
 @pytest.mark.parametrize("fy_start_month", range(1, 13))
@@ -100,27 +100,26 @@ def test_fiscal_year_and_quarter_all_start_months(fy_start_month:int):
     This ensures that fiscal year and quarter logic is correct for all possible fiscal year start months and for all months in a year,
     including year boundaries and rollover cases.
     """
-    import itertools
     # Arrange
     policy = CalendarPolicy(fiscal_year_start_month=fy_start_month)
     # Act & Assert
     for year, month in itertools.product([2024, 2025], range(1, 13)):
         day = 15  # Middle of the month
         target_time = dt.datetime(year, month, day)
-        cal = Chrono(target_time=target_time, policy=policy).cal
+        biz:Biz = Chrono(target_time=target_time, policy=policy).biz
 
         # Assert
         expected_fy = year if month >= fy_start_month else year - 1
         offset = (month - fy_start_month) % 12
         expected_fq = (offset // 3) + 1
 
-        assert cal.fiscal_year == expected_fy, (
+        assert biz.fiscal_year == expected_fy, (
             f"FY start {fy_start_month}, date {target_time}: "
-            f"Expected fiscal year {expected_fy}, got {cal.fiscal_year}"
+            f"Expected fiscal year {expected_fy}, got {biz.fiscal_year}"
         )
-        assert cal.fiscal_quarter == expected_fq, (
+        assert biz.fiscal_quarter == expected_fq, (
             f"FY start {fy_start_month}, date {target_time}: "
-            f"Expected fiscal quarter {expected_fq}, got {cal.fiscal_quarter}"
+            f"Expected fiscal quarter {expected_fq}, got {biz.fiscal_quarter}"
         )
 
 
@@ -152,13 +151,13 @@ def test_june_fiscal_year_quarter_boundaries(date_str: str, expected_fy: int, ex
     policy: CalendarPolicy = CalendarPolicy(fiscal_year_start_month=6)
     target_time:dt.datetime = dt.datetime.strptime(date_str, "%Y-%m-%d")
     # Act
-    cal = Chrono(target_time=target_time, policy=policy).cal
+    biz:Biz = Chrono(target_time=target_time, policy=policy).biz
     # Assert
-    assert cal.fiscal_year == expected_fy, (
-        f"Date {date_str}: Expected fiscal year {expected_fy}, got {cal.fiscal_year}"
+    assert biz.fiscal_year == expected_fy, (
+        f"Date {date_str}: Expected fiscal year {expected_fy}, got {biz.fiscal_year}"
     )
-    assert cal.fiscal_quarter == expected_fq, (
-        f"Date {date_str}: Expected fiscal quarter {expected_fq}, got {cal.fiscal_quarter}"
+    assert biz.fiscal_quarter == expected_fq, (
+        f"Date {date_str}: Expected fiscal quarter {expected_fq}, got {biz.fiscal_quarter}"
     )
 
 
@@ -177,7 +176,7 @@ def test_fiscal_year_and_quarter_all_days(fy_start_month: int):
     # Act & Assert
     while current_date <= end_date:
         target_time = dt.datetime.combine(current_date, dt.time(12, 0))
-        cal = Chrono(target_time=target_time, policy=policy).cal
+        biz = Chrono(target_time=target_time, policy=policy).biz
 
         year = current_date.year
         month = current_date.month
@@ -187,12 +186,12 @@ def test_fiscal_year_and_quarter_all_days(fy_start_month: int):
         offset:int = (month - fy_start_month) % 12
         expected_fq:int = (offset // 3) + 1
 
-        assert cal.fiscal_year == expected_fy, (
+        assert biz.fiscal_year == expected_fy, (
             f"FY start {fy_start_month}, date {target_time}: "
-            f"Expected fiscal year {expected_fy}, got {cal.fiscal_year}"
+            f"Expected fiscal year {expected_fy}, got {biz.fiscal_year}"
         )
-        assert cal.fiscal_quarter == expected_fq, (
+        assert biz.fiscal_quarter == expected_fq, (
             f"FY start {fy_start_month}, date {target_time}: "
-            f"Expected fiscal quarter {expected_fq}, got {cal.fiscal_quarter}"
+            f"Expected fiscal quarter {expected_fq}, got {biz.fiscal_quarter}"
         )
         current_date += dt.timedelta(days=1)

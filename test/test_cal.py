@@ -492,23 +492,13 @@ def test_cal_initialization_variants(
     """Test Cal initialization with various target/ref types, holidays, and fiscal year starts."""
     # Arrange: Inputs are parameterized above
 
-    # Act: Create Cal instance
-    policy: CalendarPolicy = CalendarPolicy(
-        fiscal_year_start_month=fy_start_month,
-        holidays=holidays if holidays is not None else set(),
-    )
-    cal: Cal = Cal(target, ref, cal_policy=policy)
+    cal: Cal = Cal(target, ref)
 
     # Assert: Properties match expectations
     assert cal.target_dt == expected_target
     assert cal.ref_dt == expected_ref
 
-    if expected_holidays is None:
-        assert cal.cal_policy.holidays == set()
-    else:
-        assert cal.cal_policy.holidays == expected_holidays
 
-    assert cal.cal_policy.fiscal_year_start_month == expected_fy_start
 
 
 def test_cal_month_year_rollover_edge_cases():
@@ -614,59 +604,6 @@ def test_in_xxx_raises_on_backwards_ranges():
         cal.in_minutes(15, 10)
 
 
-def test_fiscal_year_and_quarter_january_start():
-    """Fiscal year and quarter with January start (default)."""
-    target_time: dt.datetime = dt.datetime(2024, 2, 15)  # February 2024
-    z: Chrono = Chrono(target_time=target_time)
-    cal: Cal = z.cal
-    assert z.cal.fiscal_year == 2024
-    assert cal.fiscal_year == 2024
-    assert z.cal.fiscal_quarter == 1  # Jan-Mar
-    assert cal.fiscal_quarter == 1
-
-    target_time: dt.datetime = dt.datetime(2024, 4, 1)  # April 2024
-    z: Chrono = Chrono(target_time=target_time)
-    cal: Cal = z.cal
-    assert z.cal.fiscal_quarter == 2  # Apr-Jun
-    assert cal.fiscal_quarter == 2
-
-
-@pytest.mark.parametrize(
-    "fy_start_month, target_time, expected_fiscal_year, expected_fiscal_quarter",
-    [
-        # Fiscal year starts in January (default)
-        (1, dt.datetime(2024, 2, 15), 2024, 1),  # Feb 2024 is Q1
-        (1, dt.datetime(2024, 4, 1), 2024, 2),  # Apr 2024 is Q2
-        # Fiscal year starts in April
-        (4, dt.datetime(2024, 3, 31), 2023, 4),  # Mar 2024 is Q4 for April start
-        (4, dt.datetime(2024, 4, 1), 2024, 1),  # Apr 2024 is Q1 for April start
-        (4, dt.datetime(2024, 7, 15), 2024, 2),  # Jul 2024 is Q2 for April start
-        (4, dt.datetime(2024, 10, 1), 2024, 3),  # Oct 2024 is Q3 for April start
-        (4, dt.datetime(2025, 1, 15), 2024, 4),  # Jan 2025 is Q4 for April start
-        # Fiscal year starts in July
-        (7, dt.datetime(2024, 6, 30), 2023, 4),  # Jun 2024 is Q4 for July start
-        (7, dt.datetime(2024, 7, 1), 2024, 1),  # Jul 2024 is Q1 for July start
-        (7, dt.datetime(2024, 9, 15), 2024, 1),  # Sep 2024 is Q1 for July start
-        (7, dt.datetime(2024, 12, 1), 2024, 2),  # Dec 2024 is Q2 for July start
-        (7, dt.datetime(2025, 3, 15), 2024, 3),  # Mar 2025 is Q3 for July start
-        (7, dt.datetime(2025, 6, 30), 2024, 4),  # Jun 2025 is Q4 for July start
-    ],
-)
-def test_fiscal_year_and_quarter_various_starts(
-    fy_start_month: int,
-    target_time: dt.datetime,
-    expected_fiscal_year: int,
-    expected_fiscal_quarter: int,
-) -> None:
-    """
-    Test fiscal year and quarter calculation for various fiscal year start months.
-    """
-    policy: CalendarPolicy = CalendarPolicy(fiscal_year_start_month=fy_start_month)
-    z: Chrono = Chrono(target_time=target_time, policy=policy)
-    cal: Cal = z.cal
-    assert cal.fiscal_year == expected_fiscal_year
-    assert cal.fiscal_quarter == expected_fiscal_quarter
-
 
 def test_cal_init_invalid_target_type():
     """
@@ -674,7 +611,7 @@ def test_cal_init_invalid_target_type():
     Act & Assert: TypeError is raised
     """
     with pytest.raises(TypeError, match="target_dt must be datetime, float, or int"):
-        Cal("not-a-date", dt.datetime.now())
+        Cal("not-a-date", dt.datetime.now()) # type: ignore # Intentional type error for testing
 
 
 def test_cal_init_invalid_ref_type():
@@ -683,7 +620,7 @@ def test_cal_init_invalid_ref_type():
     Act & Assert: TypeError is raised
     """
     with pytest.raises(TypeError, match="ref_dt must be datetime, float, or int"):
-        Cal(dt.datetime.now(), "not-a-date")
+        Cal(dt.datetime.now(), "not-a-date") # type: ignore # Intentional type error for testing
 
 
 @pytest.mark.parametrize(
@@ -695,13 +632,9 @@ def test_cal_init_invalid_ref_type():
         "in_months",
         "in_quarters",
         "in_years",
-        "in_weeks",
-        "in_workdays",
-        "in_fiscal_quarters",
-        "in_fiscal_years",
-    ],
+        "in_weeks" ],
 )
-def test_cal_window_start_greater_than_end(method):
+def test_cal_window_start_greater_than_end(method:str):
     """
     Arrange: Create Cal and call window method with start > end
     Act & Assert: ValueError is raised

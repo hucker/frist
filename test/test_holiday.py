@@ -33,7 +33,7 @@ def test_holiday_detection_param(
     holidays_list: list[str] = sorted(holidays)
    
 
-    assert chrono.cal.holiday is expected, (
+    assert chrono.biz.holiday is expected, (
         f"Expected holiday={expected} for target_time={date_str} "
-        f"with holidays={holidays_list}, got {chrono.cal.holiday}"
+        f"with holidays={holidays_list}, got {chrono.biz.holiday}"
     )

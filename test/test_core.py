@@ -257,19 +257,19 @@ def test_chrono_fiscal_properties():
     # Default fiscal year (starts in January)
     target_tim: dt.datetime = dt.datetime(2024, 2, 15)
     z: Chrono = Chrono(target_time=target_tim)
-    assert z.cal.fiscal_year == 2024
-    assert z.cal.fiscal_quarter == 1  # Jan-Mar
+    assert z.biz.fiscal_year == 2024
+    assert z.biz.fiscal_quarter == 1  # Jan-Mar
 
     # Fiscal year starting in April using CalendarPolicy
     policy_april: CalendarPolicy = CalendarPolicy(fiscal_year_start_month=4)
     chrono_april: Chrono = Chrono(target_time=target_tim, policy=policy_april)
-    assert chrono_april.cal.fiscal_year == 2023  # Feb is before April start
-    assert chrono_april.cal.fiscal_quarter == 4  # Jan-Mar is Q4 for April start
+    assert chrono_april.biz.fiscal_year == 2023  # Feb is before April start
+    assert chrono_april.biz.fiscal_quarter == 4  # Jan-Mar is Q4 for April start
 
     target_tim_july: dt.datetime = dt.datetime(2024, 7, 15)
     chrono_july: Chrono = Chrono(target_time=target_tim_july, policy=policy_april)
-    assert chrono_july.cal.fiscal_year == 2024
-    assert chrono_july.cal.fiscal_quarter == 2  # Jul-Sep is Q2 for April start
+    assert chrono_july.biz.fiscal_year == 2024
+    assert chrono_july.biz.fiscal_quarter == 2  # Jul-Sep is Q2 for April start
 
 
 def test_chrono_holiday_property():
@@ -278,13 +278,13 @@ def test_chrono_holiday_property():
 
     target_tim: dt.datetime = dt.datetime(2024, 1, 1)
     chrono: Chrono = Chrono(target_time=target_tim, policy=policy)
-    assert chrono.cal.holiday is True
+    assert chrono.biz.holiday is True
 
     target_tim_not_holiday: dt.datetime = dt.datetime(2024, 7, 4)
     chrono_not: Chrono = Chrono(target_time=target_tim_not_holiday, policy=policy)
-    assert chrono_not.cal.holiday is False
+    assert chrono_not.biz.holiday is False
 
     # Empty holidays
     empty_policy: CalendarPolicy = CalendarPolicy(holidays=set())
     chrono_empty: Chrono = Chrono(target_time=target_tim, policy=empty_policy)
-    assert chrono_empty.cal.holiday is False
+    assert chrono_empty.biz.holiday is False

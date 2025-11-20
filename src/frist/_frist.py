@@ -141,8 +141,9 @@ class Chrono:
         # in the case that now() is used in both cases.  If you didn't do this it would be up to you
         # to ensure the same reference time.  This could make VERY hard to find bugs if the reference time
         # for the two objects occurred accross a hour/day/month/quarter/year boundary.
-        self._age: Age = Age(self.target_time,self.reference_time, cal_policy=self.policy)
-        self._cal: Cal = Cal(self.target_time, self.reference_time, cal_policy=self.policy)
+        self._age: Age = Age(self.target_time, self.reference_time, cal_policy=self.policy)
+        # `Cal` is policy-free (operates on pure calendar windows). Biz handles policy-aware calculations.
+        self._cal: Cal = Cal(self.target_time, self.reference_time)
         self._biz: Biz = Biz(self.target_time, self.reference_time, self.policy)
         
 

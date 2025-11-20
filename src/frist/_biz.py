@@ -9,7 +9,7 @@ import datetime as dt
 from typing import Callable
 
 from ._cal_policy import CalendarPolicy
-
+from ._util import verify_start_end
 
 class Biz:
     def __init__(self, target_time: dt.datetime, ref_time: dt.datetime | None, policy: CalendarPolicy | None) -> None:
@@ -34,15 +34,23 @@ class Biz:
         return self.cal_policy.is_business_day(self.target_time)
 
     # Alias for external convenience
-    @property
-    def business_day_fraction(self) -> float:
-        return self.business_days()
+    #@property
+    #def business_day_fraction(self) -> float:
+    #    return self.business_days()
 
-    # ---------- Internal helpers ----------
+    @property
+    def fiscal_year(self) -> int:
+        return self.get_fiscal_year(self.target_time, self.cal_policy.fiscal_year_start_month)
+    
+    @property
+    def fiscal_quarter(self) -> int:
+        return self.get_fiscal_quarter(self.target_time, self.cal_policy.fiscal_year_start_month)
+
+
     def _workday_fraction_at(self, dt_obj: dt.datetime) -> float:
         """Fraction of business-day elapsed at dt_obj, ignoring holidays/workday checks.
 
-        This computes fraction between policy.start_of_business and policy.end_of_business
+        Computes fraction between policy.start_of_business and policy.end_of_business
         for the given date using the time component of dt_obj.
         """
         start = self.cal_policy.start_of_business
@@ -57,13 +65,24 @@ class Biz:
             return 1.0
         return cur / total if total > 0 else 0.0
 
-    def _age_days_helper(self, check_fn: Callable[[dt.datetime], bool]) -> float:
+
+    def _age_days_helper(
+        self,
+        check_fn: Callable[[dt.datetime], bool],
+        frac_fn: Callable[[dt.datetime], float] | None = None,
+    ) -> float:
         """Generic day-iterator that sums fractional contributions for days where check_fn(day_dt) is True.
 
-        check_fn receives a datetime on the day being considered (time portion will be respected by business_day_fraction).
+        `check_fn` receives a datetime on the day being considered. `frac_fn`, if
+        provided, is used to compute the fractional business-day progress for a
+        given datetime; otherwise the policy's `business_day_fraction` is used
+        (which returns 0.0 for holidays).
         """
         if self.target_time > self.ref_time:
             raise ValueError("target_time must not be after ref_time")
+
+        if frac_fn is None:
+            frac_fn = self.cal_policy.business_day_fraction
 
         current = self.target_time
         end = self.ref_time
@@ -82,7 +101,7 @@ class Biz:
                     start_dt = dt.datetime.combine(current.date(), self.cal_policy.start_of_business)
                     end_dt = dt.datetime.combine(current.date(), self.cal_policy.end_of_business)
 
-                frac = self.cal_policy.business_day_fraction(end_dt) - self.cal_policy.business_day_fraction(start_dt)
+                frac = frac_fn(end_dt) - frac_fn(start_dt)
                 total += max(frac, 0.0)
             current += dt.timedelta(days=1)
 
@@ -105,32 +124,11 @@ class Biz:
         Working days are defined by policy.is_workday (ignores holidays) and are
         counted fractionally using business hours.
         """
-        if self.target_time > self.ref_time:
-            raise ValueError("target_time must not be after ref_time")
 
-        current = self.target_time
-        end = self.ref_time
-        total = 0.0
+        def check(dt_obj: dt.datetime) -> bool:
+            return self.cal_policy.is_workday(dt_obj)
 
-        while current.date() <= end.date():
-            if self.cal_policy.is_workday(current):
-                # First day
-                if current.date() == self.target_time.date():
-                    s = self.target_time
-                    e = min(end, dt.datetime.combine(current.date(), self.cal_policy.end_of_business))
-                # Last day
-                elif current.date() == end.date():
-                    s = dt.datetime.combine(current.date(), self.cal_policy.start_of_business)
-                    e = end
-                else:
-                    s = dt.datetime.combine(current.date(), self.cal_policy.start_of_business)
-                    e = dt.datetime.combine(current.date(), self.cal_policy.end_of_business)
-
-                frac = self._workday_fraction_at(e) - self._workday_fraction_at(s)
-                total += max(frac, 0.0)
-            current += dt.timedelta(days=1)
-
-        return total
+        return self._age_days_helper(check, self._workday_fraction_at)
 
     # ---------- Range membership helpers ----------
     def _move_n_days(self, start_date: dt.date, n: int, count_business: bool) -> dt.date:
@@ -157,6 +155,8 @@ class Biz:
 
         return current
 
+ 
+    @verify_start_end
     def in_business_days(self, start: int = 0, end: int = 0) -> bool:
         """Return True if target_time.date() is within the business-day range [start, end] counted from ref_time.date().
 
@@ -168,11 +168,7 @@ class Biz:
         start_date = self._move_n_days(ref, start, count_business=True)
         end_date = self._move_n_days(ref, end, count_business=True)
 
-        # Normalize ordering
-        if start_date <= end_date:
-            lower, upper = start_date, end_date
-        else:
-            lower, upper = end_date, start_date
+        lower, upper = start_date, end_date
 
         # target must be a business day
         if not self.cal_policy.is_business_day(tgt):
@@ -180,6 +176,8 @@ class Biz:
 
         return lower <= tgt <= upper
 
+
+    @verify_start_end
     def in_working_days(self, start: int = 0, end: int = 0) -> bool:
         """Return True if target_time.date() is within the working-day range [start, end] counted from ref_time.date().
 
@@ -190,15 +188,92 @@ class Biz:
         start_date = self._move_n_days(ref, start, count_business=False)
         end_date = self._move_n_days(ref, end, count_business=False)
 
-        if start_date <= end_date:
-            lower, upper = start_date, end_date
-        else:
-            lower, upper = end_date, start_date
+        lower, upper = start_date, end_date
 
         if not self.cal_policy.is_workday(tgt):
             return False
 
         return lower <= tgt <= upper
+
+
+    @verify_start_end
+    def in_fiscal_quarters(self, start: int = 0, end: int = 0) -> bool:
+        """
+        True if timestamp falls within the fiscal quarter window(s) from start to end.
+
+        Uses a half-open interval: start_tuple <= target_tuple < (end_tuple[0], end_tuple[1] + 1).
+
+        Args:
+            start: Fiscal quarters from now to start range (negative = past, 0 = this fiscal quarter, positive = future)
+            end: Fiscal quarters from now to end range (defaults to start for single fiscal quarter)
+
+        Examples:
+            chrono.cal.in_fiscal_quarters(0)          # This fiscal quarter
+            chrono.cal.in_fiscal_quarters(-1)         # Last fiscal quarter
+            chrono.cal.in_fiscal_quarters(-4, -1)     # From 4 fiscal quarters ago through last fiscal quarter
+            chrono.cal.in_fiscal_quarters(-8, 0)      # Last 8 fiscal quarters through this fiscal quarter
+        """
+        fy_start_month: int = self.cal_policy.fiscal_year_start_month
+        base_time: dt.datetime = self.ref_time
+        fy = Biz.get_fiscal_year(base_time, fy_start_month)
+        fq = Biz.get_fiscal_quarter(base_time, fy_start_month)
+
+        def normalize_fiscal_quarter_year(offset: int) -> tuple[int, int]:
+            total_quarters = (fy * 4 + fq + offset - 1)
+            year = total_quarters // 4
+            quarter = (total_quarters % 4) + 1
+            return year, quarter
+
+        start_year, start_quarter = normalize_fiscal_quarter_year(start)
+        end_year, end_quarter = normalize_fiscal_quarter_year(end)
+
+        target_fy = Biz.get_fiscal_year(self.target_time, fy_start_month)
+        target_fq = Biz.get_fiscal_quarter(self.target_time, fy_start_month)
+
+        target_tuple = (target_fy, target_fq)
+        start_tuple = (start_year, start_quarter)
+        end_tuple = (end_year, end_quarter)
+
+        return start_tuple <= target_tuple < (end_tuple[0], end_tuple[1] + 1)
+
+
+    @verify_start_end
+    def in_fiscal_years(self, start: int = 0, end: int = 0) -> bool:
+        """
+        True if timestamp falls within the fiscal year window(s) from start to end.
+
+        Uses a half-open interval: start_year <= target_year < end_year + 1.
+
+        Args:
+            start: Fiscal years from now to start range (negative = past, 0 = this fiscal year, positive = future)
+            end: Fiscal years from now to end range (defaults to start for single fiscal year)
+
+        Examples:
+            chrono.cal.in_fiscal_years(0)          # This fiscal year
+            chrono.cal.in_fiscal_years(-1)         # Last fiscal year
+            chrono.cal.in_fiscal_years(-5, -1)     # From 5 fiscal years ago through last fiscal year
+            chrono.cal.in_fiscal_years(-10, 0)     # Last 10 fiscal years through this fiscal year
+        """
+        fy_start_month: int = self.cal_policy.fiscal_year_start_month
+        base_time: dt.datetime = self.ref_time
+        fy: int = Biz.get_fiscal_year(base_time, fy_start_month)
+        start_year = fy + start
+        end_year = fy + end
+
+        target_fy = Biz.get_fiscal_year(self.target_time, fy_start_month)
+
+        return start_year <= target_fy < end_year + 1
+    
+    @staticmethod
+    def get_fiscal_year(dt: dt.datetime, fy_start_month: int) -> int:
+        """Return the fiscal year for a given datetime and fiscal year start month."""
+        return dt.year if dt.month >= fy_start_month else dt.year - 1
+
+    @staticmethod
+    def get_fiscal_quarter(dt: dt.datetime, fy_start_month: int) -> int:
+        """Return the fiscal quarter for a given datetime and fiscal year start month."""
+        offset = (dt.month - fy_start_month) % 12 if dt.month >= fy_start_month else (dt.month + 12 - fy_start_month) % 12
+        return (offset // 3) + 1
 
 
 __all__ = ["Biz"]

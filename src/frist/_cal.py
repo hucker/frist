@@ -9,7 +9,7 @@ import datetime as dt
 from typing import TYPE_CHECKING
 
 from ._constants import WEEKDAY_INDEX
-from ._cal_policy import CalendarPolicy
+from ._util import verify_start_end
 
 if TYPE_CHECKING:  # pragma: no cover
     pass
@@ -60,32 +60,6 @@ def normalize_weekday(day_spec: str) -> int:
         + "\n".join(f"  • {ex}" for ex in valid_examples)
     )
 
-
-
-    """
-    Decorator for calendar window methods to validate input ranges.
-
-    Ensures that the 'start' argument is less than or equal to 'end'.
-    If 'end' is None, it is set to 'start' (single-value window).
-    If 'start' > 'end', raises ValueError with the function name and values.
-
-    Usage:
-        @verify_start_end
-        def in_days(self, start=0, end=None):
-            ...
-
-    Exception message format:
-        '<function>: start (<start>) must not be greater than end (<end>)'
-    """
-    @functools.wraps(func)
-    def wrapper(self: Any, start: int = 0, end: int | None = None, *args: Any, **kwargs: Any) -> bool:
-        if end is None:
-            end = start
-        if start > end:
-            func_name = getattr(func, "__name__", repr(func))
-            raise ValueError(f"{func_name}: start ({start}) must not be greater than end ({end})")
-        return func(self, start, end, *args, **kwargs)
-    return wrapper
 
 
 
@@ -367,105 +341,3 @@ class Cal:
 
         return start_week_start <= target_date <= end_week_end
 
-
-    @verify_start_end
-    def in_fiscal_quarters(self, start: int = 0, end: int = 0) -> bool:
-        """
-        True if timestamp falls within the fiscal quarter window(s) from start to end.
-
-        Uses a half-open interval: start_tuple <= target_tuple < (end_tuple[0], end_tuple[1] + 1).
-
-        Args:
-            start: Fiscal quarters from now to start range (negative = past, 0 = this fiscal quarter, positive = future)
-            end: Fiscal quarters from now to end range (defaults to start for single fiscal quarter)
-
-        Examples:
-            chrono.cal.in_fiscal_quarters(0)          # This fiscal quarter
-            chrono.cal.in_fiscal_quarters(-1)         # Last fiscal quarter
-            chrono.cal.in_fiscal_quarters(-4, -1)     # From 4 fiscal quarters ago through last fiscal quarter
-            chrono.cal.in_fiscal_quarters(-8, 0)      # Last 8 fiscal quarters through this fiscal quarter
-        """
-        fy_start_month = self.cal_policy.fiscal_year_start_month
-        base_time = self.ref_dt
-        fy = Cal.get_fiscal_year(base_time, fy_start_month)
-        fq = Cal.get_fiscal_quarter(base_time, fy_start_month)
-
-        def normalize_fiscal_quarter_year(offset: int) -> tuple[int, int]:
-            total_quarters = (fy * 4 + fq + offset - 1)
-            year = total_quarters // 4
-            quarter = (total_quarters % 4) + 1
-            return year, quarter
-
-        start_year, start_quarter = normalize_fiscal_quarter_year(start)
-        end_year, end_quarter = normalize_fiscal_quarter_year(end)
-
-        target_fy = Cal.get_fiscal_year(self.target_dt, fy_start_month)
-        target_fq = Cal.get_fiscal_quarter(self.target_dt, fy_start_month)
-
-        target_tuple = (target_fy, target_fq)
-        start_tuple = (start_year, start_quarter)
-        end_tuple = (end_year, end_quarter)
-
-        return start_tuple <= target_tuple < (end_tuple[0], end_tuple[1] + 1)
-
-
-    @verify_start_end
-    def in_fiscal_years(self, start: int = 0, end: int = 0) -> bool:
-        """
-        True if timestamp falls within the fiscal year window(s) from start to end.
-
-        Uses a half-open interval: start_year <= target_year < end_year + 1.
-
-        Args:
-            start: Fiscal years from now to start range (negative = past, 0 = this fiscal year, positive = future)
-            end: Fiscal years from now to end range (defaults to start for single fiscal year)
-
-        Examples:
-            chrono.cal.in_fiscal_years(0)          # This fiscal year
-            chrono.cal.in_fiscal_years(-1)         # Last fiscal year
-            chrono.cal.in_fiscal_years(-5, -1)     # From 5 fiscal years ago through last fiscal year
-            chrono.cal.in_fiscal_years(-10, 0)     # Last 10 fiscal years through this fiscal year
-        """
-        fy_start_month = self.cal_policy.fiscal_year_start_month
-        base_time = self.ref_dt
-        fy = Cal.get_fiscal_year(base_time, fy_start_month)
-        start_year = fy + start
-        end_year = fy + end
-
-        target_fy = Cal.get_fiscal_year(self.target_dt, fy_start_month)
-
-        return start_year <= target_fy < end_year + 1
-    
-    @staticmethod
-    def get_fiscal_year(dt: dt.datetime, fy_start_month: int) -> int:
-        """Return the fiscal year for a given datetime and fiscal year start month."""
-        return dt.year if dt.month >= fy_start_month else dt.year - 1
-
-    @staticmethod
-    def get_fiscal_quarter(dt: dt.datetime, fy_start_month: int) -> int:
-        """Return the fiscal quarter for a given datetime and fiscal year start month."""
-        offset = (dt.month - fy_start_month) % 12 if dt.month >= fy_start_month else (dt.month + 12 - fy_start_month) % 12
-        return (offset // 3) + 1
-
-    @staticmethod
-    def count_working_days(start: dt.date, end: dt.date, holidays: set[str]) -> int:
-        """
-        Count working days between start and end dates (inclusive).
-        Uses Monday-Friday as workdays and provided holidays set.
-        Args:
-            start: Start date (inclusive)
-            end: End date (inclusive)
-            holidays: Set of holiday date strings (YYYY-MM-DD)
-        Returns:
-            int: Number of working days
-        """
-        workdays = {0, 1, 2, 3, 4}  # Monday=0 ... Friday=4
-        count = 0
-        current = start
-        while current <= end:
-            weekday = current.weekday()
-            date_str = current.strftime('%Y-%m-%d')
-            if weekday in workdays and date_str not in holidays:
-                count += 1
-            current += dt.timedelta(days=1)
-        return count

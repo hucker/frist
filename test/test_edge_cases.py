@@ -111,15 +111,15 @@ def test_fiscal_boundary_crossing() -> None:
     target_time_june: dt.datetime = dt.datetime(2024, 6, 30)  # June 2024
     chrono_june: Chrono = Chrono(target_time=target_time_june, policy=policy_july)
     # Assert
-    assert chrono_june.cal.fiscal_year == 2023, f"Expected fiscal year 2023 for June, got {chrono_june.cal.fiscal_year}"
-    assert chrono_june.cal.fiscal_quarter == 4, f"Expected fiscal quarter 4 for June, got {chrono_june.cal.fiscal_quarter}"
+    assert chrono_june.biz.fiscal_year == 2023, f"Expected fiscal year 2023 for June, got {chrono_june.cal.fiscal_year}"
+    assert chrono_june.biz.fiscal_quarter == 4, f"Expected fiscal quarter 4 for June, got {chrono_june.cal.fiscal_quarter}"
 
     # Act
     target_time_july: dt.datetime = dt.datetime(2024, 7, 1)  # July 2024
     chrono_july: Chrono = Chrono(target_time=target_time_july, policy=policy_july)
     # Assert
-    assert chrono_july.cal.fiscal_year == 2024, f"Expected fiscal year 2024 for July, got {chrono_july.cal.fiscal_year}"
-    assert chrono_july.cal.fiscal_quarter == 1, f"Expected fiscal quarter 1 for July, got {chrono_july.cal.fiscal_quarter}"
+    assert chrono_july.biz.fiscal_year == 2024, f"Expected fiscal year 2024 for July, got {chrono_july.cal.fiscal_year}"
+    assert chrono_july.biz.fiscal_quarter == 1, f"Expected fiscal quarter 1 for July, got {chrono_july.cal.fiscal_quarter}"
 
 
 def test_min_max_datetime():
