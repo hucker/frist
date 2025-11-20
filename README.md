@@ -2,11 +2,15 @@
 
 `Frist`is a modern Python library designed to make working with time, dates, and intervals simple and expressive—whether you’re analyzing file ages, tracking events, or handling business calendars. `Frist` provides two core property-based APIs: `Age` and `Cal`. The `Age` object lets you answer “How old is this?” for two datetimes (often defaulting one to “now”), making it perfect for file aging, log analysis, or event tracking. The `Cal` object lets you ask “Is this date in a specific window?”—such as today, yesterday, this month, this quarter, or this fiscal year—using intuitive properties for calendar logic. Calendar ranges are always aligned to a calendar time scale, day, business day, month, year, quarter, hour.  `Frist` is not a [replacement](https://imgs.xkcd.com/comics/standards_2x.png) for `datetime` or `timedelta`.  
 
-It is meant for usecases where you are doing lots of datetime math and find your self writing lots of small tricky functions. Frist lets you write code that is human readable with edge cases handled for you.
+It is meant for usecases where you are doing lots of datetime math and find your self writing lots of small tricky functions. Frist lets you write code that is human readable with edge cases handled for you. Using `Frist` you will never need to know what 1440, 86400, 365.25, 30.4375 mean.
 
-``` pycon
+
+``` python
 from frist import Age, Cal, Biz, CalendarPolicy
-dates = large_list_of_dates()
+
+# In these excamples a second datetime is not provided, when this happens the constrctures take the referenct time to be "now"
+
+dates = large_list_of_date_times()
 
 last_four_and_half_minutes = [date for date in dates if Age(date).minutes <= 4.5]
 
@@ -16,12 +20,16 @@ dates_today = [date for date in dates if Cal(date).in_days(0)]
 
 last_two_months = [date for date in dates if Cal(date).in_months(-2,0)]
 
+last_three_cal_years = [date for date in dates if Cal(date).in_years(-3,0)]
+
 # Business day math requires business date setup in as a CalendarPolicy object.
 policy = CalendaPolicy(fiscal_year_start_month=4,holidays={"2026-1-1"})
 
 last_five_business_days = [date for date in dates if Biz(date,cal_policy=policy).in_business_days(-5,0)]
 
 this_fiscal_year = [date for date in dates if Biz(date,cal_policy=policy).in_fiscal_years(0)]
+
+ignore_holidays = [data for date in dates if Biz(date,cal_policy=policy).is_holiday]
 ```
 
 ## Age
@@ -34,7 +42,7 @@ The `Age` object answers "How old is X?" for two datetimes (start and end). It e
 
 Example:
 
-```pycon
+```python
 >>> from frist import Age
 >>> import datetime as dt
 >>> a = Age(start_time=dt.datetime(2025,9,1), end_time=dt.datetime(2025,11,20))
@@ -57,7 +65,7 @@ The `Cal` object provides calendar-aligned window queries (minute/hour/day/week/
 
 Example:
 
-```pycon
+```python
 >>> from frist import Cal
 >>> import datetime as dt
 >>> target = dt.datetime(2025,9,15)
@@ -165,7 +173,7 @@ Here is a brief overview of the various classes that makeup `Frist`.
 | `set_times(start_time=None, end_time=None)` | Update start/end times      |
 | `parse(age_str)`                            | Parse age string to seconds |
 
-The `months_precise` and `years_precise` properties calculate the exact number of calendar months or years between two dates, accounting for the actual length of each month and year. Unlike the approximate versions (which use averages like 30.44 days/month or 365.25 days/year), these properties provide results that match real-world calendar boundaries. They are more intuitively correct but may be slower to compute, especially for long time spans.
+The `months_precise` and `years_precise` properties calculate the `exact` number of calendar months or years between two dates, accounting for the actual length of each month and year. Unlike the approximate versions (which use averages like 30.44 days/month or 365.25 days/year), these properties provide results that match real-world calendar boundaries. They are more intuitively correct but are slower to compute since the first and last month/year need to be handled differently.  Basically, Feb 1 to Feb 28 (non leap year) is 1.0 precise months long, while Jan 1 to Jan31 is also 1 precise month long. And Jan 1 to Feb 14 is 1.5 precise months.  For years it is similar but the effect is smaller.  The 365 days in 2021 is 1 precise year as are the 366 days in 2024.
 
 ---
 
@@ -231,7 +239,7 @@ It also computes fractional day contributions using the policy's business hours.
 In some situations you will need to have all three of these classes together because the filtering you are doing is related
 to the multiple classes.  The best way to handle this is with the chrono object.  The `Chrono` class initiaizlizes all three so you have access to each of the classes, with no race conditions when setting the reference time.
 
-```pycon
+```python
 # Brief Chrono example: create a Chrono and print Age / Cal / Biz properties
 >>> from frist import Chrono, CalendarPolicy
 >>> import datetime as dt
@@ -273,9 +281,9 @@ False
 
 ### Status
 
-[![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13%20|%203.14-blue?logo=python&logoColor=white)](https://www.python.org/) [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/hucker/frist/actions) [![Pytest](https://img.shields.io/badge/pytest-100%25%20pass%20%7C%20341%20tests-blue?logo=pytest&logoColor=white)](https://docs.pytest.org/en/stable/) [![Ruff](https://img.shields.io/badge/ruff-100%25-brightgreen?logo=ruff&logoColor=white)](https://github.com/charliermarsh/ruff) [![Tox](https://img.shields.io/badge/tox-tested%20%7C%20multi%20envs-green?logo=tox&logoColor=white)](https://tox.readthedocs.io/)
+[![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13%20|%203.14-blue?logo=python&logoColor=white)](https://www.python.org/) [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/hucker/frist/actions) [![Pytest](https://img.shields.io/badge/pytest-100%25%20pass%20%7C%20339%20tests-blue?logo=pytest&logoColor=white)](https://docs.pytest.org/en/stable/) [![Ruff](https://img.shields.io/badge/ruff-100%25-brightgreen?logo=ruff&logoColor=white)](https://github.com/charliermarsh/ruff) [![Tox](https://img.shields.io/badge/tox-tested%20%7C%20multi%20envs-green?logo=tox&logoColor=white)](https://tox.readthedocs.io/)
 
-### Pytest
+### Pytest (100% pass/100% coverage)
 
 ```text
 src\frist\__init__.py                         8      0      0      0   100%
@@ -291,10 +299,14 @@ src\frist\_util.py                           12      0      4      0   100%
 ### Tox
 
 ```text
-  py310: OK (15.17=setup[12.99]+cmd[2.18] seconds)
-  py311: OK (10.57=setup[7.96]+cmd[2.61] seconds)
-  py312: OK (11.98=setup[9.45]+cmd[2.53] seconds)
-  py313: OK (10.74=setup[8.46]+cmd[2.29] seconds)
-  py314: OK (11.04=setup[8.61]+cmd[2.43] seconds)
+ py310: OK (17.03=setup[13.64]+cmd[3.39] seconds)
+  py311: OK (10.53=setup[7.45]+cmd[3.08] seconds)
+  py312: OK (11.76=setup[8.69]+cmd[3.06] seconds)
+  py313: OK (11.46=setup[8.52]+cmd[2.94] seconds)
+  py314: OK (11.45=setup[9.47]+cmd[1.98] secon
   congratulations :) (59.61 seconds)
 ```
+
+### Notes
+
+This test code was written as a test case in using agentic AI.  As such I wrote very little of the code but I 100% "drive the car" in coming to this solution.  There were many dead ends and dead ends and me swearing at VSCode, but in the end the result is better than what I could have done without it, especially in the beginning phases.  Asking AI to make large strutureal changes to the code was very problematic.  Often times a simple search and replace would work and it would get very stuck, or decided it needed to fundamentally change stuff.

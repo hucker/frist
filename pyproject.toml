@@ -30,7 +30,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["test"]
-addopts = "--cov=src/frist --cov-report=term-missing"
+addopts = "--cov=frist --cov-report=term-missing"
 
 [project.urls]
 Homepage = "https://github.com/hucker/frist"
@@ -46,6 +46,7 @@ envlist = py310,py311,py312,py313,py314
 deps =
     pytest
     pytest-cov
+usedevelop = True
 commands =
-    pytest --cov=src/frist --cov-report=term-missing
+    pytest --cov=frist --cov-report=term-missing
 """
