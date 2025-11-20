@@ -12,9 +12,25 @@ from dataclasses import dataclass, field
 @dataclass
 class CalendarPolicy:
     """
-    Centralized business calendar policy for fiscal years, workdays, business hours, and holidays.
+        Centralized business calendar policy for fiscal years, workdays, business hours, and holidays.
 
-    All date and time logic is property-based and configurable for flexible business rules.
+        This dataclass holds the business rules used across the library. It is
+        intentionally lightweight and designed to be easy to customise for different
+        organisations. Typical attributes you may override are:
+
+        - `fiscal_year_start_month` (int): month number 1..12 that defines the start
+            of the fiscal year.
+        - `workdays` (list[int]): weekday indices (Monday=0 .. Sunday=6) considered
+            workdays by the policy.
+        - `start_of_business` / `end_of_business` (datetime.time): business hours
+            used to compute fractional business/working-day values.
+        - `holidays` (set[str]): set of ISO date strings (YYYY-MM-DD) marking
+            non-business days.
+
+        The class provides convenience methods such as `is_workday`, `is_business_day`,
+        `is_holiday`, and `business_day_fraction` that encapsulate these rules. Use
+        this object when calling policy-aware helpers (for example `Biz`) so you can
+        centralise and test business-specific behaviour in one place.
     """
 
     fiscal_year_start_month: int = 1

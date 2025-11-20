@@ -12,25 +12,46 @@ from ._cal_policy import CalendarPolicy
 from ._util import verify_start_end
 
 class Biz:
+    """Policy-aware business calendar utilities.
+
+    Biz wraps a pair of datetimes (`target_time` and `ref_time`) together with a
+    `CalendarPolicy` to provide business-oriented calculations such as
+    fractional `business_days` and `working_days`, range membership helpers
+    (in_business_days, in_working_days) and fiscal helpers.
+
+    The class is intentionally small and focused: it performs policy-aware
+    operations and leaves policy-free calendar/time calculations to `Cal`.
+    """
     def __init__(self, target_time: dt.datetime, ref_time: dt.datetime | None=None, policy: CalendarPolicy | None=None) -> None:
+        """Initialize a `Biz` instance.
+
+        Args:
+            target_time: The datetime being inspected or measured from.
+            ref_time: The reference datetime (defaults to now when omitted).
+            policy: Optional `CalendarPolicy`. If omitted, a default policy is used.
+        """
         self.cal_policy: CalendarPolicy = policy or CalendarPolicy()
         self.target_time: dt.datetime = target_time
         self.ref_time: dt.datetime = ref_time or dt.datetime.now()
 
     def __repr__(self) -> str:
+        """Return a concise representation useful for debugging."""
         return f"<Biz target_time={self.target_time!r} ref_time={self.ref_time!r} policy={self.cal_policy!r}>"
 
     # ---------- Properties ----------
     @property
     def holiday(self) -> bool:
+        """Return True if `target_time` falls on a holiday defined by the policy."""
         return self.cal_policy.is_holiday(self.target_time)
 
     @property
     def is_workday(self) -> bool:
+        """Return True if `target_time` is a workday according to the policy."""
         return self.cal_policy.is_workday(self.target_time)
 
     @property
     def is_business_day(self) -> bool:
+        """Return True if `target_time` is a business day (workday and not holiday)."""
         return self.cal_policy.is_business_day(self.target_time)
 
     # Alias for external convenience
@@ -53,12 +74,12 @@ class Biz:
         Computes fraction between policy.start_of_business and policy.end_of_business
         for the given date using the time component of dt_obj.
         """
-        start = self.cal_policy.start_of_business
-        end = self.cal_policy.end_of_business
-        start_dt = dt.datetime.combine(dt_obj.date(), start)
-        end_dt = dt.datetime.combine(dt_obj.date(), end)
-        total = (end_dt - start_dt).total_seconds()
-        cur = (dt.datetime.combine(dt_obj.date(), dt_obj.time()) - start_dt).total_seconds()
+        start: dt.time = self.cal_policy.start_of_business
+        end: dt.time = self.cal_policy.end_of_business
+        start_dt: dt.datetime = dt.datetime.combine(dt_obj.date(), start)
+        end_dt: dt.datetime = dt.datetime.combine(dt_obj.date(), end)
+        total: float = (end_dt - start_dt).total_seconds()
+        cur: float = (dt.datetime.combine(dt_obj.date(), dt_obj.time()) - start_dt).total_seconds()
         if cur <= 0:
             return 0.0
         if cur >= total:
@@ -84,16 +105,16 @@ class Biz:
         if frac_fn is None:
             frac_fn = self.cal_policy.business_day_fraction
 
-        current = self.target_time
-        end = self.ref_time
-        total = 0.0
+        current: dt.datetime = self.target_time
+        end: dt.datetime = self.ref_time
+        total: float = 0.0
 
         while current.date() <= end.date():
             if check_fn(current):
                 # Determine window for this day
                 if current.date() == self.target_time.date():
-                    start_dt = self.target_time
-                    end_dt = min(end, dt.datetime.combine(current.date(), self.cal_policy.end_of_business))
+                    start_dt: dt.datetime = self.target_time
+                    end_dt: dt.datetime = min(end, dt.datetime.combine(current.date(), self.cal_policy.end_of_business))
                 elif current.date() == end.date():
                     start_dt = dt.datetime.combine(current.date(), self.cal_policy.start_of_business)
                     end_dt = end
@@ -101,9 +122,9 @@ class Biz:
                     start_dt = dt.datetime.combine(current.date(), self.cal_policy.start_of_business)
                     end_dt = dt.datetime.combine(current.date(), self.cal_policy.end_of_business)
 
-                frac = frac_fn(end_dt) - frac_fn(start_dt)
+                frac: float = frac_fn(end_dt) - frac_fn(start_dt)
                 total += max(frac, 0.0)
-            current += dt.timedelta(days=1)
+            current = current + dt.timedelta(days=1)
 
         return total
 
@@ -141,15 +162,15 @@ class Biz:
         if n == 0:
             return start_date
 
-        step = 1 if n > 0 else -1
-        remaining = abs(n)
-        current = start_date
+        step: int = 1 if n > 0 else -1
+        remaining: int = abs(n)
+        current: dt.date = start_date
 
         while remaining > 0:
             current = current + dt.timedelta(days=step)
             # Determine if the current day counts
             if count_business:
-                counts = self.cal_policy.is_business_day(current)
+                counts: bool = self.cal_policy.is_business_day(current)
             else:
                 counts = self.cal_policy.is_workday(current)
             if counts:
@@ -165,10 +186,10 @@ class Biz:
         Both start and end are integers (can be negative). The window is computed by moving start and end business-days from ref_date.
         The target must itself be a business day to be considered "in" the business-day window.
         """
-        ref = self.ref_time.date()
-        tgt = self.target_time.date()
-        start_date = self._move_n_days(ref, start, count_business=True)
-        end_date = self._move_n_days(ref, end, count_business=True)
+        ref: dt.date = self.ref_time.date()
+        tgt: dt.date = self.target_time.date()
+        start_date: dt.date = self._move_n_days(ref, start, count_business=True)
+        end_date: dt.date = self._move_n_days(ref, end, count_business=True)
 
         lower, upper = start_date, end_date
 
@@ -185,10 +206,10 @@ class Biz:
 
         Working days ignore holidays (only policy.workdays matter).
         """
-        ref = self.ref_time.date()
-        tgt = self.target_time.date()
-        start_date = self._move_n_days(ref, start, count_business=False)
-        end_date = self._move_n_days(ref, end, count_business=False)
+        ref: dt.date = self.ref_time.date()
+        tgt: dt.date = self.target_time.date()
+        start_date: dt.date = self._move_n_days(ref, start, count_business=False)
+        end_date: dt.date = self._move_n_days(ref, end, count_business=False)
 
         lower, upper = start_date, end_date
 
@@ -217,8 +238,8 @@ class Biz:
         """
         fy_start_month: int = self.cal_policy.fiscal_year_start_month
         base_time: dt.datetime = self.ref_time
-        fy = Biz.get_fiscal_year(base_time, fy_start_month)
-        fq = Biz.get_fiscal_quarter(base_time, fy_start_month)
+        fy: int = Biz.get_fiscal_year(base_time, fy_start_month)
+        fq: int = Biz.get_fiscal_quarter(base_time, fy_start_month)
 
         def normalize_fiscal_quarter_year(offset: int) -> tuple[int, int]:
             total_quarters = (fy * 4 + fq + offset - 1)
@@ -229,8 +250,8 @@ class Biz:
         start_year, start_quarter = normalize_fiscal_quarter_year(start)
         end_year, end_quarter = normalize_fiscal_quarter_year(end)
 
-        target_fy = Biz.get_fiscal_year(self.target_time, fy_start_month)
-        target_fq = Biz.get_fiscal_quarter(self.target_time, fy_start_month)
+        target_fy: int = Biz.get_fiscal_year(self.target_time, fy_start_month)
+        target_fq: int = Biz.get_fiscal_quarter(self.target_time, fy_start_month)
 
         target_tuple = (target_fy, target_fq)
         start_tuple = (start_year, start_quarter)
@@ -259,10 +280,10 @@ class Biz:
         fy_start_month: int = self.cal_policy.fiscal_year_start_month
         base_time: dt.datetime = self.ref_time
         fy: int = Biz.get_fiscal_year(base_time, fy_start_month)
-        start_year = fy + start
-        end_year = fy + end
+        start_year: int = fy + start
+        end_year: int = fy + end
 
-        target_fy = Biz.get_fiscal_year(self.target_time, fy_start_month)
+        target_fy: int = Biz.get_fiscal_year(self.target_time, fy_start_month)
 
         return start_year <= target_fy < end_year + 1
     
@@ -274,7 +295,7 @@ class Biz:
     @staticmethod
     def get_fiscal_quarter(dt: dt.datetime, fy_start_month: int) -> int:
         """Return the fiscal quarter for a given datetime and fiscal year start month."""
-        offset = (dt.month - fy_start_month) % 12 if dt.month >= fy_start_month else (dt.month + 12 - fy_start_month) % 12
+        offset: int = (dt.month - fy_start_month) % 12 if dt.month >= fy_start_month else (dt.month + 12 - fy_start_month) % 12
         return (offset // 3) + 1
 
 
