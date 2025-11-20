@@ -2,7 +2,7 @@
 
 [project]
 name = "frist"
-version = "0.12.0"
+version = "0.14.0"
 description = "Calendar-based time window filtering, age calculations, and business logic for dates and times."
 authors = [
     { name = "Chuck Hucker", email = "chuck@hucker.com" }
