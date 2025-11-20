@@ -1,37 +1,101 @@
 # `Frist`: Unified Age and Calendar Logic
 
-`Frist`is a modern Python library designed to make working with time, dates, and intervals simple and expressive—whether you’re analyzing file ages, tracking events, or handling business calendars. `Frist` provides two core property-based APIs: `Age` and `Cal`. The `Age` object lets you answer “How old is this?” for any two datetimes (often defaulting to “now”), making it perfect for file aging, log analysis, or event tracking. The `Cal` object lets you ask “Is this date in a specific window?”—such as today, yesterday, this month, this quarter, or this fiscal year—using intuitive properties for calendar logic. Calendar ranges are always aligned to a calendar time scale, day, business day, month, year, quarter, hour.
+`Frist`is a modern Python library designed to make working with time, dates, and intervals simple and expressive—whether you’re analyzing file ages, tracking events, or handling business calendars. `Frist` provides two core property-based APIs: `Age` and `Cal`. The `Age` object lets you answer “How old is this?” for two datetimes (often defaulting one to “now”), making it perfect for file aging, log analysis, or event tracking. The `Cal` object lets you ask “Is this date in a specific window?”—such as today, yesterday, this month, this quarter, or this fiscal year—using intuitive properties for calendar logic. Calendar ranges are always aligned to a calendar time scale, day, business day, month, year, quarter, hour.  `Frist` is not a [replacement](https://imgs.xkcd.com/comics/standards_2x.png) for `datetime` or `timedelta`.  
 
-You never need to do manual calendar math. `Frist`’s property-based API gives you direct answers to common time and calendar questions. For business and operational use cases, `Frist`’s  policy object lets you define workdays, holidays, and business hours, so your calendar calculations match your real-world rules. Whether you need precise age calculations, flexible date windows, or custom business logic, `Frist` unifies these features in a clean, easy-to-use API built entirely around properties.
+It is meant for usecases where you are doing lots of datetime math and find your self writing lots of small tricky functions. Frist lets you write code that is human readable with edge cases handled for you.
+
+``` pycon
+from frist import Age, Cal, Biz, CalendarPolicy
+dates = large_list_of_dates()
+
+last_four_and_half_minutes = [date for date in dates if Age(date).minutes <= 4.5]
+
+last_three_years = [date for date in dates if Age(date).years < 3]
+
+dates_today = [date for date in dates if Cal(date).in_days(0)]
+
+last_two_months = [date for date in dates if Cal(date).in_months(-2,0)]
+
+# Business day math requires business date setup in as a CalendarPolicy object.
+policy = CalendaPolicy(fiscal_year_start_month=4,holidays={"2026-1-1"})
+
+last_five_business_days = [date for date in dates if Biz(date,cal_policy=policy).in_business_days(-5,0)]
+
+this_fiscal_year = [date for date in dates if Biz(date,cal_policy=policy).in_fiscal_years(0)]
+```
+
+## Age
+
+The `Age` object answers "How old is X?" for two datetimes (start and end). It exposes common elapsed-time metrics as properties so you can write intent‑revealing one‑liners.
+
+- Purpose: elapsed / duration properties (seconds, minutes, hours, days, weeks, months, years).
+- Special: `months_precise` and `years_precise` compute calendar-accurate values; `parse()` converts human-friendly duration strings to seconds.
+- Default behaviour: if `end_time` is omitted it defaults to now.
+
+Example:
 
 ```pycon
->>> from frist import Chrono
+>>> from frist import Age
 >>> import datetime as dt
->>> meeting_time = dt.datetime(2025, 4, 25, 15, 0)  # Meeting 5 days ago
->>> today = dt.datetime(2025, 4, 30)
->>> meeting = Chrono(target_time=meeting_time, reference_time=today)
->>> f"Meeting age: {meeting.age.days:.2f} days"
-'Meeting age: 5.00 days'
->>> meeting.cal.in_days(0)
-False
->>> meeting.cal.in_days(-5)
-True
->>> meeting.cal.in_months(0)
-True
->>> meeting.cal.in_months(0, 2)
-True
->>> meeting.cal.in_months(-2)
-False
->>> other_day = dt.datetime(2025, 5, 1)
->>> meeting_other = Chrono(target_time=meeting_time, reference_time=other_day)
->>> meeting_other.cal.in_days(0)
-False
->>> meeting_other.cal.in_months(0)
-True
->>> meeting_other.cal.in_months(0, 2)
-False
->>> meeting_other.cal.in_months(-2)
-True
+>>> a = Age(start_time=dt.datetime(2025,9,1), end_time=dt.datetime(2025,11,20))
+>>> a.days
+80.125
+>>> a.years
+0.21
+
+```
+
+---
+
+## Cal
+
+The `Cal` object provides calendar-aligned window queries (minute/hour/day/week/month/quarter/year and fiscal variants) using half-open semantics. Use `in_*` methods to ask whether a target falls in a calendar window relative to a reference date.
+
+- Purpose: calendar-window membership (in_days, in_months, in_quarters, in_fiscal_years, ...).
+- Behaviour: calendar-aligned, half-open intervals; supports custom week starts and fiscal start month via Chrono/CalendarPolicy composition.
+- Use-case: one-liners for "was this date in the last two months?" or "is this in the current fiscal quarter?"
+
+Example:
+
+```pycon
+>>> from frist import Cal
+>>> import datetime as dt
+>>> target = dt.datetime(2025,9,15)
+>>> ref = dt.datetime(2025,11,20)
+>>> c = Cal(target_dt=target, ref_dt=ref)
+>>> c.in_months(-2, -1)
+True    # target was in Sept/Oct (the two full months before Nov)
+>>> c.in_days(-7, -1)
+False   # not in the 7..1 days before ref
+```
+
+---
+
+## Biz
+
+The `Biz` object performs policy-aware business calendar calculations. It relies on `CalendarPolicy` to determine workdays, holidays, business hours, and fiscal rules.
+
+- Purpose: business/working-day arithmetic (fractional day spans, range membership, fiscal helpers).
+- Key differences: `working_days` counts weekdays per policy (ignores holidays); `business_days` excludes holidays. Fractional days computed using policy business hours.
+- Common methods: `working_days`, `business_days`, `in_working_days`, `in_business_days`, `get_fiscal_year`, `get_fiscal_quarter`.
+
+Example:
+
+```pycon
+>>> from frist import Biz, CalendarPolicy
+>>> import datetime as dt
+>>> policy = CalendarPolicy(workdays={0,1,2,3,4}, holidays={"2025-12-25"})
+>>> start = dt.datetime(2025,12,24,9,0)
+>>> end   = dt.datetime(2025,12,26,17,0)
+>>> b = Biz(start, end, policy)
+>>> b.working_days
+3.0      # counts Wed/Thu/Fri as workdays (holidays ignored)
+>>> b.business_days
+2.0      # Dec 25 removed from business-day total
+>>> b.in_business_days(0)
+False    # target is a holiday -> not a business day
+>>> b.in_working_days(0)
+True     # still a weekday per policy
 ```
 
 ## CalendarPolicy
@@ -72,47 +136,34 @@ True
 
 ## API Reference
 
+Here is a brief overview of the various classes that makeup `Frist`.
+
 ### Age Object
-```pycon
->>> from frist import Age
->>> import datetime as dt
->>> start = dt.datetime(2000, 1, 1)
->>> end = dt.datetime(2025, 5, 1)
->>> age = Age(start_time=start, end_time=end)
->>> age.years
-25.33
->>> age.days
-9252
->>> age.months
-303.98
->>> age.working_days
-6573.0
-```
 
 `Age(start_time: datetime, end_time: datetime = None, cal_policy: CalendarPolicy = None)`
 
-| Property         | Description                                              |
-|------------------|----------------------------------------------------------|
-| `seconds`        | Age in seconds                                           |
-| `minutes`        | Age in minutes                                           |
-| `hours`          | Age in hours                                             |
-| `days`           | Age in days                                              |
-| `weeks`          | Age in weeks                                             |
-| `months`         | Age in months (approximate, 30.44 days)                  |
-| `months_precise` | Age in months (precise, calendar-based)                  |
-| `years`          | Age in years (approximate, 365.25 days)                  |
-| `years_precise`  | Age in years (precise, calendar-based)                   |
-| `working_days`   | Fractional working days between start and end, per policy|
-| `fiscal_year`    | Fiscal year for start_time                               |
-| `fiscal_quarter` | Fiscal quarter for start_time                            |
-| `start_time`     | Start datetime                                           |
-| `end_time`       | End datetime                                             |
-| `cal_policy`     | CalendarPolicy used for business logic                   |
+| Property         | Description                                               |
+| ---------------- | --------------------------------------------------------- |
+| `seconds`        | Age in seconds                                            |
+| `minutes`        | Age in minutes                                            |
+| `hours`          | Age in hours                                              |
+| `days`           | Age in days                                               |
+| `weeks`          | Age in weeks                                              |
+| `months`         | Age in months (approximate, 30.44 days)                   |
+| `months_precise` | Age in months (precise, calendar-based)                   |
+| `years`          | Age in years (approximate, 365.25 days)                   |
+| `years_precise`  | Age in years (precise, calendar-based)                    |
+| `working_days`   | Fractional working days between start and end, per policy |
+| `fiscal_year`    | Fiscal year for start_time                                |
+| `fiscal_quarter` | Fiscal quarter for start_time                             |
+| `start_time`     | Start datetime                                            |
+| `end_time`       | End datetime                                              |
+| `cal_policy`     | CalendarPolicy used for business logic                    |
 
-| Method           | Description                                              |
-|------------------|----------------------------------------------------------|
-| `set_times(start_time=None, end_time=None)` | Update start/end times         |
-| `parse(age_str)` | Parse age string to seconds                              |
+| Method                                      | Description                 |
+| ------------------------------------------- | --------------------------- |
+| `set_times(start_time=None, end_time=None)` | Update start/end times      |
+| `parse(age_str)`                            | Parse age string to seconds |
 
 The `months_precise` and `years_precise` properties calculate the exact number of calendar months or years between two dates, accounting for the actual length of each month and year. Unlike the approximate versions (which use averages like 30.44 days/month or 365.25 days/year), these properties provide results that match real-world calendar boundaries. They are more intuitively correct but may be slower to compute, especially for long time spans.
 
@@ -122,44 +173,28 @@ The `months_precise` and `years_precise` properties calculate the exact number o
 
 The Cal object provides a family of `in_*` methods (e.g., `in_days`, `in_months`, `in_years` etc) to check if the target date falls within a calendar window relative to the reference date. These methods use calendar units (not elapsed time) using half-open intervals. The start is inclusive, the end is exclusive. This makes it easy to check if a date is in a specific calendar range (e.g., last week, next month, fiscal quarter) using intuitive, unit-based logic.
 
-```pycon
->>> from frist import Cal
->>> import datetime as dt
->>> target = dt.datetime(2025, 4, 29)
->>> reference = dt.datetime(2025, 4, 30)
->>> cal = Cal(target_dt=target, ref_dt=reference)
->>> cal.in_days(-1)
-True  # Target is yesterday
->>> cal.in_days(0)
-False # Target is not today
->>> cal.in_days(-1, 1)
-True  # Target is within ±1 day of reference
-```
-
 - `in_days(-1)`: Is the target date yesterday?
 - `in_days(-1, 1)`: Is the target date within ±1 calendar day of the reference?
 
 `Cal(target_dt: datetime, ref_dt: datetime, fy_start_month: int = 1, holidays: set[str] = None)`
 
-| Property         | Description                                 |
-|------------------|---------------------------------------------|
-| `dt_val`         | Target datetime                             |
-| `base_time`      | Reference datetime                          |
-| `fiscal_year`    | Fiscal year for `dt_val`                    |
-| `fiscal_quarter` | Fiscal quarter for `dt_val`                 |
-| `holiday`        | True if `dt_val` is a holiday               |
+| Property         | Description                   |
+| ---------------- | ----------------------------- |
+| `dt_val`         | Target datetime               |
+| `base_time`      | Reference datetime            |
+| `fiscal_year`    | Fiscal year for `dt_val`      |
+| `fiscal_quarter` | Fiscal quarter for `dt_val`   |
+| `holiday`        | True if `dt_val` is a holiday |
 
-| Interval Method  | Description                                 |
-|------------------|---------------------------------------------|
-| `in_minutes(start=0, end=None)`         | Is target in minute window         |
-| `in_hours(start=0, end=None)`           | Is target in hour window           |
-| `in_days(start=0, end=None)`            | Is target in day window            |
-| `in_weeks(start=0, end=None, week_start="monday")` | Is target in week window |
-| `in_months(start=0, end=None)`          | Is target in month window          |
-| `in_quarters(start=0, end=None)`        | Is target in quarter window        |
-| `in_years(start=0, end=None)`           | Is target in year window           |
-| `in_fiscal_quarters(start=0, end=None)` | Is target in fiscal quarter window |
-| `in_fiscal_years(start=0, end=None)`    | Is target in fiscal year window    |
+| Interval Method                                    | Description                 |
+| -------------------------------------------------- | --------------------------- |
+| `in_minutes(start=0, end=None)`                    | Is target in minute window  |
+| `in_hours(start=0, end=None)`                      | Is target in hour window    |
+| `in_days(start=0, end=None)`                       | Is target in day window     |
+| `in_weeks(start=0, end=None, week_start="monday")` | Is target in week window    |
+| `in_months(start=0, end=None)`                     | Is target in month window   |
+| `in_quarters(start=0, end=None)`                   | Is target in quarter window |
+| `in_years(start=0, end=None)`                      | Is target in year window    |
 
 ---
 
@@ -169,51 +204,72 @@ The `Biz` object performs business-aware calculations using a `CalendarPolicy`. 
 working days (defined by the policy's workday set) and business days (working days that are not holidays).
 It also computes fractional day contributions using the policy's business hours.
 
-```pycon
->>> from frist import Biz, CalendarPolicy
->>> import datetime as dt
->>> policy = CalendarPolicy(workdays={0,1,2,3,4}, holidays={"2025-01-01"})
->>> target = dt.datetime(2025, 1, 2, 9, 0)
->>> ref = dt.datetime(2025, 1, 4, 17, 0)
->>> b = Biz(target, ref, policy)
->>> b.working_days()
-1.875
->>> b.business_days()
-0.875  # holiday on Jan 1 removed from business-day total
-```
+***Business days and work days are tricky to calculate an involve iteration because no/few assumptions can be made about the way the days fall. Normally this isn't a huge deal becase the time spans are a few days, not 1000's of days.***
 
 `Biz(target_time: datetime, ref_time: datetime | None, policy: CalendarPolicy | None)`
 
-| Property / Attribute | Description |
-|----------------------|-------------|
-| `cal_policy`         | `CalendarPolicy` instance used by this Biz |
-| `target_time`        | Target datetime |
-| `ref_time`           | Reference datetime |
-| `holiday`            | True if `target_time` is a holiday |
-| `is_workday`         | True if `target_time` falls on a workday |
-| `is_business_day`    | True if `target_time` is a business day (workday and not holiday) |
+| Property / Attribute | Description                                                         |
+| -------------------- | ------------------------------------------------------------------- |
+| `cal_policy`         | `CalendarPolicy` instance used by this Biz                          |
+| `target_time`        | Target datetime                                                     |
+| `ref_time`           | Reference datetime                                                  |
+| `holiday`            | True if `target_time` is a holiday                                  |
+| `is_workday`         | True if `target_time` falls on a workday                            |
+| `is_business_day`    | True if `target_time` is a business day (workday and not holiday)   |
+| `working_days`       | Fractional working days between target and ref (ignores holidays)   |
+| `business_days`      | Fractional business days between target and ref (excludes holidays) |
 
-| Method               | Description |
-|----------------------|-------------|
-| `working_days()`     | Fractional working days between target and ref (ignores holidays) |
-| `business_days()`    | Fractional business days between target and ref (excludes holidays) |
-| `in_working_days(start=0, end=0)` | Range membership by working days (ignores holidays) |
-| `in_business_days(start=0, end=0)`| Range membership by business days (excludes holidays) |
-| `get_fiscal_year(dt, fy_start_month)` | Static helper to compute fiscal year for a datetime |
-| `get_fiscal_quarter(dt, fy_start_month)` | Static helper to compute fiscal quarter |
-
+| Method                                   | Description                                           |
+| ---------------------------------------- | ----------------------------------------------------- |
+| `in_working_days(start=0, end=0)`        | Range membership by working days (ignores holidays)   |
+| `in_business_days(start=0, end=0)`       | Range membership by business days (excludes holidays) |
+| `get_fiscal_year(dt, fy_start_month)`    | Static helper to compute fiscal year for a datetime   |
+| `get_fiscal_quarter(dt, fy_start_month)` | Static helper to compute fiscal quarter               |
 
 ### Chrono Object
 
-`Chrono(target_time: datetime, reference_time: datetime = None, fy_start_month: int = 1, holidays: set[str] = None)`
+In some situations you will need to have all three of these classes together because the filtering you are doing is related
+to the multiple classes.  The best way to handle this is with the chrono object.  The `Chrono` class initiaizlizes all three so you have access to each of the classes, with no race conditions when setting the reference time.
 
-| Property      | Description                                                      |
-|--------------|------------------------------------------------------------------|
-| `age`        | Age object for span calculations (see Age above)                  |
-| `cal`        | Cal object for calendar window logic (see Cal above)              |
-| `fiscal_year`| Fiscal year for the target time                                   |
-| `fiscal_quarter` | Fiscal quarter for the target time                            |
-| `holiday`    | True if target time is a holiday (if holidays set provided)       |
+```pycon
+# Brief Chrono example: create a Chrono and print Age / Cal / Biz properties
+>>> from frist import Chrono, CalendarPolicy
+>>> import datetime as dt
+>>> target = dt.datetime(2025, 4, 25, 15, 0)
+>>> ref = dt.datetime(2025, 4, 30, 12, 0)
+>>> policy = CalendarPolicy(workdays={0,1,2,3,4}, holidays={"2025-04-28"})
+>>> z = Chrono(target_time=target, reference_time=ref, policy=policy)
+
+# Age (elapsed-time properties)
+>>> z.age.days                # elapsed days (float)
+3.875
+>>> z.age.years_precise       # calendar-accurate years
+0.0106
+
+# Cal (calendar-window queries)
+>>> z.cal.in_days(-5)         # was target 5 days before reference?
+True
+>>> z.cal.in_months(0)        # same calendar month as reference?
+True
+
+# Biz (policy-aware business logic — properties are floats)
+>>> z.biz.working_days        # fractional working days (counts workdays per policy)
+1.0
+>>> z.biz.business_days       # fractional business days (excludes holidays from policy)
+0.0
+>>> z.biz.in_working_days(0)  # range-membership helper (bool)
+True
+>>> z.biz.in_business_days(0) # range-membership helper (bool)
+False
+```
+
+`Chrono(target_time: datetime, reference_time: datetime = None, cal_policy:CalendarPolicy|None)`
+
+| Property | Description                                           |
+| -------- | ----------------------------------------------------- |
+| `age`    | Age object for span calculations (see Age above)      |
+| `cal`    | Cal object for calendar window logic (see Cal above)  |
+| `biz`    | Biz  object for calendar window logic (see Cal above) |
 
 ### Status
 
