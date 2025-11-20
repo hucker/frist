@@ -13,6 +13,7 @@ Exports:
     Chrono   -- Main datetime utility class
     Age       -- Duration and age calculations
     Cal       -- Calendar window and filtering logic
+    Biz       -- Business logic including fiscal year/quarter and holidays
     CalendarPolicy -- Configurable calendar policies (fiscal year start, holidays)
 """
 from ._age import Age
@@ -21,7 +22,7 @@ from ._biz import Biz
 from ._cal_policy import CalendarPolicy
 from ._frist import Chrono
 
-__version__ = "0.11.0"
+__version__ = "0.12.0"
 __author__ = "Chuck Bass"
 
 __all__ = ["Chrono", "Age",  "Cal" ,"Biz","CalendarPolicy" ]
