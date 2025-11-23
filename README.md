@@ -37,6 +37,11 @@ this_fiscal_year = [date for date in dates if Biz(date,policy).in_fiscal_years(0
 last_3_fiscal_year = [date for date in dates if Biz(date,policy)in_fiscal_years(-2,0)]
 
 ignore_holidays = [data for date in dates if not Biz(date,policy).is_holiday]
+
+# Shortcut examples
+dates_today_shortcut = [date for date in dates if Cal(date).is_today]
+dates_this_quarter = [date for date in dates if Cal(date).is_this_quarter]
+dates_last_year = [date for date in dates if Cal(date).is_last_year]
 ```
 
 ## Age
@@ -196,23 +201,43 @@ The Cal object provides a family of `in_*` methods (e.g., `in_days`, `in_months`
 
 `Cal(target_dt: datetime, ref_dt: datetime, fy_start_month: int = 1, holidays: set[str] = None)`
 
-| Property         | Description                   |
-| ---------------- | ----------------------------- |
-| `dt_val`         | Target datetime               |
-| `base_time`      | Reference datetime            |
-| `fiscal_year`    | Fiscal year for `dt_val`      |
-| `fiscal_quarter` | Fiscal quarter for `dt_val`   |
-| `holiday`        | True if `dt_val` is a holiday |
+| Property         | Description                   | Return |
+| ---------------- | ----------------------------- | ------ |
+| `dt_val`         | Target datetime               | `datetime` |
+| `base_time`      | Reference datetime            | `datetime` |
+| `fiscal_year`    | Fiscal year for `dt_val`      | `int` |
+| `fiscal_quarter` | Fiscal quarter for `dt_val`   | `int` |
+| `holiday`        | True if `dt_val` is a holiday | `bool` |
 
-| Interval Method                                    | Description                 |
-| -------------------------------------------------- | --------------------------- |
-| `in_minutes(start=0, end=None)`                    | Is target in minute window  |
-| `in_hours(start=0, end=None)`                      | Is target in hour window    |
-| `in_days(start=0, end=None)`                       | Is target in day window     |
-| `in_weeks(start=0, end=None, week_start="monday")` | Is target in week window    |
-| `in_months(start=0, end=None)`                     | Is target in month window   |
-| `in_quarters(start=0, end=None)`                   | Is target in quarter window |
-| `in_years(start=0, end=None)`                      | Is target in year window    |
+| Interval Method                                    | Description                 | Return |
+| -------------------------------------------------- | --------------------------- | ------ |
+| `in_minutes(start=0, end=None)`                    | Is target in minute window  | `bool` |
+| `in_hours(start=0, end=None)`                      | Is target in hour window    | `bool` |
+| `in_days(start=0, end=None)`                       | Is target in day window     | `bool` |
+| `in_weeks(start=0, end=None, week_start="monday")` | Is target in week window    | `bool` |
+| `in_months(start=0, end=None)`                     | Is target in month window   | `bool` |
+| `in_quarters(start=0, end=None)`                   | Is target in quarter window | `bool` |
+| `in_years(start=0, end=None)`                      | Is target in year window    | `bool` |
+
+Shortcuts (convenience boolean properties):
+
+| Shortcut | Equivalent `in_*` call |
+| -------- | --------------------- |
+| `is_today` | `in_days(0)` |
+| `is_yesterday` | `in_days(-1)` |
+| `is_tomorrow` | `in_days(1)` |
+| `is_last_week` | `in_weeks(-1)` |
+| `is_this_week` | `in_weeks(0)` |
+| `is_next_week` | `in_weeks(1)` |
+| `is_last_month` | `in_months(-1)` |
+| `is_this_month` | `in_months(0)` |
+| `is_next_month` | `in_months(1)` |
+| `is_last_quarter` | `in_quarters(-1)` |
+| `is_this_quarter` | `in_quarters(0)` |
+| `is_next_quarter` | `in_quarters(1)` |
+| `is_last_year` | `in_years(-1)` |
+| `is_this_year` | `in_years(0)` |
+| `is_next_year` | `in_years(1)` |
 
 ---
 
@@ -226,23 +251,40 @@ It also computes fractional day contributions using the policy's business hours.
 
 `Biz(target_time: datetime, ref_time: datetime | None, policy: CalendarPolicy | None)`
 
-| Property / Attribute | Description                                                         |
-| -------------------- | ------------------------------------------------------------------- |
-| `cal_policy`         | `CalendarPolicy` instance used by this Biz                          |
-| `target_time`        | Target datetime                                                     |
-| `ref_time`           | Reference datetime                                                  |
-| `holiday`            | True if `target_time` is a holiday                                  |
-| `is_workday`         | True if `target_time` falls on a workday                            |
-| `is_business_day`    | True if `target_time` is a business day (workday and not holiday)   |
-| `working_days`       | Fractional working days between target and ref (ignores holidays)   |
-| `business_days`      | Fractional business days between target and ref (excludes holidays) |
+| Property / Attribute | Description                                                         | Return |
+| -------------------- | ------------------------------------------------------------------- | ------ |
+| `cal_policy`         | `CalendarPolicy` instance used by this Biz                          | `CalendarPolicy` |
+| `target_time`        | Target datetime                                                     | `datetime` |
+| `ref_time`           | Reference datetime                                                  | `datetime` |
+| `holiday`            | True if `target_time` is a holiday                                  | `bool` |
+| `is_workday`         | True if `target_time` falls on a workday                            | `bool` |
+| `is_business_day`    | True if `target_time` is a business day (workday and not holiday)   | `bool` |
+| `working_days`       | Fractional working days between target and ref (ignores holidays)   | `float` |
+| `business_days`      | Fractional business days between target and ref (excludes holidays) | `float` |
 
-| Method                                   | Description                                           |
-| ---------------------------------------- | ----------------------------------------------------- |
-| `in_working_days(start=0, end=0)`        | Range membership by working days (ignores holidays)   |
-| `in_business_days(start=0, end=0)`       | Range membership by business days (excludes holidays) |
-| `get_fiscal_year(dt, fy_start_month)`    | Static helper to compute fiscal year for a datetime   |
-| `get_fiscal_quarter(dt, fy_start_month)` | Static helper to compute fiscal quarter               |
+| Method                                   | Description                                           | Return |
+| ---------------------------------------- | ----------------------------------------------------- | ------ |
+| `in_working_days(start=0, end=0)`        | Range membership by working days (ignores holidays)   | `bool` |
+| `in_business_days(start=0, end=0)`       | Range membership by business days (excludes holidays) | `bool` |
+| `get_fiscal_year(dt, fy_start_month)`    | Static helper to compute fiscal year for a datetime   | `int`  |
+| `get_fiscal_quarter(dt, fy_start_month)` | Static helper to compute fiscal quarter               | `int`  |
+ 
+Shortcuts (convenience boolean properties):
+
+| Shortcut | Equivalent `in_*` call |
+| -------- | --------------------- |
+| `is_business_last_day` | `in_business_days(-1)` (observes holidays) |
+| `is_business_this_day` | `in_business_days(0)` (observes holidays) |
+| `is_business_next_day` | `in_business_days(1)` (observes holidays) |
+| `is_workday_last_day` | `in_working_days(-1)` |
+| `is_workday_this_day` | `in_working_days(0)` |
+| `is_workday_next_day` | `in_working_days(1)` |
+| `is_last_fiscal_quarter` | `in_fiscal_quarters(-1)` |
+| `is_this_fiscal_quarter` | `in_fiscal_quarters(0)` |
+| `is_next_fiscal_quarter` | `in_fiscal_quarters(1)` |
+| `is_last_fiscal_year` | `in_fiscal_years(-1)` |
+| `is_this_fiscal_year` | `in_fiscal_years(0)` |
+| `is_next_fiscal_year` | `in_fiscal_years(1)` |
 
 ### Chrono Object
 
@@ -297,13 +339,13 @@ False
 
 ```text
 src\frist\__init__.py                         8      0      0      0   100%
-src\frist\_age.py                           149      0     46      0   100%
-src\frist\_biz.py                           138      0     28      0   100%
-src\frist\_cal.py                           114      0     20      0   100%
+src\frist\_age.py                           119      0     34      0   100%
+src\frist\_biz.py                           176      4     28      0    98%   80, 104, 129, 153
+src\frist\_cal.py                           142      0     12      0   100%
 src\frist\_cal_policy.py                     79      0     38      0   100%
 src\frist\_constants.py                      15      0      0      0   100%
 src\frist\_frist.py                          71      0     18      0   100%
-src\frist\_util.py                           12      0      4      0   100%
+src\frist\_util.py                           13      0      2      0   100%
 ```
 
 ### Tox

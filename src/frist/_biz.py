@@ -54,6 +54,104 @@ class Biz:
         """Return True if `target_time` is a business day (workday and not holiday)."""
         return self.cal_policy.is_business_day(self.target_time)
 
+    # ---------- Shortcut properties (policy-aware) ----------
+    @property
+    def is_business_last_day(self) -> bool:
+        """Shortcut: True when the target is in the business-day immediately before the reference.
+
+        Equivalent to calling `in_business_days(-1)`.
+        """
+        return self.in_business_days(-1)
+
+    @property
+    def is_business_this_day(self) -> bool:
+        """Shortcut: True when the target is in the business-day of the reference.
+
+        Equivalent to calling `in_business_days(0)`.
+        """
+        return self.in_business_days(0)
+
+    @property
+    def is_business_next_day(self) -> bool:
+        """Shortcut: True when the target is in the business-day immediately after the reference.
+
+        Equivalent to calling `in_business_days(1)`.
+        """
+        return self.in_business_days(1)
+
+    @property
+    def is_workday_last_day(self) -> bool:
+        """Shortcut: True when the target is in the workday immediately before the reference.
+
+        Equivalent to calling `in_working_days(-1)`.
+        """
+        return self.in_working_days(-1)
+
+    @property
+    def is_workday_this_day(self) -> bool:
+        """Shortcut: True when the target is in the workday of the reference.
+
+        Equivalent to calling `in_working_days(0)`.
+        """
+        return self.in_working_days(0)
+
+    @property
+    def is_workday_next_day(self) -> bool:
+        """Shortcut: True when the target is in the workday immediately after the reference.
+
+        Equivalent to calling `in_working_days(1)`.
+        """
+        return self.in_working_days(1)
+
+    # Fiscal shortcuts (explicitly fiscal-aware)
+    @property
+    def is_last_fiscal_quarter(self) -> bool:
+        """Shortcut: True when the target is in the fiscal quarter immediately before the reference.
+
+        Equivalent to calling `in_fiscal_quarters(-1)`.
+        """
+        return self.in_fiscal_quarters(-1)
+
+    @property
+    def is_this_fiscal_quarter(self) -> bool:
+        """Shortcut: True when the target is in the same fiscal quarter as the reference.
+
+        Equivalent to calling `in_fiscal_quarters(0)`.
+        """
+        return self.in_fiscal_quarters(0)
+
+    @property
+    def is_next_fiscal_quarter(self) -> bool:
+        """Shortcut: True when the target is in the fiscal quarter immediately after the reference.
+
+        Equivalent to calling `in_fiscal_quarters(1)`.
+        """
+        return self.in_fiscal_quarters(1)
+
+    @property
+    def is_last_fiscal_year(self) -> bool:
+        """Shortcut: True when the target is in the fiscal year immediately before the reference.
+
+        Equivalent to calling `in_fiscal_years(-1)`.
+        """
+        return self.in_fiscal_years(-1)
+
+    @property
+    def is_this_fiscal_year(self) -> bool:
+        """Shortcut: True when the target is in the same fiscal year as the reference.
+
+        Equivalent to calling `in_fiscal_years(0)`.
+        """
+        return self.in_fiscal_years(0)
+
+    @property
+    def is_next_fiscal_year(self) -> bool:
+        """Shortcut: True when the target is in the fiscal year immediately after the reference.
+
+        Equivalent to calling `in_fiscal_years(1)`.
+        """
+        return self.in_fiscal_years(1)
+
     # Alias for external convenience
     #@property
     #def business_day_fraction(self) -> float:
@@ -261,11 +359,10 @@ class Biz:
         start_tuple = (start_year, start_quarter)
         end_tuple = (end_year, end_quarter)
 
-        # Use in_half_open on tuples; for quarters we make the exclusive
-        # end tuple by incrementing the quarter component so tuple
-        # comparison aligns with half-open semantics.
-        exclusive_end = (end_tuple[0], end_tuple[1] + 1)
-        return in_half_open(start_tuple, target_tuple, exclusive_end)
+        # Use in_half_open on tuples. The decorator normalization already makes
+        # single-arg calls represent a single-quarter half-open window, so the
+        # `end_tuple` computed above is already the exclusive end tuple.
+        return in_half_open(start_tuple, target_tuple, end_tuple)
 
 
     @verify_start_end
@@ -293,8 +390,10 @@ class Biz:
 
         target_fy: int = Biz.get_fiscal_year(self.target_time, fy_start_month)
 
-        # Use in_half_open for numeric years; make the exclusive end explicit
-        return in_half_open(start_year, target_fy, end_year + 1)
+        # Use in_half_open for numeric years; the decorator normalization
+        # already makes single-arg calls represent a single-year half-open
+        # interval, so `end_year` is the exclusive end.
+        return in_half_open(start_year, target_fy, end_year)
     
     @staticmethod
     def get_fiscal_year(dt: dt.datetime, fy_start_month: int) -> int:

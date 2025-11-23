@@ -340,3 +340,128 @@ class Cal:
 
         return in_half_open(start_week_start, target_date, end_week_exclusive)
 
+    # Shortcuts for common calendar windows
+
+    @property
+    def is_today(self) -> bool:
+        """Return True if target is in the same calendar day as the reference.
+
+        Uses calendar-aligned half-open semantics for the day window:
+        start_of_day <= target < start_of_next_day.
+
+        Shortcut: equivalent to calling self.in_days(0).
+        """
+        return self.in_days(0)
+
+    @property
+    def is_yesterday(self) -> bool:
+        """Return True if target is in the calendar day immediately before the reference.
+
+        Shortcut: equivalent to calling self.in_days(-1).
+        """
+        return self.in_days(-1)
+
+    @property
+    def is_tomorrow(self) -> bool:
+        """Return True if target is in the calendar day immediately after the reference.
+
+        Shortcut: equivalent to calling self.in_days(1).
+        """
+        return self.in_days(1)
+
+    @property
+    def is_last_week(self) -> bool:
+        """Return True if target is in the last week from the reference.
+
+        Week start follows the default used by in_weeks (Monday).
+        Shortcut: equivalent to calling self.in_weeks(-1).
+        """
+        return self.in_weeks(-1)
+    @property
+    def is_this_week(self) -> bool:
+        """Return True if target is in the same week as the reference.
+
+        Week start follows the default used by in_weeks (Monday).
+        Shortcut: equivalent to calling self.in_weeks(0).
+        """
+        return self.in_weeks(0)
+
+    @property
+    def is_next_week(self) -> bool:
+        """Return True if target is in the week immediately following the reference week.
+
+        Shortcut: equivalent to calling self.in_weeks(1).
+        """
+        return self.in_weeks(1)
+
+    @property
+    def is_last_month(self) -> bool:
+        """Return True if target is in the last calendar month as the reference.
+
+        Shortcut: equivalent to calling self.in_months(-1).
+        """
+        return self.in_months(-1)
+    @property
+    def is_this_month(self) -> bool:
+        """Return True if target is in the same calendar month as the reference.
+
+        Shortcut: equivalent to calling self.in_months(0).
+        """
+        return self.in_months(0)
+
+    @property
+    def is_next_month(self) -> bool:
+        """Return True if target is in the calendar month immediately after the reference month.
+
+        Shortcut: equivalent to calling self.in_months(1).
+        """
+        return self.in_months(1)
+
+    @property
+    def is_this_quarter(self) -> bool:
+        """Return True if target is in the same calendar quarter as the reference.
+
+        Quarters are calendar aligned (Q1: Jan–Mar, Q2: Apr–Jun, Q3: Jul–Sep, Q4: Oct–Dec).
+        Shortcut: equivalent to calling self.in_quarters(0).
+        """
+        return self.in_quarters(0)
+
+    @property
+    def is_last_quarter(self) -> bool:
+        """Return True if target is in the quarter immediately before the reference.
+
+        Shortcut: equivalent to calling self.in_quarters(-1).
+        """
+        return self.in_quarters(-1)
+
+    @property
+    def is_next_quarter(self) -> bool:
+        """Return True if target is in the quarter immediately after the reference quarter.
+
+        Shortcut: equivalent to calling self.in_quarters(1).
+        """
+        return self.in_quarters(1)
+
+    @property
+    def is_this_year(self) -> bool:
+        """Return True if target is in the same calendar year as the reference.
+
+        Shortcut: equivalent to calling self.in_years(0).
+        """
+        return self.in_years(0)
+
+    @property
+    def is_next_year(self) -> bool:
+        """Return True if target is in the calendar year immediately after the reference.
+
+        Shortcut: equivalent to calling self.in_years(1).
+        """
+        return self.in_years(1)
+
+    @property
+    def is_last_year(self) -> bool:
+        """Return True if target is in the calendar year immediately before the reference.
+
+        Shortcut: equivalent to calling self.in_years(-1).
+        """
+        return self.in_years(-1)
