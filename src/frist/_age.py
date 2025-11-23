@@ -84,6 +84,9 @@ class Age:
         end_time: dt.datetime | float | int | None = None,
     ) -> None:
         """
+        WARNING: This method mutates the Age instance in place, beware of side effects during threaded operatoin.
+
+
         Update the start and/or end time for this Age instance.
 
         This method is kwargs-only: you must specify start_time and/or end_time as keyword arguments.

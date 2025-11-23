@@ -9,7 +9,7 @@ import datetime as dt
 from typing import TYPE_CHECKING
 
 from ._constants import WEEKDAY_INDEX
-from ._util import verify_start_end
+from ._util import verify_start_end, in_half_open
 
 if TYPE_CHECKING:  # pragma: no cover
     pass
@@ -125,9 +125,12 @@ class Cal:
         start_minute = start_time.replace(second=0, microsecond=0)
 
         end_time = self.ref_dt + dt.timedelta(minutes=end)
-        end_minute = end_time.replace(second=0, microsecond=0) + dt.timedelta(minutes=1)
+        # `verify_start_end` already normalizes a single-arg call so `end` is
+        # the exclusive offset. Do not advance the boundary here or we'll
+        # double-count the end unit.
+        end_minute = end_time.replace(second=0, microsecond=0)
 
-        return start_minute <= target_time < end_minute
+        return in_half_open(start_minute, target_time, end_minute)
 
     @verify_start_end
     def in_hours(self, start: int = 0, end: int = 0) -> bool:
@@ -154,9 +157,11 @@ class Cal:
         start_hour = start_time.replace(minute=0, second=0, microsecond=0)
 
         end_time = self.ref_dt + dt.timedelta(hours=end)
-        end_hour = end_time.replace(minute=0, second=0, microsecond=0) + dt.timedelta(hours=1)
+        # See note above: `end` is already exclusive when normalized by the
+        # decorator; do not add an extra hour.
+        end_hour = end_time.replace(minute=0, second=0, microsecond=0)
 
-        return start_hour <= target_time < end_hour
+        return in_half_open(start_hour, target_time, end_hour)
 
     @verify_start_end
     def in_days(self, start: int = 0, end: int = 0) -> bool:
@@ -177,59 +182,45 @@ class Cal:
 
         # Calculate the date range boundaries
         start_date = (self.ref_dt + dt.timedelta(days=start)).date()
+        # Half-open semantics for days: `end` is exclusive (the decorator
+        # supplies end=start+1 for single-arg calls), so use the date for
+        # the exclusive end directly without adding an extra day here.
         end_date = (self.ref_dt + dt.timedelta(days=end)).date()
 
-        return start_date <= target_date <= end_date
+        return in_half_open(start_date, target_date, end_date)
 
-
-
-
+    def _month_index(self,d: dt.datetime) -> int:
+        """Get a monatonic month index for comparison. (why didn't I think of this?)"""
+        return d.year * 12 + d.month
 
     @verify_start_end
-    def in_months(self, start: int = 0, end: int = 0) -> bool:
-        """True if timestamp falls within the month window(s) from start to end.
+    def in_months(self,start: int = 0, end: int = 0) -> bool:
+        """Return whether target falls in calendar months from start..end offsets.
+
+        The implementation compares numeric month indices:
+            idx = year * 12 + month
 
         Args:
-            start: Months from now to start range (negative = past, 0 = this month, positive = future)
-            end: Months from now to end range (defaults to start for single month)
+            start: Month offset from reference to start (negative = past).
+            end: Month offset from reference to end.
+
+        Returns:
+            bool: True if target's month index falls between start and end offsets.
 
         Examples:
-            chrono.cal.in_months(0)          # This month
-            chrono.cal.in_months(-1)         # Last month only
-            chrono.cal.in_months(-6, -1)     # From 6 months ago through last month
-            chrono.cal.in_months(-12, 0)     # Last 12 months through this month
+            # Two full months before reference:
+            cal.in_months(-2, -1)
         """
+        target_idx: int = self._month_index(self.target_dt)
+        start_idx = self._month_index(self.ref_dt) + start
+        end_idx = self._month_index(self.ref_dt) + end
 
-        target_time = self.target_dt
-        base_year = self.ref_dt.year
-        base_month = self.ref_dt.month
+        # Half-open semantics for months: `end_idx` is the exclusive month
+        # index (decorator normalization ensures single-arg calls behave as
+        # a single unit window). Compare numeric month indices directly.
+        return in_half_open(start_idx, target_idx, end_idx)
 
-        # Calculate the start month (earliest)
-        start_month = base_month + start
-        start_year = base_year
-        while start_month <= 0:
-            start_month += 12
-            start_year -= 1
-        while start_month > 12:
-            start_month -= 12
-            start_year += 1
 
-        # Calculate the end month (latest)
-        end_month = base_month + end
-        end_year = base_year
-        while end_month <= 0:
-            end_month += 12
-            end_year -= 1
-        while end_month > 12:
-            end_month -= 12
-            end_year += 1
-
-        # Convert months to a comparable format (year * 12 + month)
-        file_month_index = target_time.year * 12 + target_time.month
-        start_month_index = start_year * 12 + start_month
-        end_month_index = end_year * 12 + end_month
-
-        return start_month_index <= file_month_index <= end_month_index
 
     @verify_start_end
     def in_quarters(self, start: int = 0, end: int = 0) -> bool:
@@ -275,7 +266,10 @@ class Cal:
         end_tuple = (end_year, end_quarter)
 
         # Check if target falls within the quarter range: start <= target < end
-        return start_tuple <= target_tuple < (end_tuple[0], end_tuple[1] + 1)
+        # The `end_tuple` returned by `normalize_quarter_year` is already the
+        # exclusive quarter tuple when the decorator normalizes single-arg
+        # calls, so pass it through unchanged.
+        return in_half_open(start_tuple, target_tuple, end_tuple)
 
     @verify_start_end
     def in_years(self, start: int = 0, end: int = 0) -> bool:
@@ -299,7 +293,11 @@ class Cal:
         start_year = base_year + start
         end_year = base_year + end
 
-        return start_year <= target_year <= end_year
+        # Use half-open semantics for years: `end_year` is exclusive. The
+        # decorator already makes single-arg calls represent a single-year
+        # half-open interval (start..start+1), so no extra shifting is
+        # required here.
+        return in_half_open(start_year, target_year, end_year)
     
     @verify_start_end
     def in_weeks(
@@ -335,9 +333,10 @@ class Cal:
         # Calculate week boundaries
         start_week_start = current_week_start + dt.timedelta(weeks=start)
         end_week_start = current_week_start + dt.timedelta(weeks=end)
-        end_week_end = end_week_start + dt.timedelta(
-            days=6
-        )  # End of week (6 days after start)
+        # Half-open semantics for weeks: `end_week_start` is already the
+        # exclusive start-of-week produced by the normalized `end` value;
+        # do not add an extra week here.
+        end_week_exclusive = end_week_start
 
-        return start_week_start <= target_date <= end_week_end
+        return in_half_open(start_week_start, target_date, end_week_exclusive)
 

@@ -19,11 +19,13 @@ def test_simple_cal_day_windows():
     target_time: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
     reference_time: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)
     cal: Cal = Cal(target_time, reference_time)
+    # Act
+    # (no separate action beyond construction)
 
-    # Act & Assert
+    # Assert
     assert cal.target_dt == target_time, "cal.target_dt should match target_time"
     assert cal.ref_dt == reference_time, "cal.ref_dt should match reference_time"
-    assert cal.in_days(-1), "Target should be yesterday relative to reference"
+    assert cal.in_days(-1, 0), "Target should be yesterday relative to reference"
     assert cal.in_days(-1, 0), "Target should be in range yesterday through today"
     assert not cal.in_days(0), "Target should not be today"
     assert not cal.in_days(-2), "Target should not be two days ago"
@@ -37,10 +39,13 @@ def test_cal_with_chrono():
         2024, 1, 1, 18, 0, 0
     )  # Same day, 6 hours later
 
+    # Arrange
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
+
+    # Act
     cal: Cal = z.cal
 
-    # Test that we can access calendar functionality
+    # Assert
     assert isinstance(cal, Cal), "cal should be instance of Cal"
     assert cal.target_dt == target_time, "cal.target_dt should match target_time"
     assert cal.ref_dt == reference_time, "cal.ref_dt should match reference_time"
@@ -51,10 +56,14 @@ def test_cal_in_minutes():
     target_time: dt.datetime = dt.datetime(2024, 1, 1, 12, 30, 0)
     reference_time: dt.datetime = dt.datetime(2024, 1, 1, 12, 35, 0)  # 5 minutes later
 
+    # Arrange
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
-    # Should be within current minute range
+    # Act
+    # (membership checks below)
+
+    # Assert
     assert cal.in_minutes(-5, 0), "Should be within last 5 minutes through now"
     assert not cal.in_minutes(1, 5), "Should not be within future minutes"
     assert cal.in_minutes(-10, 0), "Should be within broader range including target"
@@ -65,10 +74,14 @@ def test_cal_in_hours():
     target_time: dt.datetime = dt.datetime(2024, 1, 1, 10, 30, 0)
     reference_time: dt.datetime = dt.datetime(2024, 1, 1, 12, 30, 0)  # 2 hours later
 
+    # Arrange
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
-    # Should be within hour ranges
+    # Act
+    # (membership checks below)
+
+    # Assert
     assert cal.in_hours(-2, 0), "Should be within last 2 hours through now"
     assert not cal.in_hours(-1, 0), "Should not be within just last hour (too narrow)"
     assert cal.in_hours(-3, 0), "Should be within broader range"
@@ -79,14 +92,18 @@ def test_cal_in_days():
     target_time: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
     reference_time: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)  # Next day
 
+    # Arrange
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
-    # Test day windows
-    assert cal.in_days(-1, 0), "Target should be in range yesterday through today"
-    assert cal.in_days(-1), "Target should be just yesterday"
+    # Act
+    # (membership checks below)
+
+    # Assert
+    assert cal.in_days(-1, 1), "Target should be in range yesterday through today"
+    assert cal.in_days(-1, 0), "Target should be just yesterday"
     assert not cal.in_days(0), "Target should not be today (target was yesterday)"
-    assert not cal.in_days(-2, -2), "Target should not be two days ago only"
+    assert not cal.in_days(-2, -1), "Target should not be two days ago only"
 
 
 def test_cal_in_weeks():
@@ -95,12 +112,16 @@ def test_cal_in_weeks():
     target_time: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)  # Monday
     reference_time: dt.datetime = dt.datetime(2024, 1, 8, 12, 0, 0)  # Next Monday
 
+    # Arrange
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
-    # Test week windows
+    # Act
+    # (membership checks below)
+
+    # Assert
     assert cal.in_weeks(-1, 0), "Target should be in range last week through this week"
-    assert cal.in_weeks(-1), "Target should be just last week"
+    assert cal.in_weeks(-1, 0), "Target should be just last week"
     assert not cal.in_weeks(0), "Target should not be this week"
 
 
@@ -110,10 +131,14 @@ def test_cal_in_weeks_custom_start():
     target_time: dt.datetime = dt.datetime(2024, 1, 7, 12, 0, 0)  # Sunday
     reference_time: dt.datetime = dt.datetime(2024, 1, 14, 12, 0, 0)  # Next Sunday
 
+    # Arrange
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
-    # Test with Sunday week start
+    # Act
+    # (membership checks below)
+
+    # Assert
     assert cal.in_weeks(-1, week_start="sunday"), "Target should be last week with Sunday start"
     assert cal.in_weeks(-1, week_start="sun"), "Target should be last week with sun abbreviation"
     assert cal.in_weeks(-1, week_start="su"), "Target should be last week with su abbreviation"
@@ -124,12 +149,16 @@ def test_cal_in_months():
     target_time: dt.datetime = dt.datetime(2024, 1, 15, 12, 0, 0)  # January 15
     reference_time: dt.datetime = dt.datetime(2024, 2, 15, 12, 0, 0)  # February 15
 
+    # Arrange
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
-    # Test month windows
+    # Act
+    # (membership checks below)
+
+    # Assert
     assert cal.in_months(-1, 0), "Target should be in range last month through this month"
-    assert cal.in_months(-1), "Target should be just last month"
+    assert cal.in_months(-1, 0), "Target should be just last month"
     assert not cal.in_months(0), "Target should not be this month"
 
 
@@ -138,10 +167,14 @@ def test_cal_in_quarters():
     target_time: dt.datetime = dt.datetime(2024, 1, 15, 12, 0, 0)  # Q1 2024
     reference_time: dt.datetime = dt.datetime(2024, 4, 15, 12, 0, 0)  # Q2 2024
 
+    # Arrange
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
-    # Test quarter windows
+    # Act
+    # (membership checks below)
+
+    # Assert
     assert cal.in_quarters(-1, 0), "Target should be in range last quarter through this quarter"
     assert cal.in_quarters(-1), "Target should be just last quarter (Q1)"
     assert not cal.in_quarters(0), "Target should not be this quarter (Q2)"
@@ -152,10 +185,14 @@ def test_cal_in_years():
     target_time: dt.datetime = dt.datetime(2023, 6, 15, 12, 0, 0)  # 2023
     reference_time: dt.datetime = dt.datetime(2024, 6, 15, 12, 0, 0)  # 2024
 
+    # Arrange
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
-    # Test year windows
+    # Act
+    # (membership checks below)
+
+    # Assert
     assert cal.in_years(-1, 0), "Target should be in range last year through this year"
     assert cal.in_years(-1), "Target should be just last year"
     assert not cal.in_years(0), "Target should not be this year"
@@ -166,19 +203,24 @@ def test_cal_single_vs_range():
     target_time: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
     reference_time: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)
 
+    # Arrange
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
-    # Single day (yesterday only)
-    assert cal.in_days(-1), "Target should be just yesterday"
+    # Act
+    # (membership checks below)
 
-    # Range (yesterday through today)
+    # Assert
+    assert cal.in_days(-1, 0), "Target should be just yesterday"
+
+    # Assert (range)
     assert cal.in_days(-1, 0), "Target should be in range yesterday through today"
 
 
 def test_weekday_normalization():
     """Test the normalize_weekday function indirectly through Cal."""
     # Test full names
+    # Arrange / Act & Assert: normalization is pure function; test values directly
     assert normalize_weekday("monday") == 0
     assert normalize_weekday("sunday") == 6
 
@@ -201,6 +243,7 @@ def test_weekday_normalization():
 
 def test_weekday_normalization_errors():
     """Test error handling in weekday normalization."""
+    # Arrange / Act & Assert: invalid specs raise ValueError
     with pytest.raises(ValueError, match="Invalid day specification"):
         normalize_weekday("invalid")
 
@@ -214,14 +257,18 @@ def test_cal_edge_cases():
     target_time: dt.datetime = dt.datetime(2024, 1, 15, 12, 30, 0)
     reference_time: dt.datetime = dt.datetime(2024, 1, 15, 12, 30, 0)
 
+    # Arrange
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
-    # All current windows should return True
+    # Act
+    # (membership checks below)
+
+    # Assert: All current windows should return True
     assert cal.in_minutes(0), "Target should be in current minute window"
     assert cal.in_hours(0), "Target should be in current hour window"
-    assert cal.in_days(0), "Target should be in current day window"
-    assert cal.in_months(0), "Target should be in current month window"
+    assert cal.in_days(0, 1), "Target should be in current day window"
+    assert cal.in_months(0, 1), "Target should be in current month window"
     assert cal.in_quarters(0), "Target should be in current quarter window"
     assert cal.in_years(0), "Target should be in current year window"
     assert cal.in_weeks(0), "Target should be in current week window"
@@ -233,21 +280,25 @@ def test_cal_month_edge_cases():
     target_time: dt.datetime = dt.datetime(2023, 12, 15, 12, 0, 0)  # December 2023
     reference_time: dt.datetime = dt.datetime(2024, 1, 15, 12, 0, 0)  # January 2024
 
+    # Arrange
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
-    # Should be in the previous month
-    assert cal.in_months(-1), "Target should be last month"
+    # Act
+    # (membership checks below)
+
+    # Assert: Should be in the previous month
+    assert cal.in_months(-1, 0), "Target should be last month"
     assert not cal.in_months(0), "Target should not be this month"
 
-    # Test multiple years back
+    # Arrange (multiple years back)
     target_time: dt.datetime = dt.datetime(2022, 6, 15, 12, 0, 0)  # June 2022
     reference_time: dt.datetime = dt.datetime(2024, 1, 15, 12, 0, 0)  # January 2024
 
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
-    # Should be about 19 months ago
+    # Assert: Should be about 19 months ago
     assert cal.in_months(-20, -18)
     assert not cal.in_months(-12, 0)
 
@@ -258,10 +309,11 @@ def test_cal_quarter_edge_cases():
     target_time: dt.datetime = dt.datetime(2023, 11, 15, 12, 0, 0)  # Q4 2023
     reference_time: dt.datetime = dt.datetime(2024, 2, 15, 12, 0, 0)  # Q1 2024
 
+    # Arrange
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
-    # Should be in the previous quarter
+    # Assert: Should be in the previous quarter
     assert cal.in_quarters(-1)  # Last quarter
     assert not cal.in_quarters(0)  # This quarter
 
@@ -272,6 +324,7 @@ def test_cal_quarter_edge_cases():
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
+    # Assert
     assert cal.in_quarters(-1), "Target should be previous quarter"
     assert not cal.in_quarters(0), "Target should not be current quarter"
 
@@ -282,14 +335,15 @@ def test_cal_year_edge_cases():
     target_time: dt.datetime = dt.datetime(2023, 12, 31, 23, 59, 59)  # End of 2023
     reference_time: dt.datetime = dt.datetime(2024, 1, 1, 0, 0, 1)  # Start of 2024
 
+    # Arrange
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
-    # Should be in the previous year
+    # Assert: Should be in the previous year
     assert cal.in_years(-1), "Target should be last year"
     assert not cal.in_years(0), "Target should not be this year"
 
-    # Multi-year range
+    # Assert: Multi-year range
     assert cal.in_years(-2, 0), "Target should be in range 2 years ago through now"
 
 
@@ -301,10 +355,11 @@ def test_cal_week_different_starts():
         2024, 1, 8, 12, 0, 0
     )  # Monday, Jan 8 (next week)
 
+    # Arrange
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
-    # With Monday start, target should be exactly one week ago
+    # Assert: With Monday start, target should be exactly one week ago
     assert cal.in_weeks(-1, week_start="monday"), "Target should be last week with Monday start"
     assert not cal.in_weeks(0, week_start="monday"), "Target should not be this week with Monday start"
 
@@ -315,7 +370,7 @@ def test_cal_week_different_starts():
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
-    # Test Sunday-based weeks
+    # Assert: Test Sunday-based weeks
     assert cal.in_weeks(-1, week_start="sunday")
 
 
@@ -327,14 +382,18 @@ def test_cal_minutes_edge_cases():
         2024, 1, 1, 12, 30, 0
     )  # Start of minute 30
 
+    # Arrange
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
-    # Should be in the previous minute
+    # Act
+    # (membership checks below)
+
+    # Assert
     assert cal.in_minutes(-1), "Target should be previous minute"
     assert not cal.in_minutes(0), "Target should not be current minute"
 
-    # Test range spanning multiple minutes
+    # Assert: Test range spanning multiple minutes
     assert cal.in_minutes(-5, 0), "Target should be in range 5 minutes ago through now"
 
 
@@ -344,14 +403,15 @@ def test_cal_hours_edge_cases():
     target_time: dt.datetime = dt.datetime(2024, 1, 1, 11, 59, 59)  # End of hour 11
     reference_time: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)  # Start of hour 12
 
+    # Arrange
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
-    # Should be in the previous hour
+    # Assert: Should be in the previous hour
     assert cal.in_hours(-1), "Target should be previous hour"
     assert not cal.in_hours(0), "Target should not be current hour"
 
-    # Test range spanning multiple hours
+    # Assert: Test range spanning multiple hours
     assert cal.in_hours(-6, 0), "Target should be in range 6 hours ago through now"
 
 
@@ -361,15 +421,16 @@ def test_cal_future_windows():
     target_time: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)  # Tomorrow
     reference_time: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)  # Today
 
+    # Arrange
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
-    # Test future windows
-    assert cal.in_days(1), "Target should be tomorrow"
+    # Act / Assert: Test future windows
+    assert cal.in_days(1, 2), "Target should be tomorrow"
     assert cal.in_hours(24), "Target should be 24 hours from now"
     assert cal.in_minutes(1440), "Target should be 1440 minutes from now"
 
-    # Future weeks
+    # Assert: Future weeks
     assert cal.in_weeks(0, 1), "Target should be in range this week through next week"
 
     # Future months
@@ -379,7 +440,8 @@ def test_cal_future_windows():
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
-    assert cal.in_months(1), "Target should be next month"
+    # Assert
+    assert cal.in_months(1, 2), "Target should be next month"
 
     # Future quarters
     target_time: dt.datetime = dt.datetime(2024, 7, 15, 12, 0, 0)  # Q3
@@ -388,6 +450,7 @@ def test_cal_future_windows():
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
+    # Assert
     assert cal.in_quarters(2), "Target should be 2 quarters from now"
 
     # Future years
@@ -397,6 +460,7 @@ def test_cal_future_windows():
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
+    # Assert
     assert cal.in_years(2), "Target should be 2 years from now"
 
 
@@ -406,6 +470,7 @@ def test_cal_month_complex_calculations():
     target_time: dt.datetime = dt.datetime(2021, 3, 15, 12, 0, 0)  # March 2021
     reference_time: dt.datetime = dt.datetime(2024, 1, 15, 12, 0, 0)  # January 2024
 
+    # Arrange
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
@@ -413,7 +478,9 @@ def test_cal_month_complex_calculations():
     # From March 2021 to January 2022 = 10 months
     # From January 2022 to January 2024 = 24 months
     # Total = 34 months back
-    assert cal.in_months(-34), "Target should be exactly 34 months ago"
+
+    # Assert
+    assert cal.in_months(-34, -33), "Target should be exactly 34 months ago"
     assert cal.in_months(-35, -33), "Target should be in range around the target (34 months ago)"
 
 
@@ -423,10 +490,11 @@ def test_cal_quarter_complex_calculations():
     target_time: dt.datetime = dt.datetime(2021, 7, 15, 12, 0, 0)  # Q3 2021
     reference_time: dt.datetime = dt.datetime(2024, 1, 15, 12, 0, 0)  # Q1 2024
 
+    # Arrange
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
-    # This should be about 10 quarters ago
+    # Assert: This should be about 10 quarters ago
     assert cal.in_quarters(-12, -8), "Target should be in range about 10 quarters ago"
 
 
@@ -557,6 +625,7 @@ def test_normalize_weekday_error_with_detailed_message():
         normalize_weekday("invalid_day")
     error_msg = str(excinfo.value)
     # Check that the error message contains helpful examples
+    # Assert: Error message contains helpful sections
     assert "Invalid day specification" in error_msg
     assert "Full:" in error_msg
     assert "3-letter:" in error_msg
@@ -569,16 +638,18 @@ def test_cal_type_checking_imports():
     # Import the module to ensure TYPE_CHECKING code paths are exercised
     import frist._cal as cal_module
 
+    # Act
     # Check that the module has the expected attributes
     assert hasattr(cal_module, "Cal")
     assert hasattr(cal_module, "normalize_weekday")
 
-    # Verify TYPE_CHECKING behavior by checking typing imports exist
+    # Assert: Verify TYPE_CHECKING behavior by checking typing imports exist
     assert hasattr(cal_module, "TYPE_CHECKING")
 
-    # Test that we can instantiate and use the classes
+    # Act: Test that we can instantiate and use the classes
     from typing import TYPE_CHECKING
 
+    # Assert
     assert TYPE_CHECKING is False  # Should be False at runtime
 
 
@@ -588,6 +659,7 @@ def test_in_xxx_raises_on_backwards_ranges():
     z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
     cal: Cal = z.cal
 
+    # Act & Assert: backwards ranges should raise
     with pytest.raises(ValueError):
         cal.in_days(2, -2)
     with pytest.raises(ValueError):
@@ -656,14 +728,15 @@ def test_in_months_edge_cases():
     target = dt.datetime(2024, 1, 15)
     ref = dt.datetime(2024, 1, 1)
     cal: Cal = Cal(target, ref)
+    # Arrange
     # This month
-    assert cal.in_months(0), "Target should be this month"
+    assert cal.in_months(0, 1), "Target should be this month"
     # Last month
     assert not cal.in_months(-1), "Target should not be last month"
     # Next month
     assert not cal.in_months(1), "Target should not be next month"
     # Range: last 12 months through this month
-    assert cal.in_months(-12, 0), "Target should be in range last 12 months through this month"
+    assert cal.in_months(-12, 1), "Target should be in range last 12 months through this month"
 
 
 @pytest.mark.parametrize("spec,expected", [
@@ -683,6 +756,7 @@ def test_in_months_edge_cases():
     ("MONDAY", 0), ("Mon", 0), ("W-SUN", 6), ("thU", 3),
 ])
 def test_normalize_weekday_valid(spec, expected):
+    # Act & Assert: pure function mapping
     assert normalize_weekday(spec) == expected, f"{spec} should map to {expected}"
 
 
@@ -690,5 +764,6 @@ def test_normalize_weekday_valid(spec, expected):
     "nonday", "w-xyz", "abc", "", "w-", "mond", "tues", "w-funday"
 ])
 def test_normalize_weekday_invalid(bad_spec):
+    # Act & Assert: invalid specs raise
     with pytest.raises(ValueError, match="Invalid day specification"):
         normalize_weekday(bad_spec)

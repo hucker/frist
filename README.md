@@ -1,9 +1,12 @@
 # `Frist`: Unified Age and Calendar Logic
 
-`Frist`is a modern Python library designed to make working with time, dates, and intervals simple and expressive—whether you’re analyzing file ages, tracking events, or handling business calendars. `Frist` provides two core property-based APIs: `Age` and `Cal`. The `Age` object lets you answer “How old is this?” for two datetimes (often defaulting one to “now”), making it perfect for file aging, log analysis, or event tracking. The `Cal` object lets you ask “Is this date in a specific window?”—such as today, yesterday, this month, this quarter, or this fiscal year—using intuitive properties for calendar logic. Calendar ranges are always aligned to a calendar time scale, day, business day, month, year, quarter, hour.  `Frist` is not a [replacement](https://imgs.xkcd.com/comics/standards_2x.png) for `datetime` or `timedelta`.  
+`Frist`is a modern Python library designed to make working with time, dates, intervals and business calendars with a 'simple' and expressive property based API. `Frist` provides  property-based APIs for `Age`, `Cal` and `Biz`. The `Age` object lets you answer “How old is this?” for two datetimes (often defaulting the second date to “now”), making it perfect for file aging, log analysis, or event tracking. The `Cal` object lets you ask “Is this date in a specific window?”—such as today, yesterday, this month, this quarter, or this fiscal year—using intuitive properties for calendar logic. Calendar ranges are always aligned to a calendar time scale, day, business day, month, year, quarter, hour.  Finally, the `Biz` class lets you establish a business policy for work days, work hours, fiscal years to make use of business calendars. 
 
-It is meant for usecases where you are doing lots of datetime math and find your self writing lots of small tricky functions. Frist lets you write code that is human readable with edge cases handled for you. Using `Frist` you will never need to know what 1440, 86400, 365.25, 30.4375 mean.
+`Frist` is not a [replacement](https://imgs.xkcd.com/comics/standards_2x.png) for `datetime` or `timedelta`.  If tools from the std-library work for you,keep using them.
 
+`Frist` is a way to reduce the cognitive load on dealing with ages, calendar windows, and business dates.  You almost never do math or manipulate get pieces of datetimes and you' deal directly with readable properties.
+
+Here are some examples of a dataset with a bunch of dates where one field is a date time
 
 ``` python
 from frist import Age, Cal, Biz, CalendarPolicy
@@ -12,24 +15,28 @@ from frist import Age, Cal, Biz, CalendarPolicy
 
 dates = large_list_of_date_times()
 
-last_four_and_half_minutes = [date for date in dates if Age(date).minutes <= 4.5]
+# Policy only required if you want business date info
+policy = CalendarPolicy(fiscal_year_start_month=4,holidays={"2026-1-1"})
 
-last_three_years = [date for date in dates if Age(date).years < 3]
+# If no second date provided then now() assumend.
+
+last_four_and_half_minutes = [date for date in dates if Age(date).age.minutes <= 4.5]
+
+last_three_years = [date for date in dates if Age(date).age.years < 3.0]
 
 dates_today = [date for date in dates if Cal(date).in_days(0)]
 
-last_two_months = [date for date in dates if Cal(date).in_months(-2,0)]
+last_two_months = [date for date in dates if Cal(date)in_months(-2,0)]
 
 last_three_cal_years = [date for date in dates if Cal(date).in_years(-3,0)]
 
-# Business day math requires business date setup in as a CalendarPolicy object.
-policy = CalendaPolicy(fiscal_year_start_month=4,holidays={"2026-1-1"})
+last_five_business_days = [date for date in dates if Biz(date).in_business_days(-5,0)]
 
-last_five_business_days = [date for date in dates if Biz(date,cal_policy=policy).in_business_days(-5,0)]
+this_fiscal_year = [date for date in dates if Biz(date,policy).in_fiscal_years(0)]
 
-this_fiscal_year = [date for date in dates if Biz(date,cal_policy=policy).in_fiscal_years(0)]
+last_3_fiscal_year = [date for date in dates if Biz(date,policy)in_fiscal_years(-2,0)]
 
-ignore_holidays = [data for date in dates if Biz(date,cal_policy=policy).is_holiday]
+ignore_holidays = [data for date in dates if not Biz(date,policy).is_holiday]
 ```
 
 ## Age
@@ -38,7 +45,7 @@ The `Age` object answers "How old is X?" for two datetimes (start and end). It e
 
 - Purpose: elapsed / duration properties (seconds, minutes, hours, days, weeks, months, years).
 - Special: `months_precise` and `years_precise` compute calendar-accurate values; `parse()` converts human-friendly duration strings to seconds.
-- Default behaviour: if `end_time` is omitted it defaults to now.
+- Default behaviour: if `end_time` is omitted it defaults to set to `datetime.now()`.
 
 Example:
 
@@ -50,7 +57,6 @@ Example:
 80.125
 >>> a.years
 0.21
-
 ```
 
 ---
@@ -62,6 +68,10 @@ The `Cal` object provides calendar-aligned window queries (minute/hour/day/week/
 - Purpose: calendar-window membership (in_days, in_months, in_quarters, in_fiscal_years, ...).
 - Behaviour: calendar-aligned, half-open intervals; supports custom week starts and fiscal start month via Chrono/CalendarPolicy composition.
 - Use-case: one-liners for "was this date in the last two months?" or "is this in the current fiscal quarter?"
+
+Practical note on half-open intervals:
+
+It is normal English to define time spans as half-open intervals. For example, when you say "from 1:00 PM to 2:00 PM" you mean a meeting that starts at 1:00 PM and ends at 2:00 PM (one hour long). You do not mean "any time whose hour is 1 or 2" or that the instant at 2:00 PM is included in the 1:00–2:00 meeting. In half-open semantics the start is inclusive and the end is exclusive — i.e. the interval contains times t where 1:00 PM <= t < 2:00 PM. This convention avoids overlapping windows (e.g., an event that ends exactly at 2:00 PM belongs to the next interval, not the previous one) and makes unit-based queries like `in_hours(1)` intuitive.
 
 Example:
 

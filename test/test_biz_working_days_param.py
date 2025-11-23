@@ -1,12 +1,12 @@
-"""
-Parameterized edge case tests for Biz.working_days and Biz.business_days with a custom calendar policy.
+"""Parameterized edge case tests for Biz.working_days and Biz.business_days.
+
 Covers holidays, weekends, and weekdays over a 3-week span.
 """
 import datetime as dt
 import pytest
-from frist import Biz
-from frist._cal_policy import CalendarPolicy
-from typing import Set
+from typing import List, Tuple, Set
+
+from frist import Biz, CalendarPolicy
 
 # Custom calendar: 3 weeks, holidays on Wed each week
 HOLIDAYS: Set[str] = {
@@ -25,7 +25,7 @@ def make_dt(y: int, m: int, d: int, h: int = 0, mi: int = 0) -> dt.datetime:
     return dt.datetime(y, m, d, h, mi)
 
 # Parameterized cases: (start, end, expected_working, expected_business, description)
-CASES = [
+CASES: List[Tuple[dt.datetime, dt.datetime, float, float, str]] = [
     (make_dt(2024, 1, 2, 9),  make_dt(2024, 1, 2, 17), 1.0, 1.0, "Full weekday (Tue)"),
     (make_dt(2024, 1, 3, 9),  make_dt(2024, 1, 3, 17), 1.0, 0.0, "Full holiday (Wed)"),
     (make_dt(2024, 1, 6, 9),  make_dt(2024, 1, 6, 17), 0.0, 0.0, "Full weekend (Sat)"),
@@ -49,9 +49,24 @@ def test_working_and_business_days_param_cases(
     expected_business: float,
     desc: str,
 ) -> None:
-    """Parameterized edge case test for Biz.working_days and Biz.business_days with custom calendar policy."""
+    """Parameterized edge cases for `Biz.working_days` and `Biz.business_days`.
+
+    Arrange: use the `CAL_POLICY` with recurring mid-week holidays.
+    Act: compute `working_days` and `business_days` for each (start, end) pair.
+    Assert: the results equal the expected values.
+    """
+
+    # Arrange
     biz: Biz = Biz(start, end, policy=CAL_POLICY)
-    result_working = biz.working_days
-    result_business = biz.business_days
-    assert result_working == pytest.approx(expected_working, rel=1e-6), f"{desc} (working): got {result_working}, expected {expected_working}"
-    assert result_business == pytest.approx(expected_business, rel=1e-6), f"{desc} (business): got {result_business}, expected {expected_business}"
+
+    # Act
+    result_working: float = biz.working_days
+    result_business: float = biz.business_days
+
+    # Assert
+    assert result_working == pytest.approx(expected_working, rel=1e-6), (
+        f"{desc} (working): got {result_working}, expected {expected_working}"
+    )
+    assert result_business == pytest.approx(expected_business, rel=1e-6), (
+        f"{desc} (business): got {result_business}, expected {expected_business}"
+    )

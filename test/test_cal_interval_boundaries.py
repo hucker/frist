@@ -35,9 +35,8 @@ def test_minute_interval_half_open():
     """Test minute interval is half-open: start <= value < end."""
     # Arrange
     ref_dt: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
-    value: dt.datetime = ref_dt.replace(second=0, microsecond=0) + dt.timedelta(minutes=1)
-    z: Chrono = Chrono(target_time=value, reference_time=ref_dt)
-    cal: Cal = z.cal
+    value: dt.datetime = dt.datetime(2024, 1, 1, 12, 1, 0)
+    cal: Cal = Chrono(target_time=value, reference_time=ref_dt).cal
     # Act
     in_current = cal.in_minutes(0)
     in_next = cal.in_minutes(1)

@@ -7,7 +7,7 @@ Tests Chrono and time_pair as standalone dt.datetime utilities without file depe
 import datetime as dt
 import pytest
 
-from frist._frist import Chrono, time_pair
+from frist._frist import Age, Cal, Chrono, time_pair
 from frist._cal_policy import CalendarPolicy
 
 
@@ -179,7 +179,7 @@ def test_chrono_calendar_property():
     cal: Cal = z.cal
 
     # Test calendar window functionality
-    assert cal.in_days(0)  # Same day
+    assert cal.in_days(0, 1)  # Same day (half-open: 0..1)
     assert cal.in_hours(-6, 0)  # Within 6 hours
     assert not cal.in_days(-1)  # Not yesterday
 

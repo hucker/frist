@@ -1,27 +1,41 @@
-﻿import datetime as dt
-import pytest
+﻿"""Comprehensive tests for `Biz` behavior.
 
-from frist._biz import Biz
-from frist._cal_policy import CalendarPolicy
+This module exercises `Biz` calculations including `working_days`,
+`business_days`, range membership helpers, and fiscal helpers. Tests
+use explicit dates and follow the Arrange/Act/Assert (AAA) pattern.
+"""
+
+import datetime as dt
+import pytest
+from typing import Set
+
+from frist import Biz, CalendarPolicy
 
 
 def test_biz_basic_business_fraction():
-    """Biz uses CalendarPolicy to compute business fractions on a normal business day."""
+    """Biz uses CalendarPolicy to compute business fractions on a normal business day.
+
+    Arrange: create a Biz spanning 10:00 -> 17:00 on a Wednesday.
+    Act: compute `business_days` and `working_days`.
+    Assert: fractions match expected values.
+    """
     policy: CalendarPolicy = CalendarPolicy(holidays=set())
 
-    # Wednesday Nov 19 2025, 10:00 -> 17:00 (7 business hours of 8)
+    # Arrange
     target: dt.datetime = dt.datetime(2025, 11, 19, 10, 0)
     ref: dt.datetime = dt.datetime(2025, 11, 19, 17, 0)
 
+    # Act
     biz: Biz = Biz(target, ref, policy)
 
-    assert biz.is_workday is True
-    assert biz.is_business_day is True
+    # Assert
+    assert biz.is_workday is True, "target should be a workday"
+    assert biz.is_business_day is True, "target should be a business day"
 
     # business_days() between 10:00 and 17:00 should be 7/8 = 0.875
-    assert pytest.approx(biz.business_days, rel=1e-6) == 0.875
+    assert biz.business_days == pytest.approx(0.875, rel=1e-6), "business_days fraction mismatch"
     # working_days should match business_days when no holiday present
-    assert pytest.approx(biz.working_days, rel=1e-6) == pytest.approx(biz.business_days, rel=1e-6)
+    assert biz.working_days == pytest.approx(biz.business_days, rel=1e-6), "working_days should equal business_days when no holidays"
 
 
 def test_biz_holiday_affects_business_but_not_working():
@@ -29,65 +43,69 @@ def test_biz_holiday_affects_business_but_not_working():
     holiday_date: str = "2025-11-19"
     policy: CalendarPolicy = CalendarPolicy(holidays={holiday_date})
 
+    # Arrange
     target: dt.datetime = dt.datetime(2025, 11, 19, 9, 0)
     ref: dt.datetime = dt.datetime(2025, 11, 19, 17, 0)
 
+    # Act
     biz: Biz = Biz(target, ref, policy)
 
-    assert biz.holiday is True
-    assert biz.is_workday is True  # weekday remains a workday
-    assert biz.is_business_day is False  # but it's a holiday
+    # Assert
+    assert biz.holiday is True, "Holiday property should be True for the target date"
+    assert biz.is_workday is True, "Weekday should still be considered a workday"
+    assert biz.is_business_day is False, "Holiday should not be a business day"
 
     # business_days should be zero for a holiday spanning the full business day
-    assert pytest.approx(biz.business_days, rel=1e-6) == 0.0
+    assert biz.business_days == pytest.approx(0.0, rel=1e-6), "business_days should be 0.0 for a full-day holiday"
 
     # working_days ignores holidays and counts the business-hours fraction
-    assert pytest.approx(biz.working_days, rel=1e-6) == 1.0
+    assert biz.working_days == pytest.approx(1.0, rel=1e-6), "working_days should reflect weekday fraction regardless of holiday"
 
 
 def test_in_business_and_working_days_ranges():
     """Verify range-membership helpers using CalendarPolicy (business vs working behavior)."""
     policy: CalendarPolicy = CalendarPolicy(holidays=set())
 
-    # ref is 2025-11-20 (Thursday). target is previous day (Wednesday)
+    # Arrange - ref is 2025-11-20 (Thursday). target is previous day (Wednesday)
     target: dt.datetime = dt.datetime(2025, 11, 19, 12, 0)
     ref: dt.datetime = dt.datetime(2025, 11, 20, 12, 0)
 
+    # Act
     biz: Biz = Biz(target, ref, policy)
 
-    # Using a window of [-1, 0] business-days from ref should include the 19th
-    assert biz.in_business_days(-1, 0) is True
+    # Assert - Using a window of [-1, 0] business-days from ref should include the 19th
+    assert biz.in_business_days(-1, 0) is True, "19th should be within business-days(-1,0)"
 
-    # Working-days window should also include the 19th
-    assert biz.in_working_days(-1, 0) is True
+    # Assert - Working-days window should also include the 19th
+    assert biz.in_working_days(-1, 0) is True, "19th should be within working-days(-1,0)"
 
 
 def test_in_fiscal_quarters_and_years():
     """Verify Biz.in_fiscal_quarters and Biz.in_fiscal_years behavior for fiscal year starting in April."""
     policy: CalendarPolicy = CalendarPolicy(fiscal_year_start_month=4)
 
-    # Reference in FY2025 (July 15, 2025 -> FY2025, Q2)
+    # Arrange - Reference in FY2025 (July 15, 2025 -> FY2025, Q2)
     ref: dt.datetime = dt.datetime(2025, 7, 15, 12, 0)
 
-    # Target in same fiscal quarter (Q2): July 1, 2025
+    # Act / Assert - Target in same fiscal quarter (Q2): July 1, 2025
     target_q2: dt.datetime = dt.datetime(2025, 7, 1, 9, 0)
     biz_q2: Biz = Biz(target_q2, ref, policy)
-    assert biz_q2.in_fiscal_quarters(0) is True
+    assert biz_q2.in_fiscal_quarters(0) is True, "Target in same fiscal quarter should be True"
 
-    # Target in previous quarter (Q1): May 15, 2025
+    # Act / Assert - Target in previous quarter (Q1): May 15, 2025
     target_q1: dt.datetime = dt.datetime(2025, 5, 15, 9, 0)
     biz_q1: Biz = Biz(target_q1, ref, policy)
-    assert biz_q1.in_fiscal_quarters(-1, 0) is True
+    assert biz_q1.in_fiscal_quarters(-1, 0) is True, "Target in previous fiscal quarter should be True"
 
-    # Fiscal year checks: target in same fiscal year (Nov 2025)
+    # Act / Assert - Fiscal year checks: target in same fiscal year (Nov 2025)
     target_same_fy: dt.datetime = dt.datetime(2025, 11, 1, 12, 0)
     biz_same_fy: Biz = Biz(target_same_fy, ref, policy)
-    assert biz_same_fy.in_fiscal_years(0) is True
+    assert biz_same_fy.in_fiscal_years(0) is True, "Target in same fiscal year should be True"
 
-    # Target in next fiscal year: April 1, 2026 (start of FY2026)
+    # Act / Assert - Target in next fiscal year: April 1, 2026 (start of FY2026)
     target_next_fy: dt.datetime = dt.datetime(2026, 4, 1, 9, 0)
     biz_next_fy: Biz = Biz(target_next_fy, ref, policy)
-    assert biz_next_fy.in_fiscal_years(1) is True
+    assert biz_next_fy.in_fiscal_years(1) is True, "Target in next fiscal year should be True"
 
 
 def test_in_business_working_days_start_greater_than_end_raises():
@@ -135,7 +153,7 @@ def test_in_working_days_returns_false_for_non_workday():
 
     assert biz.is_workday is False
     # Even if asking for a range including the target day, it should be False
-    assert biz.in_working_days(0, 0) is False
+    assert biz.in_working_days(0, 1) is False
     assert biz.in_working_days(-1, 0) is False
 
 

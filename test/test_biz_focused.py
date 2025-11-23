@@ -1,5 +1,4 @@
-"""
-Focused tests for Biz behavior (working_days / business_days / range membership).
+"""Focused tests for Biz behavior (working_days / business_days / range membership).
 
 Conventions:
 - Module-level docstring describing intent.
@@ -9,8 +8,7 @@ Conventions:
 import datetime as dt
 import pytest
 
-from frist._biz import Biz
-from frist._cal_policy import CalendarPolicy
+from frist import Biz, CalendarPolicy
 
 
 def test_multi_day_fraction_working_and_business_days() -> None:
@@ -29,8 +27,8 @@ def test_multi_day_fraction_working_and_business_days() -> None:
     expected: float = 0.625 + 1.0 + 1.0 + 0.75
 
     # Act / Assert
-    assert biz.working_days == pytest.approx(expected, rel=1e-9)
-    assert biz.business_days == pytest.approx(expected, rel=1e-9)
+    assert biz.working_days == pytest.approx(expected, rel=1e-9), "working_days multi-day fraction mismatch"
+    assert biz.business_days == pytest.approx(expected, rel=1e-9), "business_days multi-day fraction mismatch"
 
 
 def test_multi_day_with_middle_holiday() -> None:
@@ -46,8 +44,8 @@ def test_multi_day_with_middle_holiday() -> None:
     expected_business: float = expected_working - 1.0  # Jan 3 becomes 0.0 for business days
 
     # Act / Assert
-    assert biz.working_days == pytest.approx(expected_working, rel=1e-9)
-    assert biz.business_days == pytest.approx(expected_business, rel=1e-9)
+    assert biz.working_days == pytest.approx(expected_working, rel=1e-9), "working_days with middle holiday mismatch"
+    assert biz.business_days == pytest.approx(expected_business, rel=1e-9), "business_days with middle holiday mismatch"
 
 
 def test_in_working_and_business_days_range_with_holiday() -> None:
@@ -59,13 +57,13 @@ def test_in_working_and_business_days_range_with_holiday() -> None:
     biz: Biz = Biz(target, ref, policy)
 
     # Act / Assert - no holiday
-    assert biz.in_working_days(-2, 0) is True
-    assert biz.in_business_days(-2, 0) is True
+    assert biz.in_working_days(-2, 0) is True, "target should be in working_days(-2,0)"
+    assert biz.in_business_days(-2, 0) is True, "target should be in business_days(-2,0)"
 
     # Arrange - make Jan 2 a holiday
     policy2: CalendarPolicy = CalendarPolicy(holidays={"2024-01-02"})
     biz2: Biz = Biz(target, ref, policy2)
 
     # Act / Assert - business-day membership should be False while working-day membership remains True
-    assert biz2.in_working_days(-2, 0) is True
-    assert biz2.in_business_days(-2, 0) is False
+    assert biz2.in_working_days(-2, 0) is True, "working_days should ignore holiday"
+    assert biz2.in_business_days(-2, 0) is False, "business_days should exclude holiday"

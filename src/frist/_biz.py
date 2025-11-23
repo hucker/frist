@@ -9,7 +9,7 @@ import datetime as dt
 from typing import Callable
 
 from ._cal_policy import CalendarPolicy
-from ._util import verify_start_end
+from ._util import verify_start_end, in_half_open
 
 class Biz:
     """Policy-aware business calendar utilities.
@@ -197,7 +197,10 @@ class Biz:
         if not self.cal_policy.is_business_day(tgt):
             return False
 
-        return lower <= tgt <= upper
+        # Half-open semantics: start is inclusive, end is exclusive.
+        # Use the shared `in_half_open` helper to make semantics explicit
+        # and avoid accidental <= vs < mistakes.
+        return in_half_open(lower, tgt, upper)
 
 
     @verify_start_end
@@ -216,7 +219,8 @@ class Biz:
         if not self.cal_policy.is_workday(tgt):
             return False
 
-        return lower <= tgt <= upper
+        # Half-open semantics: include `lower`, exclude `upper`.
+        return in_half_open(lower, tgt, upper)
 
 
     @verify_start_end
@@ -257,7 +261,11 @@ class Biz:
         start_tuple = (start_year, start_quarter)
         end_tuple = (end_year, end_quarter)
 
-        return start_tuple <= target_tuple < (end_tuple[0], end_tuple[1] + 1)
+        # Use in_half_open on tuples; for quarters we make the exclusive
+        # end tuple by incrementing the quarter component so tuple
+        # comparison aligns with half-open semantics.
+        exclusive_end = (end_tuple[0], end_tuple[1] + 1)
+        return in_half_open(start_tuple, target_tuple, exclusive_end)
 
 
     @verify_start_end
@@ -285,7 +293,8 @@ class Biz:
 
         target_fy: int = Biz.get_fiscal_year(self.target_time, fy_start_month)
 
-        return start_year <= target_fy < end_year + 1
+        # Use in_half_open for numeric years; make the exclusive end explicit
+        return in_half_open(start_year, target_fy, end_year + 1)
     
     @staticmethod
     def get_fiscal_year(dt: dt.datetime, fy_start_month: int) -> int:
