@@ -1,6 +1,6 @@
 import functools
 from typing import Any, Callable
-
+import datetime as dt
 
 def verify_start_end(func: Callable[..., Any]) -> Callable[..., Any]:
     """
@@ -31,12 +31,34 @@ def verify_start_end(func: Callable[..., Any]) -> Callable[..., Any]:
     return wrapper
 
 
-def in_half_open(start: int, value: int, end: int) -> bool:
+def in_half_open(start: int, 
+                 value: int, 
+                 end: int) -> bool:
     """
     Return True when value is in the half-open interval [start, end).
 
     The use of ANY here might be painful to look at but in the codebase open ended intervals are
     use for integers, tuples, and datetimes.
+    """  
+    return start <= value < end
+
+def in_half_open_dt(start: dt.datetime, 
+                     value: dt.datetime, 
+                     end: dt.datetime) -> bool:
+    """
+    Return True when value is in the half-open interval [start, end).
+
+    Note: this seems like possible overkill, but I made the mistake of making the end comparison <=
+          instead of < in a few cases, so this utility function should help avoid that mistake and it
+          makes half_open semantics explicit.
+    """
+    return start <= value < end
+
+def in_half_open_date(start: dt.date, 
+                     value: dt.date, 
+                     end: dt.date) -> bool:
+    """
+    Return True when value is in the half-open interval [start, end).
 
     Note: this seems like possible overkill, but I made the mistake of making the end comparison <=
           instead of < in a few cases, so this utility function should help avoid that mistake and it

@@ -9,7 +9,7 @@ import datetime as dt
 from typing import TYPE_CHECKING
 
 from ._constants import WEEKDAY_INDEX
-from ._util import verify_start_end, in_half_open
+from ._util import verify_start_end, in_half_open,in_half_open_date,in_half_open_dt
 
 if TYPE_CHECKING:  # pragma: no cover
     pass
@@ -130,8 +130,8 @@ class Cal:
         # double-count the end unit.
         end_minute = end_time.replace(second=0, microsecond=0)
 
-        return in_half_open(start_minute, target_time, end_minute)
-
+        return in_half_open_dt(start_minute, target_time, end_minute)
+        
     @verify_start_end
     def in_hours(self, start: int = 0, end: int = 0) -> bool:
         """
@@ -161,7 +161,7 @@ class Cal:
         # decorator; do not add an extra hour.
         end_hour = end_time.replace(minute=0, second=0, microsecond=0)
 
-        return in_half_open(start_hour, target_time, end_hour)
+        return in_half_open_dt(start_hour, target_time, end_hour)
 
     @verify_start_end
     def in_days(self, start: int = 0, end: int = 0) -> bool:
@@ -187,7 +187,7 @@ class Cal:
         # the exclusive end directly without adding an extra day here.
         end_date = (self.ref_dt + dt.timedelta(days=end)).date()
 
-        return in_half_open(start_date, target_date, end_date)
+        return in_half_open_date(start_date, target_date, end_date)
 
     def _month_index(self,d: dt.datetime) -> int:
         """Get a monatonic month index for comparison. (why didn't I think of this?)"""
@@ -243,33 +243,27 @@ class Cal:
         target_time = self.target_dt
         base_time = self.ref_dt
 
-        # Get current quarter (1-4) and year
-        current_quarter = ((base_time.month - 1) // 3) + 1
-        current_year = base_time.year
+        # Use a monotonic quarter index (year * 4 + (quarter-1)) so we can
+        # compare quarters with integer arithmetic (consistent with
+        # `_month_index`). This avoids tuple allocations and is slightly
+        # simpler to reason about.
+        base_quarter = ((base_time.month - 1) // 3)  # 0..3 offset within year
+        base_year = base_time.year
 
-        def normalize_quarter_year(offset: int) -> tuple[int, int]:
-            total_quarters = (current_year * 4 + current_quarter + offset - 1)
-            year = total_quarters // 4
-            quarter = (total_quarters % 4) + 1
-            return year, quarter
+        def quarter_index_for_offset(offset: int) -> int:
+            # Monotonic index where Q1 of year Y -> Y*4 + 0
+            return base_year * 4 + base_quarter + offset
 
-        start_year, start_quarter = normalize_quarter_year(start)
-        end_year, end_quarter = normalize_quarter_year(end)
+        start_idx = quarter_index_for_offset(start)
+        end_idx = quarter_index_for_offset(end)
 
-        # Get target's quarter
-        target_quarter = ((target_time.month - 1) // 3) + 1
+        # Target's monotonic quarter index
+        target_quarter = ((target_time.month - 1) // 3)
         target_year = target_time.year
+        target_idx = target_year * 4 + target_quarter
 
-        # Use tuple comparison for (year, quarter)
-        target_tuple = (target_year, target_quarter)
-        start_tuple = (start_year, start_quarter)
-        end_tuple = (end_year, end_quarter)
-
-        # Check if target falls within the quarter range: start <= target < end
-        # The `end_tuple` returned by `normalize_quarter_year` is already the
-        # exclusive quarter tuple when the decorator normalizes single-arg
-        # calls, so pass it through unchanged.
-        return in_half_open(start_tuple, target_tuple, end_tuple)
+        # Check if target falls within the quarter range using half-open semantics
+        return in_half_open(start_idx, target_idx, end_idx)
 
     @verify_start_end
     def in_years(self, start: int = 0, end: int = 0) -> bool:
@@ -338,7 +332,7 @@ class Cal:
         # do not add an extra week here.
         end_week_exclusive = end_week_start
 
-        return in_half_open(start_week_start, target_date, end_week_exclusive)
+        return in_half_open_date(start_week_start, target_date, end_week_exclusive)
 
     # Shortcuts for common calendar windows
 
@@ -377,6 +371,7 @@ class Cal:
         Shortcut: equivalent to calling self.in_weeks(-1).
         """
         return self.in_weeks(-1)
+    
     @property
     def is_this_week(self) -> bool:
         """Return True if target is in the same week as the reference.

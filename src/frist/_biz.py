@@ -9,7 +9,7 @@ import datetime as dt
 from typing import Callable
 
 from ._cal_policy import CalendarPolicy
-from ._util import verify_start_end, in_half_open
+from ._util import verify_start_end, in_half_open,in_half_open_date
 
 class Biz:
     """Policy-aware business calendar utilities.
@@ -298,7 +298,7 @@ class Biz:
         # Half-open semantics: start is inclusive, end is exclusive.
         # Use the shared `in_half_open` helper to make semantics explicit
         # and avoid accidental <= vs < mistakes.
-        return in_half_open(lower, tgt, upper)
+        return in_half_open_date(lower, tgt, upper)
 
 
     @verify_start_end
@@ -318,7 +318,7 @@ class Biz:
             return False
 
         # Half-open semantics: include `lower`, exclude `upper`.
-        return in_half_open(lower, tgt, upper)
+        return in_half_open_date(lower, tgt, upper)
 
 
     @verify_start_end
@@ -343,26 +343,25 @@ class Biz:
         fy: int = Biz.get_fiscal_year(base_time, fy_start_month)
         fq: int = Biz.get_fiscal_quarter(base_time, fy_start_month)
 
-        def normalize_fiscal_quarter_year(offset: int) -> tuple[int, int]:
-            total_quarters = (fy * 4 + fq + offset - 1)
-            year = total_quarters // 4
-            quarter = (total_quarters % 4) + 1
-            return year, quarter
+        # Use a monotonic fiscal-quarter index (fy * 4 + (fq-1)) so we can
+        # compare fiscal quarters with integer arithmetic (consistent with
+        # `_month_index` and the `Cal.in_quarters` implementation).
+        base_idx = fy * 4 + (fq - 1)
 
-        start_year, start_quarter = normalize_fiscal_quarter_year(start)
-        end_year, end_quarter = normalize_fiscal_quarter_year(end)
+        def fiscal_quarter_index_for_offset(offset: int) -> int:
+            return base_idx + offset
+
+        start_idx = fiscal_quarter_index_for_offset(start)
+        end_idx = fiscal_quarter_index_for_offset(end)
 
         target_fy: int = Biz.get_fiscal_year(self.target_time, fy_start_month)
         target_fq: int = Biz.get_fiscal_quarter(self.target_time, fy_start_month)
+        target_idx = target_fy * 4 + (target_fq - 1)
 
-        target_tuple = (target_fy, target_fq)
-        start_tuple = (start_year, start_quarter)
-        end_tuple = (end_year, end_quarter)
-
-        # Use in_half_open on tuples. The decorator normalization already makes
-        # single-arg calls represent a single-quarter half-open window, so the
-        # `end_tuple` computed above is already the exclusive end tuple.
-        return in_half_open(start_tuple, target_tuple, end_tuple)
+        # Use in_half_open on integer quarter indices. The decorator
+        # normalization already makes single-arg calls represent a single-quarter
+        # half-open window, so `end_idx` is the exclusive end.
+        return in_half_open(start_idx, target_idx, end_idx)
 
 
     @verify_start_end

@@ -6,6 +6,7 @@ Designed to be reusable beyond file operations.
 """
 
 import datetime as dt
+from typing import TypeAlias
 
 from ._age import Age
 from ._cal import Cal
@@ -13,12 +14,16 @@ from ._biz import Biz
 from ._cal_policy import CalendarPolicy
 from ._constants import CHRONO_DATETIME_FORMATS
 
+# Alias for inputs accepted by Frist time utilities (datetime, date, POSIX ts, or string)
+# Note: explicit optionality (`| None`) should be expressed at the call site.
+TimeLike: TypeAlias = dt.datetime | dt.date | float | int | str
+
 
 def time_pair(
     *,
-    start_time: dt.datetime | dt.date | float | int | str | None = None,
-    end_time: dt.datetime | dt.date | float | int | str | None = None,
-    formats__: list[str]|None = None,
+    start_time: TimeLike | None = None,
+    end_time: TimeLike | None = None,
+    formats__: list[str] | None = None,
 ) -> tuple[dt.datetime, dt.datetime]:
     """
     Normalize and validate a pair of time values.
@@ -49,7 +54,7 @@ def time_pair(
     """
     formats:list[str] = formats__ or CHRONO_DATETIME_FORMATS
 
-    def to_datetime(val: dt.datetime | dt.date | float | int | str )->dt.datetime:
+    def to_datetime(val: TimeLike) -> dt.datetime:
         
         # In order of expected frequency of use
         if isinstance(val, dt.datetime):
@@ -72,10 +77,13 @@ def time_pair(
         raise TypeError("start_time cannot be None")
     normalized_start_time: dt.datetime = to_datetime(start_time)
 
+    # Keep mypy happy, this code is does not "run"
+    normalized_end_time: dt.datetime
+    
     if end_time is None:
-        normalized_end_time: dt.datetime = dt.datetime.now()
+        normalized_end_time = dt.datetime.now()
     else:
-        normalized_end_time: dt.datetime = to_datetime(end_time)
+        normalized_end_time = to_datetime(end_time)
 
     return normalized_start_time, normalized_end_time
 
@@ -106,8 +114,8 @@ class Chrono:
     def __init__(
         self,
         *,
-        target_time: dt.datetime | float | int,
-        reference_time: dt.datetime | float | int| None = None,
+        target_time: TimeLike,
+        reference_time: TimeLike | None = None,
         policy: CalendarPolicy | None = None,
     ):
         """
@@ -169,7 +177,7 @@ class Chrono:
         return self.target_time.timestamp()
 
     @staticmethod
-    def parse(time_str: str, reference_time: dt.datetime | None = None, policy: CalendarPolicy | None = None):
+    def parse(time_str: str, reference_time: TimeLike | None = None, policy: CalendarPolicy | None = None):
         """
         Parse a time string and return a Chrono object.
 

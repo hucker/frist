@@ -1,42 +1,47 @@
 # `Frist`: Unified Age and Calendar Logic
 
-`Frist`is a modern Python library designed to make working with time, dates, intervals and business calendars with a 'simple' and expressive property based API. `Frist` provides  property-based APIs for `Age`, `Cal` and `Biz`. The `Age` object lets you answer “How old is this?” for two datetimes (often defaulting the second date to “now”), making it perfect for file aging, log analysis, or event tracking. The `Cal` object lets you ask “Is this date in a specific window?”—such as today, yesterday, this month, this quarter, or this fiscal year—using intuitive properties for calendar logic. Calendar ranges are always aligned to a calendar time scale, day, business day, month, year, quarter, hour.  Finally, the `Biz` class lets you establish a business policy for work days, work hours, fiscal years to make use of business calendars. 
+`Frist` is a modern Python library designed to make working with time, dates, intervals and business calendars with a 'simple' and expressive property based API. `Frist` provides  property-based APIs for `Age`, `Cal` and `Biz`. The `Age` object lets you answer “How old is this?” for two datetimes (often defaulting the second date to “now”), making it perfect for file aging, log analysis, or event tracking. The `Cal` object lets you ask “Is this date in a specific window?”—such as today, yesterday, this month, this quarter, or this fiscal year—using intuitive properties for calendar logic. Calendar ranges are always aligned to a calendar time scale, day, business day, month, year, quarter, hour.  Finally, the `Biz` class lets you establish a business policy for workdays, work hours, fiscal years to make use of business calendars.
 
-`Frist` is not a [replacement](https://imgs.xkcd.com/comics/standards_2x.png) for `datetime` or `timedelta`.  If tools from the std-library work for you,keep using them.
+`Frist` is not a [replacement](https://imgs.xkcd.com/comics/standards_2x.png) for `datetime` or `timedelta`. If the standard library meets your needs, keep using it.
 
-`Frist` is a way to reduce the cognitive load on dealing with ages, calendar windows, and business dates.  You almost never do math or manipulate get pieces of datetimes and you' deal directly with readable properties.
+Frist does more than shorten expressions: it reduces many common calendar and business-date queries to a single, expressive property (for example, `Cal(...).is_this_quarter`, `Age(...).days`, or `Biz(...).in_business_days(0)`). That one-property approach makes intent explicit, avoids repeating low-level date math across projects, and centralizes tricky edge cases such as half-open intervals, fiscal boundaries, and business-hour fractions.
 
-Here are some examples of a dataset with a bunch of dates where one field is a date time
+Here are some examples of a dataset with a bunch of datetimes.
 
 ``` python
 from frist import Age, Cal, Biz, CalendarPolicy
 
-# In these excamples a second datetime is not provided, when this happens the constrctures take the referenct time to be "now"
+# In these examples a second datetime is not provided; when omitted the constructors use the reference time (now).
+#
+# If you omit the reference time, Frist uses the current time (`now`) as the reference. This makes
+# one-property expressions (for example, `Age(date).days` or `Cal(date).is_today`) convenient for
+# interactive use; pass an explicit reference when you need deterministic, reproducible comparisons
+# (for tests or batch processing against a fixed point in time).
 
 dates = large_list_of_date_times()
 
 # Policy only required if you want business date info
-policy = CalendarPolicy(fiscal_year_start_month=4,holidays={"2026-1-1"})
+policy = CalendarPolicy(fiscal_year_start_month=4, holidays={"2026-01-01"})
 
-# If no second date provided then now() assumend.
+# If no second date provided then now() assumed.
 
-last_four_and_half_minutes = [date for date in dates if Age(date).age.minutes <= 4.5]
+last_four_and_half_minutes = [date for date in dates if Age(date).minutes <= 4.5]
 
-last_three_years = [date for date in dates if Age(date).age.years < 3.0]
+last_three_years = [date for date in dates if Age(date).years < 3.0]
 
 dates_today = [date for date in dates if Cal(date).in_days(0)]
 
-last_two_months = [date for date in dates if Cal(date)in_months(-2,0)]
+last_two_months = [date for date in dates if Cal(date).in_months(-2, 0)]
 
-last_three_cal_years = [date for date in dates if Cal(date).in_years(-3,0)]
+last_three_cal_years = [date for date in dates if Cal(date).in_years(-3, 0)]
 
-last_five_business_days = [date for date in dates if Biz(date).in_business_days(-5,0)]
+last_five_business_days = [date for date in dates if Biz(date).in_business_days(-5, 0)]
 
-this_fiscal_year = [date for date in dates if Biz(date,policy).in_fiscal_years(0)]
+this_fiscal_year = [date for date in dates if Biz(date, policy).in_fiscal_years(0)]
 
-last_3_fiscal_year = [date for date in dates if Biz(date,policy)in_fiscal_years(-2,0)]
+last_3_fiscal_years = [date for date in dates if Biz(date, policy).in_fiscal_years(-2, 0)]
 
-ignore_holidays = [data for date in dates if not Biz(date,policy).is_holiday]
+ignore_holidays = [date for date in dates if not Biz(date, policy).is_holiday]
 
 # Shortcut examples
 dates_today_shortcut = [date for date in dates if Cal(date).is_today]
@@ -50,7 +55,7 @@ The `Age` object answers "How old is X?" for two datetimes (start and end). It e
 
 - Purpose: elapsed / duration properties (seconds, minutes, hours, days, weeks, months, years).
 - Special: `months_precise` and `years_precise` compute calendar-accurate values; `parse()` converts human-friendly duration strings to seconds.
-- Default behaviour: if `end_time` is omitted it defaults to set to `datetime.now()`.
+- Default behavior: if `end_time` is omitted it defaults to set to `datetime.now()`.
 
 Example:
 
@@ -59,9 +64,12 @@ Example:
 >>> import datetime as dt
 >>> a = Age(start_time=dt.datetime(2025,9,1), end_time=dt.datetime(2025,11,20))
 >>> a.days
-80.125
->>> a.years
-0.21
+80.0
+>>> a.years     # number of days in "average" years thus 80/365.25 days
+0.2190280629705681
+>>> a.years_precise # number of days in 2025  thus 80/366
+0.2191780821917808
+
 ```
 
 ---
@@ -71,7 +79,7 @@ Example:
 The `Cal` object provides calendar-aligned window queries (minute/hour/day/week/month/quarter/year and fiscal variants) using half-open semantics. Use `in_*` methods to ask whether a target falls in a calendar window relative to a reference date.
 
 - Purpose: calendar-window membership (in_days, in_months, in_quarters, in_fiscal_years, ...).
-- Behaviour: calendar-aligned, half-open intervals; supports custom week starts and fiscal start month via Chrono/CalendarPolicy composition.
+- Behavior: calendar-aligned, half-open intervals; supports custom week starts and fiscal start month via Chrono/CalendarPolicy composition.
 - Use-case: one-liners for "was this date in the last two months?" or "is this in the current fiscal quarter?"
 
 Practical note on half-open intervals:
@@ -86,7 +94,7 @@ Example:
 >>> target = dt.datetime(2025,9,15)
 >>> ref = dt.datetime(2025,11,20)
 >>> c = Cal(target_dt=target, ref_dt=ref)
->>> c.in_months(-2, -1)
+>>> c.in_months(-2, 0)
 True    # target was in Sept/Oct (the two full months before Nov)
 >>> c.in_days(-7, -1)
 False   # not in the 7..1 days before ref
@@ -123,7 +131,7 @@ True     # still a weekday per policy
 
 ## CalendarPolicy
 
-The `CalendarPolicy` object lets you customize business logic for calendar calculations using half open intervals You can define:
+The `CalendarPolicy` object lets you customize business logic for calendar calculations using half-open intervals You can define:
 
 - **Workdays:** Any combination of weekdays (e.g., Mon, Wed, Fri, Sun)
 - **Holidays:** Any set of dates to exclude from working day calculations
@@ -145,7 +153,7 @@ Example (custom policy):
 ```pycon
 >>> from frist import CalendarPolicy
 >>> import datetime as dt
->>> policy = CalendarPolicy(workdays={0,1,2,3,4}, holidays={"2025-1-1"}, work_hours=(9,17), fy_start_month=4)
+>>> policy = CalendarPolicy(workdays={0,1,2,3,4}, holidays={"2025-01-10"}, work_hours=(9,17), fy_start_month=4)
 >>> date = dt.datetime(2025, 5, 15)
 >>> policy.get_fiscal_year(date)
 2026
@@ -159,7 +167,7 @@ True
 
 ## API Reference
 
-Here is a brief overview of the various classes that makeup `Frist`.
+Here is a brief overview of the various classes that make up `Frist`.
 
 ### Age Object
 
@@ -247,7 +255,7 @@ The `Biz` object performs business-aware calculations using a `CalendarPolicy`. 
 working days (defined by the policy's workday set) and business days (working days that are not holidays).
 It also computes fractional day contributions using the policy's business hours.
 
-***Business days and work days are tricky to calculate an involve iteration because no/few assumptions can be made about the way the days fall. Normally this isn't a huge deal becase the time spans are a few days, not 1000's of days.***
+***Business days and workdays are tricky to calculate and involve iteration because no/few assumptions can be made about the way the days fall. Normally this isn't a huge deal because the time spans are a few days, not 1000's of days.***
 
 `Biz(target_time: datetime, ref_time: datetime | None, policy: CalendarPolicy | None)`
 
@@ -268,7 +276,7 @@ It also computes fractional day contributions using the policy's business hours.
 | `in_business_days(start=0, end=0)`       | Range membership by business days (excludes holidays) | `bool` |
 | `get_fiscal_year(dt, fy_start_month)`    | Static helper to compute fiscal year for a datetime   | `int`  |
 | `get_fiscal_quarter(dt, fy_start_month)` | Static helper to compute fiscal quarter               | `int`  |
- 
+
 Shortcuts (convenience boolean properties):
 
 | Shortcut | Equivalent `in_*` call |
@@ -288,8 +296,7 @@ Shortcuts (convenience boolean properties):
 
 ### Chrono Object
 
-In some situations you will need to have all three of these classes together because the filtering you are doing is related
-to the multiple classes.  The best way to handle this is with the chrono object.  The `Chrono` class initiaizlizes all three so you have access to each of the classes, with no race conditions when setting the reference time.
+In some situations you will need to have all three of these classes together because the filtering you are doing is related to the multiple classes.  The best way to handle this is with the chrono object.  The `Chrono` class initializes all three so you have access to each of the classes, with no race conditions when setting the reference time.
 
 ```python
 # Brief Chrono example: create a Chrono and print Age / Cal / Biz properties
@@ -333,14 +340,17 @@ False
 
 ### Status
 
-[![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13%20|%203.14-blue?logo=python&logoColor=white)](https://www.python.org/) [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/hucker/frist/actions) [![Pytest](https://img.shields.io/badge/pytest-100%25%20pass%20%7C%20339%20tests-blue?logo=pytest&logoColor=white)](https://docs.pytest.org/en/stable/) [![Ruff](https://img.shields.io/badge/ruff-100%25-brightgreen?logo=ruff&logoColor=white)](https://github.com/charliermarsh/ruff) [![Tox](https://img.shields.io/badge/tox-tested%20%7C%20multi%20envs-green?logo=tox&logoColor=white)](https://tox.readthedocs.io/)
+[![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13%20|%203.14-blue?logo=python&logoColor=white)](https://www.python.org/) [![Coverage](https://img.shields.io/badge/coverage-100%25-green)](https://github.com/hucker/frist/actions) [![Pytest](https://img.shields.io/badge/pytest-100%25%20pass%20%7C%20368%20tests-green?logo=pytest&logoColor=white)](https://docs.pytest.org/en/stable/) [![Ruff](https://img.shields.io/badge/ruff-100%25-green?logo=ruff&logoColor=white)](https://github.com/charliermarsh/ruff) [![Tox](https://img.shields.io/static/v1?label=tox&message=3.10-3.14&color=green&logo=tox&logoColor=white)](https://tox.readthedocs.io/) [![Mypy](https://img.shields.io/static/v1?label=mypy&message=0%20issues&color=green&logo=mypy&logoColor=white)](https://mypy-lang.org/)
+
 
 ### Pytest (100% pass/100% coverage)
 
 ```text
+Name                                      Stmts   Miss Branch BrPart  Cover   Missing
+-------------------------------------------------------------------------------------
 src\frist\__init__.py                         8      0      0      0   100%
 src\frist\_age.py                           119      0     34      0   100%
-src\frist\_biz.py                           176      4     28      0    98%   80, 104, 129, 153
+src\frist\_biz.py                           176      0     28      0   100%
 src\frist\_cal.py                           142      0     12      0   100%
 src\frist\_cal_policy.py                     79      0     38      0   100%
 src\frist\_constants.py                      15      0      0      0   100%
@@ -351,14 +361,26 @@ src\frist\_util.py                           13      0      2      0   100%
 ### Tox
 
 ```text
- py310: OK (17.03=setup[13.64]+cmd[3.39] seconds)
-  py311: OK (10.53=setup[7.45]+cmd[3.08] seconds)
-  py312: OK (11.76=setup[8.69]+cmd[3.06] seconds)
-  py313: OK (11.46=setup[8.52]+cmd[2.94] seconds)
-  py314: OK (11.45=setup[9.47]+cmd[1.98] secon
-  congratulations :) (59.61 seconds)
+main> tox
+  py310: OK (5.11=setup[3.24]+cmd[1.87] seconds)
+  py311: OK (6.46=setup[3.89]+cmd[2.57] seconds)
+  py312: OK (7.01=setup[4.65]+cmd[2.36] seconds)
+  py313: OK (6.67=setup[4.37]+cmd[2.30] seconds)
+  py314: OK (6.04=setup[4.27]+cmd[1.77] seconds)
+  congratulations :) (32.91 seconds)
+```
+
+### Mypy
+
+```text
+main> mypy src/frist
+Success: no issues found in 8 source files
 ```
 
 ### Notes
 
-This test code was written as a test case in using agentic AI.  As such I wrote very little of the code but I 100% "drive the car" in coming to this solution.  There were many dead ends and dead ends and me swearing at VSCode, but in the end the result is better than what I could have done without it, especially in the beginning phases.  Asking AI to make large strutureal changes to the code was very problematic.  Often times a simple search and replace would work and it would get very stuck, or decided it needed to fundamentally change stuff.
+This project was developed iteratively using agentic AI thus most of the code was generated from prompts rather that writing code (I have been developing code professionally since 1990).  It was tricky getting tests implemented correctly. Generally I write a test case and then ask the AI to parameterize it and then I review.  I discovered that I had some code that had a bug in one case and the AI changed the test inputs (added 1) to make the test pass. I find with agentic AI that I spend more time on my testing than on coding, even to the point that I will happily delete a test file and start over if I don't like it. With manually written code I would be far less inclined to do that.
+
+I also noted that certain types of refactoring humans are much better at.  I change the naming convention of some methods and asked the AI to fix it, after messing around with constant tab issues and bad assumptions I rolled it back and did a search and replace and change the names manually in a fraction of the time.
+
+Contributions are welcome. Please prefer small, reviewable pull requests and include tests that exercise expected behavior and edge cases.

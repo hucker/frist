@@ -8,5 +8,15 @@
         "activityBar.background": "#322E16",
         "titleBar.activeBackground": "#46401F",
         "titleBar.activeForeground": "#FBFAF5"
-    }
+    },
+    "cSpell.words": [
+        "agentic",
+        "Chrono",
+        "datetimes",
+        "frist",
+        "pycon",
+        "Pytest",
+        "timedelta",
+        "usecases"
+    ]
 }
