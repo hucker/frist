@@ -6,10 +6,12 @@ and range membership helpers). This module is intentionally independent from Age
 and Cal; Chrono composes Biz when policy-aware operations are required.
 """
 import datetime as dt
-from typing import Callable
+from typing import Callable, Optional
+from functools import cached_property
 
 from ._cal_policy import CalendarPolicy
 from ._util import verify_start_end, in_half_open,in_half_open_date
+from ._ranges import UnitNamespace
 
 class Biz:
     """Policy-aware business calendar utilities.
@@ -284,6 +286,12 @@ class Biz:
         Both start and end are integers (can be negative). The window is computed by moving start and end business-days from ref_date.
         The target must itself be a business day to be considered "in" the business-day window.
         """
+        return self._in_business_days_impl(start, end)
+
+    def _in_business_days_impl(self, start: int, end: Optional[int]) -> bool:
+        if end is None:
+            end = start + 1
+
         ref: dt.date = self.ref_time.date()
         tgt: dt.date = self.target_time.date()
         start_date: dt.date = self._move_n_days(ref, start, count_business=True)
@@ -296,8 +304,6 @@ class Biz:
             return False
 
         # Half-open semantics: start is inclusive, end is exclusive.
-        # Use the shared `in_half_open` helper to make semantics explicit
-        # and avoid accidental <= vs < mistakes.
         return in_half_open_date(lower, tgt, upper)
 
 
@@ -307,6 +313,12 @@ class Biz:
 
         Working days ignore holidays (only policy.workdays matter).
         """
+        return self._in_working_days_impl(start, end)
+
+    def _in_working_days_impl(self, start: int, end: Optional[int]) -> bool:
+        if end is None:
+            end = start + 1
+
         ref: dt.date = self.ref_time.date()
         tgt: dt.date = self.target_time.date()
         start_date: dt.date = self._move_n_days(ref, start, count_business=False)
@@ -338,6 +350,12 @@ class Biz:
             chrono.cal.in_fiscal_quarters(-4, -1)     # From 4 fiscal quarters ago through last fiscal quarter
             chrono.cal.in_fiscal_quarters(-8, 0)      # Last 8 fiscal quarters through this fiscal quarter
         """
+        return self._in_fiscal_quarters_impl(start, end)
+
+    def _in_fiscal_quarters_impl(self, start: int, end: Optional[int]) -> bool:
+        if end is None:
+            end = start + 1
+
         fy_start_month: int = self.cal_policy.fiscal_year_start_month
         base_time: dt.datetime = self.ref_time
         fy: int = Biz.get_fiscal_year(base_time, fy_start_month)
@@ -381,6 +399,12 @@ class Biz:
             chrono.cal.in_fiscal_years(-5, -1)     # From 5 fiscal years ago through last fiscal year
             chrono.cal.in_fiscal_years(-10, 0)     # Last 10 fiscal years through this fiscal year
         """
+        return self._in_fiscal_years_impl(start, end)
+
+    def _in_fiscal_years_impl(self, start: int, end: Optional[int]) -> bool:
+        if end is None:
+            end = start + 1
+
         fy_start_month: int = self.cal_policy.fiscal_year_start_month
         base_time: dt.datetime = self.ref_time
         fy: int = Biz.get_fiscal_year(base_time, fy_start_month)
@@ -404,6 +428,27 @@ class Biz:
         """Return the fiscal quarter for a given datetime and fiscal year start month."""
         offset: int = (dt.month - fy_start_month) % 12 if dt.month >= fy_start_month else (dt.month + 12 - fy_start_month) % 12
         return (offset // 3) + 1
+
+    # Compact cached namespaces for policy-aware ranges. These provide a
+    # compact ergonomic surface that delegates to the private implementations
+    # above (e.g. `_in_business_days_impl`). They are non-invasive and keep
+    # the canonical public methods intact for compatibility.
+
+    @cached_property
+    def bday(self) -> UnitNamespace:
+        return UnitNamespace(self, self._in_business_days_impl)
+
+    @cached_property
+    def wday(self) -> UnitNamespace:
+        return UnitNamespace(self, self._in_working_days_impl)
+
+    @cached_property
+    def fqtr(self) -> UnitNamespace:
+        return UnitNamespace(self, self._in_fiscal_quarters_impl)
+
+    @cached_property
+    def fyr(self) -> UnitNamespace:
+        return UnitNamespace(self, self._in_fiscal_years_impl)
 
 
 __all__ = ["Biz"]
