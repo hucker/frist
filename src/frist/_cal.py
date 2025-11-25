@@ -6,10 +6,12 @@ Provides calendar window filtering functionality for Chronoobjects).
 """
 
 import datetime as dt
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from ._constants import WEEKDAY_INDEX
 from ._util import verify_start_end, in_half_open,in_half_open_date,in_half_open_dt
+from functools import cached_property
+from ._ranges import UnitNamespace
 
 if TYPE_CHECKING:  # pragma: no cover
     pass
@@ -118,6 +120,12 @@ class Cal:
             chrono.cal.in_minutes(-30, 0)     # Last 30 minutes through now
         """
 
+        return self._in_minutes_impl(start, end)
+
+    def _in_minutes_impl(self, start: int, end: Optional[int]) -> bool:
+        if end is None:
+            end = start + 1
+        end = int(end)
         target_time = self.target_dt
 
         # Calculate the time window boundaries
@@ -150,6 +158,12 @@ class Cal:
             chrono.cal.in_hours(-24, 0)     # Last 24 hours through now
         """
 
+        return self._in_hours_impl(start, end)
+
+    def _in_hours_impl(self, start: int, end: Optional[int]) -> bool:
+        if end is None:
+            end = start + 1
+        end = int(end)
         target_time = self.target_dt
 
         # Calculate the time window boundaries
@@ -178,6 +192,12 @@ class Cal:
             cal.in_days(-30, 0)     # Last 30 days through today
         """
 
+        return self._in_days_impl(start, end)
+
+    def _in_days_impl(self, start: int, end: Optional[int]) -> bool:
+        if end is None:
+            end = start + 1
+        end = int(end)
         target_date = self.target_dt.date()
 
         # Calculate the date range boundaries
@@ -211,6 +231,12 @@ class Cal:
             # Two full months before reference:
             cal.in_months(-2, -1)
         """
+        return self._in_months_impl(start, end)
+
+    def _in_months_impl(self, start: int, end: Optional[int]) -> bool:
+        if end is None:
+            end = start + 1
+        end = int(end)
         target_idx: int = self._month_index(self.target_dt)
         start_idx = self._month_index(self.ref_dt) + start
         end_idx = self._month_index(self.ref_dt) + end
@@ -240,6 +266,12 @@ class Cal:
             chrono.cal.in_quarters(-8, 0)      # Last 8 quarters through this quarter
         """
 
+        return self._in_quarters_impl(start, end)
+
+    def _in_quarters_impl(self, start: int, end: Optional[int]) -> bool:
+        if end is None:
+            end = start + 1
+        end = int(end)
         target_time = self.target_dt
         base_time = self.ref_dt
 
@@ -280,6 +312,12 @@ class Cal:
             chrono.cal.in_years(-10, 0)     # Last 10 years through this year
         """
 
+        return self._in_years_impl(start, end)
+
+    def _in_years_impl(self, start: int, end: Optional[int]) -> bool:
+        if end is None:
+            end = start + 1
+        end = int(end)
         target_year = self.target_dt.year
         base_year = self.ref_dt.year
 
@@ -315,6 +353,16 @@ class Cal:
             chrono.cal.in_weeks(-2, -1, 'sunday')      # 2-1 weeks ago (Sunday weeks)
         """
 
+        # Keep public signature (with customizable week_start) and delegate
+        # the normalized offsets to a private implementation that assumes
+        # `start` and `end` are already the integer offsets. We pass through
+        # `week_start` so the private impl can compute the week boundaries.
+        return self._in_weeks_impl(start, end, week_start)
+
+    def _in_weeks_impl(self, start: int, end: Optional[int], week_start: str = "monday") -> bool:
+        if end is None:
+            end = start + 1
+        end = int(end)
         week_start_day = normalize_weekday(week_start)
 
         target_date = self.target_dt.date()
@@ -460,3 +508,36 @@ class Cal:
         Shortcut: equivalent to calling self.in_years(-1).
         """
         return self.in_years(-1)
+
+    # Compact cached namespaces (short 2-4 char names). These are lazy
+    # properties that construct a small namespace object delegating to the
+    # existing `in_*` methods. They are non-invasive and do not change
+    # the canonical API surface which remains the `in_*` methods.
+
+    @cached_property
+    def min(self) -> UnitNamespace:
+        return UnitNamespace(self, self._in_minutes_impl)
+
+    @cached_property
+    def hr(self) -> UnitNamespace:
+        return UnitNamespace(self, self._in_hours_impl)
+
+    @cached_property
+    def day(self) -> UnitNamespace:
+        return UnitNamespace(self, self._in_days_impl)
+
+    @cached_property
+    def wk(self) -> UnitNamespace:
+        return UnitNamespace(self, lambda s, e: self._in_weeks_impl(s, e))
+
+    @cached_property
+    def mon(self) -> UnitNamespace:
+        return UnitNamespace(self, self._in_months_impl)
+
+    @cached_property
+    def qtr(self) -> UnitNamespace:
+        return UnitNamespace(self, self._in_quarters_impl)
+
+    @cached_property
+    def yr(self) -> UnitNamespace:
+        return UnitNamespace(self, self._in_years_impl)
