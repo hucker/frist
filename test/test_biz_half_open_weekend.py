@@ -8,7 +8,7 @@ interior, on-upper, above-upper) for `in_business_days` and
 import datetime as dt
 import pytest
 
-from frist import Biz, CalendarPolicy
+from frist import Biz, BizPolicy
 
 
 def test_biz_half_open_weekend_span_five_cases():
@@ -21,7 +21,7 @@ def test_biz_half_open_weekend_span_five_cases():
     """
 
     ref: dt.datetime = dt.datetime(2025, 6, 9, 12, 0)  # Monday noon
-    policy: CalendarPolicy = CalendarPolicy()
+    policy: BizPolicy = BizPolicy()
 
     # Arrange: Use known calendar dates for the week around the reference
     # so tests rely only on the public API. With ref on Monday 2025-06-09:

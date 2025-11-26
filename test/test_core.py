@@ -8,7 +8,7 @@ import datetime as dt
 import pytest
 
 from frist._frist import Age, Cal, Chrono, time_pair
-from frist._cal_policy import CalendarPolicy
+from frist._cal_policy import BizPolicy
 
 
 
@@ -260,8 +260,8 @@ def test_chrono_fiscal_properties():
     assert z.biz.fiscal_year == 2024
     assert z.biz.fiscal_quarter == 1  # Jan-Mar
 
-    # Fiscal year starting in April using CalendarPolicy
-    policy_april: CalendarPolicy = CalendarPolicy(fiscal_year_start_month=4)
+    # Fiscal year starting in April using BizPolicy
+    policy_april: BizPolicy = BizPolicy(fiscal_year_start_month=4)
     chrono_april: Chrono = Chrono(target_time=target_tim, policy=policy_april)
     assert chrono_april.biz.fiscal_year == 2023  # Feb is before April start
     assert chrono_april.biz.fiscal_quarter == 4  # Jan-Mar is Q4 for April start
@@ -274,7 +274,7 @@ def test_chrono_fiscal_properties():
 
 def test_chrono_holiday_property():
     """Test holiday detection property."""
-    policy: CalendarPolicy = CalendarPolicy(holidays={'2024-01-01', '2024-12-25'})
+    policy: BizPolicy = BizPolicy(holidays={'2024-01-01', '2024-12-25'})
 
     target_tim: dt.datetime = dt.datetime(2024, 1, 1)
     chrono: Chrono = Chrono(target_time=target_tim, policy=policy)
@@ -285,6 +285,6 @@ def test_chrono_holiday_property():
     assert chrono_not.biz.holiday is False
 
     # Empty holidays
-    empty_policy: CalendarPolicy = CalendarPolicy(holidays=set())
+    empty_policy: BizPolicy = BizPolicy(holidays=set())
     chrono_empty: Chrono = Chrono(target_time=target_tim, policy=empty_policy)
     assert chrono_empty.biz.holiday is False

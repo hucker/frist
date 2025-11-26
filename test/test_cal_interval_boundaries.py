@@ -6,7 +6,7 @@ Follows Frist CODESTYLE.md: AAA comments, one test per time scale.
 import datetime as dt
 import pytest
 
-from frist import Chrono,Cal,CalendarPolicy
+from frist import Chrono,Cal,BizPolicy
 
 
 # Local fixture for Cal instance
@@ -23,12 +23,12 @@ def cal_factory() -> Cal:
     return z.cal
 
 @pytest.fixture
-def cal_policy() -> CalendarPolicy:
+def cal_policy() -> BizPolicy:
     """
-    Fixture that returns a CalendarPolicy instance for interval boundary tests.
+    Fixture that returns a BizPolicy instance for interval boundary tests.
     Uses default settings but adds fiscal year starting in April.
     """
-    return CalendarPolicy(fiscal_year_start_month=4)
+    return BizPolicy(fiscal_year_start_month=4)
 
 
 def test_minute_interval_half_open():

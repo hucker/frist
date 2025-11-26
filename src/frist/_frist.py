@@ -11,7 +11,7 @@ from typing import TypeAlias
 from ._age import Age
 from ._cal import Cal
 from ._biz import Biz
-from ._cal_policy import CalendarPolicy
+from ._cal_policy import BizPolicy
 from ._constants import CHRONO_DATETIME_FORMATS
 
 # Alias for inputs accepted by Frist time utilities (datetime, date, POSIX ts, or string)
@@ -116,15 +116,15 @@ class Chrono:
         *,
         target_time: TimeLike,
         reference_time: TimeLike | None = None,
-        policy: CalendarPolicy | None = None,
+        policy: BizPolicy | None = None,
     ):
         """
-        Initialize Chrono with target and reference times and an optional CalendarPolicy.
+        Initialize Chrono with target and reference times and an optional BizPolicy.
 
         Args:
             target_time (datetime): The datetime to analyze (e.g., file timestamp, event time).
             reference_time (datetime, optional): The reference datetime for calculations (defaults to now).
-            policy (CalendarPolicy, optional): CalendarPolicy object for business rules (defaults to fiscal year Jan, 9-5, no holidays).
+            policy (BizPolicy, optional): BizPolicy object for business rules (defaults to fiscal year Jan, 9-5, no holidays).
 
         Raises:
             ValueError: If target_time is not a datetime instance.
@@ -132,7 +132,7 @@ class Chrono:
         Examples:
             >>> Chrono(target_time=datetime(2024, 5, 1))
             >>> Chrono(target_time=datetime(2024, 5, 1), reference_time=datetime(2025, 5, 1))
-            >>> Chrono(target_time=datetime(2024, 5, 1), policy=CalendarPolicy(fiscal_year_start_month=4))
+            >>> Chrono(target_time=datetime(2024, 5, 1), policy=BizPolicy(fiscal_year_start_month=4))
         """
         
         # Normalize target and reference so we get clean  datetime objects
@@ -143,7 +143,7 @@ class Chrono:
         self.reference_time:dt.datetime = ref
 
         # Forward the policy to both objects
-        self.policy: CalendarPolicy = policy or CalendarPolicy()
+        self.policy: BizPolicy = policy or BizPolicy()
 
         # Now we have synchronized reference times with no possibility of the reference time being different
         # in the case that now() is used in both cases.  If you didn't do this it would be up to you
@@ -177,14 +177,14 @@ class Chrono:
         return self.target_time.timestamp()
 
     @staticmethod
-    def parse(time_str: str, reference_time: TimeLike | None = None, policy: CalendarPolicy | None = None):
+    def parse(time_str: str, reference_time: TimeLike | None = None, policy: BizPolicy | None = None):
         """
         Parse a time string and return a Chrono object.
 
         Args:
             time_str: Time string to parse
             reference_time: Optional reference time for age calculations
-            policy: Optional CalendarPolicy for business rules
+            policy: Optional BizPolicy for business rules
 
         Returns:
             Chrono object for the parsed time

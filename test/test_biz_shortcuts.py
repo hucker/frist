@@ -13,10 +13,10 @@ from __future__ import annotations
 
 import datetime as dt
 
-from frist import Biz, CalendarPolicy
+from frist import Biz, BizPolicy
 
 
-def _check_five_biz(prop: str, ref: dt.datetime, policy: CalendarPolicy,
+def _check_five_biz(prop: str, ref: dt.datetime, policy: BizPolicy,
                     dt_below: dt.datetime, dt_on_lower: dt.datetime,
                     dt_above_lower: dt.datetime, dt_on_upper: dt.datetime,
                     dt_above_upper: dt.datetime) -> None:
@@ -38,7 +38,7 @@ def test_day_shortcuts_five_cases() -> None:
     """Day-level business/workday shortcuts five-case coverage."""
     # Reference mid-week so business/workdays are contiguous
     ref = dt.datetime(2025, 1, 15, 12, 0)  # Wednesday
-    policy = CalendarPolicy()  # default Mon-Fri workdays, no holidays
+    policy = BizPolicy()  # default Mon-Fri workdays, no holidays
 
     # For the 'this' day shortcuts, the window should be the reference date
     lower_date = ref.date()
@@ -65,7 +65,7 @@ def test_business_vs_workday_holiday_shortcuts() -> None:
     but the workday shortcut will still consider the holiday a workday.
     """
     ref = dt.datetime(2025, 7, 7, 12, 0)  # Monday
-    policy = CalendarPolicy(holidays={"2025-07-04"})
+    policy = BizPolicy(holidays={"2025-07-04"})
 
     dt_thu = dt.datetime(2025, 7, 3, 12, 0)
     dt_fri_hol = dt.datetime(2025, 7, 4, 12, 0)
@@ -80,7 +80,7 @@ def test_business_vs_workday_holiday_shortcuts() -> None:
 
 def test_fiscal_quarter_shortcuts_five_cases() -> None:
     """Fiscal-quarter shortcuts five-case coverage (fiscal year start = April)."""
-    policy = CalendarPolicy(fiscal_year_start_month=4)
+    policy = BizPolicy(fiscal_year_start_month=4)
     # Choose a reference in FY2025 Q2 (July 15, 2025) for clarity
     ref = dt.datetime(2025, 7, 15, 12, 0)
 
@@ -110,7 +110,7 @@ def test_fiscal_quarter_shortcuts_five_cases() -> None:
 
 def test_fiscal_year_shortcuts_five_cases() -> None:
     """Fiscal-year shortcuts five-case coverage (fiscal year start = April)."""
-    policy = CalendarPolicy(fiscal_year_start_month=4)
+    policy = BizPolicy(fiscal_year_start_month=4)
     ref = dt.datetime(2025, 7, 15, 12, 0)  # FY2025
 
     # last fiscal year = FY2024

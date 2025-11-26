@@ -13,7 +13,7 @@ import datetime as dt
 import itertools
 import pytest
 
-from frist import Chrono, CalendarPolicy,Biz
+from frist import Chrono, BizPolicy, Biz
 
 
 def test_fiscal_year_and_quarter_january_start():
@@ -50,7 +50,7 @@ def test_fiscal_year_and_quarter_april_start():
     - January 2025 is in Q4
     """
     # Arrange
-    policy: CalendarPolicy = CalendarPolicy(fiscal_year_start_month=4)
+    policy: BizPolicy = BizPolicy(fiscal_year_start_month=4)
 
     # Act
     target_time = dt.datetime(2024, 3, 31)  # March 2024
@@ -101,7 +101,7 @@ def test_fiscal_year_and_quarter_all_start_months(fy_start_month:int):
     including year boundaries and rollover cases.
     """
     # Arrange
-    policy = CalendarPolicy(fiscal_year_start_month=fy_start_month)
+    policy = BizPolicy(fiscal_year_start_month=fy_start_month)
     # Act & Assert
     for year, month in itertools.product([2024, 2025], range(1, 13)):
         day = 15  # Middle of the month
@@ -148,7 +148,7 @@ def test_june_fiscal_year_quarter_boundaries(date_str: str, expected_fy: int, ex
     Each case is parameterized for clarity and direct inspection of expected results.
     """
     # Arrange
-    policy: CalendarPolicy = CalendarPolicy(fiscal_year_start_month=6)
+    policy: BizPolicy = BizPolicy(fiscal_year_start_month=6)
     target_time:dt.datetime = dt.datetime.strptime(date_str, "%Y-%m-%d")
     # Act
     biz:Biz = Chrono(target_time=target_time, policy=policy).biz
@@ -169,7 +169,7 @@ def test_fiscal_year_and_quarter_all_days(fy_start_month: int):
     but this saves me from having a table with 730 entries.
     """
     # Arrange
-    policy: CalendarPolicy = CalendarPolicy(fiscal_year_start_month=fy_start_month)
+    policy: BizPolicy = BizPolicy(fiscal_year_start_month=fy_start_month)
     start_date: dt.datetime = dt.datetime(2024, 1, 1)
     end_date:dt.datetime = dt.datetime(2025, 12, 31)
     current_date:dt.datetime= start_date

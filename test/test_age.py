@@ -6,7 +6,7 @@ Tests the Age class as a standalone utility without file dependencies.
 
 import datetime as dt
 import pytest
-from frist import Age, CalendarPolicy
+from frist import Age, BizPolicy
 
 
 @pytest.mark.parametrize(

@@ -8,7 +8,7 @@ Conventions:
 import datetime as dt
 import pytest
 
-from frist import Biz, CalendarPolicy
+from frist import Biz, BizPolicy
 
 
 def test_multi_day_fraction_working_and_business_days() -> None:
@@ -16,7 +16,7 @@ def test_multi_day_fraction_working_and_business_days() -> None:
     # Arrange
     start: dt.datetime = dt.datetime(2024, 1, 1, 12, 0)  # Mon Jan 1 12:00
     end: dt.datetime = dt.datetime(2024, 1, 4, 15, 0)    # Thu Jan 4 15:00
-    policy: CalendarPolicy = CalendarPolicy()  # default 9-17, Mon-Fri
+    policy: BizPolicy = BizPolicy()  # default 9-17, Mon-Fri
     biz: Biz = Biz(start, end, policy)
 
     # Expected fractions per day:
@@ -37,7 +37,7 @@ def test_multi_day_with_middle_holiday() -> None:
     start: dt.datetime = dt.datetime(2024, 1, 1, 12, 0)
     end: dt.datetime = dt.datetime(2024, 1, 4, 15, 0)
     holidays = {"2024-01-03"}
-    policy: CalendarPolicy = CalendarPolicy(holidays=holidays)
+    policy: BizPolicy = BizPolicy(holidays=holidays)
     biz: Biz = Biz(start, end, policy)
 
     expected_working: float = 0.625 + 1.0 + 1.0 + 0.75
@@ -53,7 +53,7 @@ def test_in_working_and_business_days_range_with_holiday() -> None:
     # Arrange
     ref: dt.datetime = dt.datetime(2024, 1, 4, 12, 0)
     target: dt.datetime = dt.datetime(2024, 1, 2, 10, 0)
-    policy: CalendarPolicy = CalendarPolicy()
+    policy: BizPolicy = BizPolicy()
     biz: Biz = Biz(target, ref, policy)
 
     # Act / Assert - no holiday
@@ -61,7 +61,7 @@ def test_in_working_and_business_days_range_with_holiday() -> None:
     assert biz.in_business_days(-2, 0) is True, "target should be in business_days(-2,0)"
 
     # Arrange - make Jan 2 a holiday
-    policy2: CalendarPolicy = CalendarPolicy(holidays={"2024-01-02"})
+    policy2: BizPolicy = BizPolicy(holidays={"2024-01-02"})
     biz2: Biz = Biz(target, ref, policy2)
 
     # Act / Assert - business-day membership should be False while working-day membership remains True
