@@ -7,17 +7,17 @@ to `in_*` helpers.
 
 import datetime as dt
 
-from frist import Biz, CalendarPolicy
+from frist import Biz, BizPolicy
 
 
 def test_is_business_and_workday_next_day_shortcuts():
     """Assert next-day shortcut properties delegate to the `in_*` methods.
 
-    Arrange: create a `CalendarPolicy` with Mon-Fri workdays and pick Thu/Fri
+    Arrange: create a `BizPolicy` with Mon-Fri workdays and pick Thu/Fri
     as reference/target.
     """
     # Arrange
-    policy = CalendarPolicy()
+    policy = BizPolicy()
     ref = dt.datetime(2025, 11, 20, 10, 0)  # Thursday
     target = dt.datetime(2025, 11, 21, 10, 0)  # Friday
     b = Biz(target, ref, policy)
@@ -39,13 +39,13 @@ def test_is_next_fiscal_quarter_and_year_shortcuts():
     # Arrange / Act - quarter boundary
     ref = dt.datetime(2025, 3, 15, 12, 0)
     target_q = dt.datetime(2025, 4, 10, 12, 0)
-    bq = Biz(target_q, ref, CalendarPolicy())
+    bq = Biz(target_q, ref, BizPolicy())
     assert bq.is_next_fiscal_quarter is True, "is_next_fiscal_quarter should be True for Apr when ref is Mar"
     assert bq.is_next_fiscal_quarter == bq.in_fiscal_quarters(1), "fiscal quarter shortcut mismatch"
 
     # Arrange / Act - year boundary
     ref_y = dt.datetime(2025, 12, 31, 12, 0)
     target_y = dt.datetime(2026, 1, 1, 12, 0)
-    by = Biz(target_y, ref_y, CalendarPolicy())
+    by = Biz(target_y, ref_y, BizPolicy())
     assert by.is_next_fiscal_year is True, "is_next_fiscal_year should be True across year boundary"
     assert by.is_next_fiscal_year == by.in_fiscal_years(1), "fiscal year shortcut mismatch"

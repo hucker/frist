@@ -9,7 +9,7 @@ Frist does more than shorten expressions: it reduces many common calendar and bu
 Here are some examples of a dataset with a bunch of datetimes.
 
 ``` python
-from frist import Age, Cal, Biz, CalendarPolicy
+from frist import Age, Cal, Biz, BizPolicy
 
 # In these examples a second datetime is not provided; when omitted the constructors use the reference time (now).
 #
@@ -21,7 +21,7 @@ from frist import Age, Cal, Biz, CalendarPolicy
 dates = large_list_of_date_times()
 
 # Policy only required if you want business date info
-policy = CalendarPolicy(fiscal_year_start_month=4, holidays={"2026-01-01"})
+policy = BizPolicy(fiscal_year_start_month=4, holidays={"2026-01-01"})
 
 # If no second date provided then now() assumed.
 
@@ -79,7 +79,7 @@ Example:
 The `Cal` object provides calendar-aligned window queries (minute/hour/day/week/month/quarter/year and fiscal variants) using half-open semantics. Use `in_*` methods to ask whether a target falls in a calendar window relative to a reference date.
 
 - Purpose: calendar-window membership (in_days, in_months, in_quarters, in_fiscal_years, ...).
-- Behavior: calendar-aligned, half-open intervals; supports custom week starts and fiscal start month via Chrono/CalendarPolicy composition.
+- Behavior: calendar-aligned, half-open intervals; supports custom week starts and fiscal start month via Chrono/BizPolicy composition.
 - Use-case: one-liners for "was this date in the last two months?" or "is this in the current fiscal quarter?"
 
 Practical note on half-open intervals:
@@ -136,7 +136,7 @@ True
 
 ## Biz
 
-The `Biz` object performs policy-aware business calendar calculations. It relies on `CalendarPolicy` to determine workdays, holidays, business hours, and fiscal rules.
+The `Biz` object performs policy-aware business calendar calculations. It relies on `BizPolicy` to determine workdays, holidays, business hours, and fiscal rules.
 
 - Purpose: business/working-day arithmetic (fractional day spans, range membership, fiscal helpers).
 - Key differences: `working_days` counts weekdays per policy (ignores holidays); `business_days` excludes holidays. Fractional days computed using policy business hours.
@@ -145,9 +145,9 @@ The `Biz` object performs policy-aware business calendar calculations. It relies
 Example:
 
 ```pycon
->>> from frist import Biz, CalendarPolicy
+>>> from frist import Biz, BizPolicy
 >>> import datetime as dt
->>> policy = CalendarPolicy(workdays={0,1,2,3,4}, holidays={"2025-12-25"})
+>>> policy = BizPolicy(workdays={0,1,2,3,4}, holidays={"2025-12-25"})
 >>> start = dt.datetime(2025,12,24,9,0)
 >>> end   = dt.datetime(2025,12,26,17,0)
 >>> b = Biz(start, end, policy)
@@ -161,9 +161,9 @@ False    # target is a holiday -> not a business day
 True     # still a weekday per policy
 ```
 
-## CalendarPolicy
+## BizPolicy
 
-The `CalendarPolicy` object lets you customize business logic for calendar calculations using half-open intervals You can define:
+The `BizPolicy` object lets you customize business logic for calendar calculations using half-open intervals You can define:
 
 - **Workdays:** Any combination of weekdays (e.g., Mon, Wed, Fri, Sun)
 - **Holidays:** Any set of dates to exclude from working day calculations
@@ -172,20 +172,20 @@ The `CalendarPolicy` object lets you customize business logic for calendar calcu
 
 **Default Policy:**
 
-If you do not provide a `CalendarPolicy`, Frist uses a default policy:
+If you do not provide a `BizPolicy`, Frist uses a default policy:
 
 - Workdays: Monday–Friday (0–4)
 - Work hours: 9AM–5PM
 - Holidays: none
 
-This is suitable for most standard business use cases. You only need to provide a custom `CalendarPolicy` if your calendar logic requires non-standard workweeks, holidays, or business hours.
+This is suitable for most standard business use cases. You only need to provide a custom `BizPolicy` if your calendar logic requires non-standard workweeks, holidays, or business hours.
 
 Example (custom policy):
 
 ```pycon
->>> from frist import CalendarPolicy
+>>> from frist import BizPolicy
 >>> import datetime as dt
->>> policy = CalendarPolicy(workdays={0,1,2,3,4}, holidays={"2025-01-10"}, work_hours=(9,17), fy_start_month=4)
+>>> policy = BizPolicy(workdays={0,1,2,3,4}, holidays={"2025-01-10"}, work_hours=(9,17), fy_start_month=4)
 >>> date = dt.datetime(2025, 5, 15)
 >>> policy.get_fiscal_year(date)
 2026
@@ -203,7 +203,7 @@ Here is a brief overview of the various classes that make up `Frist`.
 
 ### Age Object
 
-`Age(start_time: datetime, end_time: datetime = None, cal_policy: CalendarPolicy = None)`
+`Age(start_time: datetime, end_time: datetime = None, cal_policy: BizPolicy = None)`
 
 | Property         | Description                                               |
 | ---------------- | --------------------------------------------------------- |
@@ -221,7 +221,7 @@ Here is a brief overview of the various classes that make up `Frist`.
 | `fiscal_quarter` | Fiscal quarter for start_time                             |
 | `start_time`     | Start datetime                                            |
 | `end_time`       | End datetime                                              |
-| `cal_policy`     | CalendarPolicy used for business logic                    |
+| `cal_policy`     | BizPolicy used for business logic                    |
 
 | Method                                      | Description                 |
 | ------------------------------------------- | --------------------------- |
@@ -283,17 +283,17 @@ Shortcuts (convenience boolean properties):
 
 ### Biz Object
 
-The `Biz` object performs business-aware calculations using a `CalendarPolicy`. It counts
+The `Biz` object performs business-aware calculations using a `BizPolicy`. It counts
 working days (defined by the policy's workday set) and business days (working days that are not holidays).
 It also computes fractional day contributions using the policy's business hours.
 
 ***Business days and workdays are tricky to calculate and involve iteration because no/few assumptions can be made about the way the days fall. Normally this isn't a huge deal because the time spans are a few days, not 1000's of days.***
 
-`Biz(target_time: datetime, ref_time: datetime | None, policy: CalendarPolicy | None)`
+`Biz(target_time: datetime, ref_time: datetime | None, policy: BizPolicy | None)`
 
 | Property / Attribute | Description                                                         | Return |
 | -------------------- | ------------------------------------------------------------------- | ------ |
-| `cal_policy`         | `CalendarPolicy` instance used by this Biz                          | `CalendarPolicy` |
+| `cal_policy`         | `BizPolicy` instance used by this Biz                          | `BizPolicy` |
 | `target_time`        | Target datetime                                                     | `datetime` |
 | `ref_time`           | Reference datetime                                                  | `datetime` |
 | `holiday`            | True if `target_time` is a holiday                                  | `bool` |
@@ -332,11 +332,11 @@ In some situations you will need to have all three of these classes together bec
 
 ```python
 # Brief Chrono example: create a Chrono and print Age / Cal / Biz properties
->>> from frist import Chrono, CalendarPolicy
+>>> from frist import Chrono, BizPolicy
 >>> import datetime as dt
 >>> target = dt.datetime(2025, 4, 25, 15, 0)
 >>> ref = dt.datetime(2025, 4, 30, 12, 0)
->>> policy = CalendarPolicy(workdays={0,1,2,3,4}, holidays={"2025-04-28"})
+>>> policy = BizPolicy(workdays={0,1,2,3,4}, holidays={"2025-04-28"})
 >>> z = Chrono(target_time=target, reference_time=ref, policy=policy)
 
 # Age (elapsed-time properties)
@@ -362,7 +362,7 @@ True
 False
 ```
 
-`Chrono(target_time: datetime, reference_time: datetime = None, cal_policy:CalendarPolicy|None)`
+`Chrono(target_time: datetime, reference_time: datetime = None, cal_policy:BizPolicy|None)`
 
 | Property | Description                                           |
 | -------- | ----------------------------------------------------- |

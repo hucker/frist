@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 
 
 @dataclass
-class CalendarPolicy:
+class BizPolicy:
     """
         Centralized business calendar policy for fiscal years, workdays, business hours, and holidays.
 

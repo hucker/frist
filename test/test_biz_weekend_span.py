@@ -9,7 +9,7 @@ import datetime as dt
 import pytest
 from typing import Tuple
 
-from frist import Biz, CalendarPolicy
+from frist import Biz, BizPolicy
 
 
 def test_business_and_working_days_span_weekend() -> None:
@@ -25,7 +25,7 @@ def test_business_and_working_days_span_weekend() -> None:
     target: dt.datetime = dt.datetime(2025, 6, 6, 10, 0)  # Friday 2025-06-06 10:00
     ref: dt.datetime = dt.datetime(2025, 6, 9, 15, 0)     # Monday 2025-06-09 15:00
 
-    policy: CalendarPolicy = CalendarPolicy()  # defaults: Mon-Fri workdays, 09:00-17:00
+    policy: BizPolicy = BizPolicy()  # defaults: Mon-Fri workdays, 09:00-17:00
 
     # Act
     b: Biz = Biz(target, ref, policy)

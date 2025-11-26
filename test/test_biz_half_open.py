@@ -10,7 +10,7 @@ import datetime as dt
 import datetime as dt
 from typing import Callable
 
-from frist import Biz, CalendarPolicy
+from frist import Biz, BizPolicy
 
 
 def _make_dt(d: dt.date) -> dt.datetime:
@@ -36,7 +36,7 @@ def test_biz_in_business_and_working_days_half_open_five_cases() -> None:
 
   # Arrange
   ref: dt.datetime = dt.datetime(2025, 1, 15, 12, 0)  # Wednesday
-  policy: CalendarPolicy = CalendarPolicy()  # default Mon-Fri workdays, no holidays
+  policy: BizPolicy = BizPolicy()  # default Mon-Fri workdays, no holidays
 
   # Known dates for the window (start=-1 -> 2025-01-14, end=1 -> 2025-01-16)
   lower: dt.date = dt.date(2025, 1, 14)

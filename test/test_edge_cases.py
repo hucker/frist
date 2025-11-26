@@ -18,7 +18,7 @@ import datetime as dt
 
 import pytest
 
-from frist import Chrono,CalendarPolicy
+from frist import Chrono,BizPolicy
 
 
 def test_in_days_backwards_range():
@@ -103,9 +103,9 @@ def test_parse_edge_cases():
 
 
 def test_fiscal_boundary_crossing() -> None:
-    """Test fiscal year/quarter boundaries using CalendarPolicy."""
+    """Test fiscal year/quarter boundaries using BizPolicy."""
     # Arrange
-    policy_july: CalendarPolicy = CalendarPolicy(fiscal_year_start_month=7)
+    policy_july: BizPolicy = BizPolicy(fiscal_year_start_month=7)
 
     # Act
     target_time_june: dt.datetime = dt.datetime(2024, 6, 30)  # June 2024

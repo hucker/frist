@@ -5,7 +5,7 @@ import datetime as dt
 
 import pytest
 
-from frist import Chrono,CalendarPolicy
+from frist import Chrono,BizPolicy
 
 
 @pytest.mark.parametrize(
@@ -24,8 +24,8 @@ def test_holiday_detection_param(
     holidays: set[str], target_time: dt.datetime, expected: bool
 ):
     
-    # Create CalendarPolicy with holiday overrides
-    policy: CalendarPolicy = CalendarPolicy(holidays=holidays)
+    # Create BizPolicy with holiday overrides
+    policy: BizPolicy = BizPolicy(holidays=holidays)
 
     chrono = Chrono(target_time=target_time, policy=policy)
     # Defensive: .date() only if target_time is datetime

@@ -27,7 +27,7 @@ class Age:
     Features:
         - Computes age and duration between two datetimes, timestamps, or numeric values.
         - Supports flexible initialization: accepts dt.datetime, float, or int for start and end times.
-        - Uses a configurable CalendarPolicy for business calendar logic (workdays, holidays, business hours).
+        - Uses a configurable BizPolicy for business calendar logic (workdays, holidays, business hours).
         - Provides properties for age in seconds, minutes, hours, days, weeks, months, years, and fractional working days.
         - Allows updating start and end times via the `set_times` method (kwargs-only, preserves previous values if None).
 

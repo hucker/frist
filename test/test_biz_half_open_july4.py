@@ -9,7 +9,7 @@ the window and use explicit dates for clarity.
 import datetime as dt
 import pytest
 
-from frist import Biz, CalendarPolicy
+from frist import Biz, BizPolicy
 
 
 def test_biz_half_open_with_july4_holiday():
@@ -31,7 +31,7 @@ def test_biz_half_open_with_july4_holiday():
     ref = dt.datetime(2025, 7, 7, 12, 0)  # Monday noon
 
     # Policy with July 4, 2025 marked as a holiday
-    policy = CalendarPolicy(holidays={"2025-07-04"})
+    policy = BizPolicy(holidays={"2025-07-04"})
 
     # Because July 4 is a holiday, moving -1 business day from Monday
     # will skip Friday and land on Thursday (2025-07-03). Use explicit

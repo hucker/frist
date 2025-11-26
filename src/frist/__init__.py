@@ -14,15 +14,15 @@ Exports:
     Age       -- Duration and age calculations
     Cal       -- Calendar window and filtering logic
     Biz       -- Business logic including fiscal year/quarter and holidays
-    CalendarPolicy -- Configurable calendar policies (fiscal year start, holidays)
+    BizPolicy -- Configurable calendar policies (fiscal year start, holidays)
 """
 from ._age import Age
 from ._cal import Cal
 from ._biz import Biz
-from ._cal_policy import CalendarPolicy
+from ._cal_policy import BizPolicy
 from ._frist import Chrono
 
 __version__ = "0.15.0"
 __author__ = "Chuck Bass"
 
-__all__ = ["Chrono", "Age",  "Cal" ,"Biz","CalendarPolicy" ]
+__all__ = ["Chrono", "Age",  "Cal" ,"Biz","BizPolicy" ]

@@ -84,17 +84,6 @@ def test_calendar_policy_invalid_fiscal_year_start_month() -> None:
     with pytest.raises(ValueError, match="fiscal_year_start_month must be in 1..12"):
         BizPolicy(fiscal_year_start_month=13)
 
-def test_fiscal_year_start_month_validation() -> None:
-    """
-    Test BizPolicy raises ValueError for invalid fiscal_year_start_month.
-    """
-    # Invalid: 0
-    with pytest.raises(ValueError, match="fiscal_year_start_month must be in 1..12"):
-        BizPolicy(fiscal_year_start_month=0)
-    # Invalid: 13
-    with pytest.raises(ValueError, match="fiscal_year_start_month must be in 1..12"):
-        BizPolicy(fiscal_year_start_month=13)
-
 @pytest.mark.parametrize("good_date", [
     "1900-01-01",
     "1999-12-31",

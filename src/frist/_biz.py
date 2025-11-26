@@ -9,7 +9,7 @@ import datetime as dt
 from typing import Callable, Optional
 from functools import cached_property
 
-from ._cal_policy import CalendarPolicy
+from ._cal_policy import BizPolicy
 from ._util import verify_start_end, in_half_open,in_half_open_date
 from ._ranges import UnitNamespace
 
@@ -17,22 +17,22 @@ class Biz:
     """Policy-aware business calendar utilities.
 
     Biz wraps a pair of datetimes (`target_time` and `ref_time`) together with a
-    `CalendarPolicy` to provide business-oriented calculations such as
+    `BizPolicy` to provide business-oriented calculations such as
     fractional `business_days` and `working_days`, range membership helpers
     (in_business_days, in_working_days) and fiscal helpers.
 
     The class is intentionally small and focused: it performs policy-aware
     operations and leaves policy-free calendar/time calculations to `Cal`.
     """
-    def __init__(self, target_time: dt.datetime, ref_time: dt.datetime | None=None, policy: CalendarPolicy | None=None) -> None:
+    def __init__(self, target_time: dt.datetime, ref_time: dt.datetime | None=None, policy: BizPolicy | None=None) -> None:
         """Initialize a `Biz` instance.
 
         Args:
             target_time: The datetime being inspected or measured from.
             ref_time: The reference datetime (defaults to now when omitted).
-            policy: Optional `CalendarPolicy`. If omitted, a default policy is used.
+            policy: Optional `BizPolicy`. If omitted, a default policy is used.
         """
-        self.cal_policy: CalendarPolicy = policy or CalendarPolicy()
+        self.cal_policy: BizPolicy = policy or BizPolicy()
         self.target_time: dt.datetime = target_time
         self.ref_time: dt.datetime = ref_time or dt.datetime.now()
 

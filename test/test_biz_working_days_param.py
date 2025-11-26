@@ -6,7 +6,7 @@ import datetime as dt
 import pytest
 from typing import List, Tuple, Set
 
-from frist import Biz, CalendarPolicy
+from frist import Biz, BizPolicy
 
 # Custom calendar: 3 weeks, holidays on Wed each week
 HOLIDAYS: Set[str] = {
@@ -14,7 +14,7 @@ HOLIDAYS: Set[str] = {
     "2024-01-10",  # Week 2 Wednesday
     "2024-01-17",  # Week 3 Wednesday
 }
-CAL_POLICY: CalendarPolicy = CalendarPolicy(
+CAL_POLICY: BizPolicy = BizPolicy(
     workdays=[0, 1, 2, 3, 4],  # Mon-Fri
     holidays=HOLIDAYS,
     start_of_business=dt.time(9, 0),

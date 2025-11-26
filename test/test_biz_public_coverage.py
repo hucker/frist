@@ -8,17 +8,17 @@ clear during CI runs.
 import datetime as dt
 import pytest
 
-from frist import Biz, CalendarPolicy
+from frist import Biz, BizPolicy
 
 
 def test_working_days_fraction_edges_via_public_api():
     """Verify fractional `working_days` covers business-hour edge cases.
 
-    Arrange: a default `CalendarPolicy` (Mon-Fri, 9-17).
+    Arrange: a default `BizPolicy` (Mon-Fri, 9-17).
     Act/Assert: check same-day start/end and a two-business-day span.
     """
     # Arrange
-    policy = CalendarPolicy()  # defaults: workdays Mon-Fri, 9-17
+    policy = BizPolicy()  # defaults: workdays Mon-Fri, 9-17
 
     # Act / Assert - Case A: same calendar day, exactly business start -> 1.0
     target = dt.datetime(2025, 11, 21, 9, 0)
@@ -46,7 +46,7 @@ def test_age_days_helper_raises_value_error_via_public_api():
     `business_days` property.
     """
     # Arrange
-    policy = CalendarPolicy()
+    policy = BizPolicy()
     target = dt.datetime(2025, 11, 24, 12, 0)
     ref = dt.datetime(2025, 11, 23, 12, 0)
     b = Biz(target, ref, policy)
@@ -63,8 +63,8 @@ def test_move_n_days_n_zero_and_early_returns_via_public_api():
     Act/Assert: n==0 returns True for business/workday; holiday and weekend return False.
     """
     # Arrange
-    policy = CalendarPolicy(holidays={"2025-11-21"})
-    pol2 = CalendarPolicy(holidays=set())
+    policy = BizPolicy(holidays={"2025-11-21"})
+    pol2 = BizPolicy(holidays=set())
 
     # Act / Assert - n == 0 path: target == ref and is a work/business day
     target = dt.datetime(2025, 11, 20, 10, 0)  # Thursday (workday)
