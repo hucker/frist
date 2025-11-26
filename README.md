@@ -100,6 +100,38 @@ True    # target was in Sept/Oct (the two full months before Nov)
 False   # not in the 7..1 days before ref
 ```
 
+### Inclusive `thru` helper
+
+Frist also provides a small ergonomic helper available on the compact
+`UnitNamespace` properties (for example `cal.mon`, `cal.day`, `biz.bday`) named
+`thru`. The `thru` surface uses inclusive end semantics which is convenient for
+human-readable ranges such as "Mon thru Fri".
+
+- `in_*` methods and the main API use half-open intervals: `start <= value < end`.
+- `*.thru(start, end)` is inclusive on the end: it returns True when
+  `start <= value <= end`.
+
+Implementation note: `thru` is implemented as a thin ergonomic adapter that
+forwards to the canonical half-open `in_*` methods by advancing the exclusive
+end by one unit. For example `cal.mon.thru(-2, 0)` is equivalent to
+`cal.in_months(-2, 1)` (the inclusive end `0` becomes exclusive `1`). This
+keeps the core API canonical while offering a more natural English-style
+`thru` surface for consumers.
+
+Examples:
+
+```pycon
+>>> from frist import Cal
+>>> import datetime as dt
+>>> ref = dt.datetime(2025,11,20)
+>>> # "last Monday thru Friday" style checks
+>>> Cal(dt.datetime(2025,11,17), ref).day.thru(-3, -1)   # Mon thru Wed
+True
+>>> # Equivalent half-open call
+>>> Cal(dt.datetime(2025,11,17), ref).in_days(-3, 0)
+True
+```
+
 ---
 
 ## Biz
