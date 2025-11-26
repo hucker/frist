@@ -1,7 +1,7 @@
 """Tests verifying inclusive `thru` behavior for compact namespaces.
 
-These ensure `ns.thru(start, end)` and `ns.thru[start:end]` produce the
-correct half-open semantics by advancing the end by 1 compared to `in_`.
+These ensure `ns.thru(start, end)` produces the correct half-open semantics
+by advancing the end by 1 compared to `in_`.
 
 Style: Arrange / Act / Assert (AA) per project `codeguide.md`.
 """
@@ -31,8 +31,7 @@ def test_cal_thru_behavior():
         # two-arg inclusive: (a..b inclusive) -> in_(a, b+1)
         assert ns.thru(-2, -1) == ns.in_(-2, 0)
 
-        # slice sugar for inclusive
-        assert ns.thru[-2:-1] == ns.in_(-2, 0)
+        # inclusive slice syntax removed; verify call form only
 
 
 def test_biz_thru_behavior():
@@ -50,5 +49,4 @@ def test_biz_thru_behavior():
         # two-arg inclusive
         assert ns.thru(-2, -1) == ns.in_(-2, 0)
 
-        # slice sugar
-        assert ns.thru[-2:-1] == ns.in_(-2, 0)
+        # inclusive slice syntax removed; verify call form only

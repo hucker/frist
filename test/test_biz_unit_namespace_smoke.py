@@ -1,7 +1,7 @@
 """Smoke tests for Biz compact unit namespaces.
 
 Verifies that `biz.bday`, `biz.wday`, `biz.fqtr`, and `biz.fyr` delegate to
-the canonical `in_*` methods and support call/slice/thru sugar.
+ the canonical `in_*` methods and support call and thru sugar.
 
 Style: Arrange / Act / Assert (AA) per project `codeguide.md`.
 """
@@ -38,10 +38,6 @@ def test_biz_unit_namespace_smoke():
         # __call__ maps to in_
         assert ns(-1, 0) == ns.in_(-1, 0)
 
-        # slice sugar
-        assert ns[-1:0] == ns.in_(-1, 0)
-
         # inclusive 'thru' should map to half-open by advancing the end
         if hasattr(ns, "thru"):
             assert ns.thru(-1, 0) == ns.in_(-1, 1)
-            assert ns.thru[-1:0] == ns.in_(-1, 1)

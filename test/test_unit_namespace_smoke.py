@@ -1,8 +1,7 @@
 """Smoke tests for the compact unit namespace API.
 
 These tests verify the ergonomic `cal.<unit>` namespace (compact form)
-delegates to the canonical `Cal.in_*` methods and supports call, slice
-and inclusive `thru` sugar.
+delegates to the canonical `Cal.in_*` methods and supports call and inclusive `thru` sugar.
 
 Style: follow Arrange / Act / Assert (AA) comments per project `codeguide.md`.
 """
@@ -48,10 +47,6 @@ def test_unit_namespace_smoke():
         # Assert: __call__ maps to in_
         assert ns(-1, 0) == ns.in_(-1, 0)
 
-        # Assert: slice sugar
-        assert ns[-1:0] == ns.in_(-1, 0)
-
         # Assert: inclusive 'thru' should map to half-open by advancing the end
         if hasattr(ns, "thru"):
             assert ns.thru(-1, 0) == ns.in_(-1, 1)
-            assert ns.thru[-1:0] == ns.in_(-1, 1)
