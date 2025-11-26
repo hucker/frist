@@ -286,9 +286,7 @@ class Biz:
         Both start and end are integers (can be negative). The window is computed by moving start and end business-days from ref_date.
         The target must itself be a business day to be considered "in" the business-day window.
         """
-        if end is None:
-            end = start + 1
-
+        
         ref: dt.date = self.ref_time.date()
         tgt: dt.date = self.target_time.date()
         start_date: dt.date = self._move_n_days(ref, start, count_business=True)
@@ -309,9 +307,7 @@ class Biz:
 
         Working days ignore holidays (only policy.workdays matter).
         """
-        if end is None:
-            end = start + 1
-
+        
         ref: dt.date = self.ref_time.date()
         tgt: dt.date = self.target_time.date()
         start_date: dt.date = self._move_n_days(ref, start, count_business=False)
@@ -342,9 +338,7 @@ class Biz:
             chrono.cal.in_fiscal_quarters(-4, -1)     # From 4 fiscal quarters ago through last fiscal quarter
             chrono.cal.in_fiscal_quarters(-8, 0)      # Last 8 fiscal quarters through this fiscal quarter
         """
-        if end is None:
-            end = start + 1
-
+        
         fy_start_month: int = self.cal_policy.fiscal_year_start_month
         base_time: dt.datetime = self.ref_time
         fy: int = Biz.get_fiscal_year(base_time, fy_start_month)
@@ -387,9 +381,7 @@ class Biz:
             chrono.cal.in_fiscal_years(-5, -1)     # From 5 fiscal years ago through last fiscal year
             chrono.cal.in_fiscal_years(-10, 0)     # Last 10 fiscal years through this fiscal year
         """
-        if end is None:
-            end = start + 1
-
+        
         fy_start_month: int = self.cal_policy.fiscal_year_start_month
         base_time: dt.datetime = self.ref_time
         fy: int = Biz.get_fiscal_year(base_time, fy_start_month)
