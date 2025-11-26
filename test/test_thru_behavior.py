@@ -1,0 +1,54 @@
+"""Tests verifying inclusive `thru` behavior for compact namespaces.
+
+These ensure `ns.thru(start, end)` and `ns.thru[start:end]` produce the
+correct half-open semantics by advancing the end by 1 compared to `in_`.
+
+Style: Arrange / Act / Assert (AA) per project `codeguide.md`.
+"""
+
+import datetime as dt
+
+from frist._cal import Cal
+from frist._biz import Biz
+
+
+CAL_UNITS = ["min", "hr", "day", "wk", "mon", "qtr", "yr"]
+BIZ_UNITS = ["bday", "wday", "fqtr", "fyr"]
+
+
+def test_cal_thru_behavior():
+    # Arrange
+    ref = dt.datetime(2025, 3, 15, 12, 34, 56)
+    cal = Cal(target_dt=ref, ref_dt=ref)
+
+    # Act / Assert
+    for prop in CAL_UNITS:
+        ns = getattr(cal, prop)
+
+        # single-arg inclusive -> in_(start, start+1)
+        assert ns.thru(0) == ns.in_(0, 1)
+
+        # two-arg inclusive: (a..b inclusive) -> in_(a, b+1)
+        assert ns.thru(-2, -1) == ns.in_(-2, 0)
+
+        # slice sugar for inclusive
+        assert ns.thru[-2:-1] == ns.in_(-2, 0)
+
+
+def test_biz_thru_behavior():
+    # Arrange: choose a weekday so business/working-day checks are True
+    ref = dt.datetime(2025, 3, 14, 12, 34, 56)
+    biz = Biz(target_time=ref, ref_time=ref)
+
+    # Act / Assert
+    for prop in BIZ_UNITS:
+        ns = getattr(biz, prop)
+
+        # single-arg inclusive -> in_(start, start+1)
+        assert ns.thru(0) == ns.in_(0, 1)
+
+        # two-arg inclusive
+        assert ns.thru(-2, -1) == ns.in_(-2, 0)
+
+        # slice sugar
+        assert ns.thru[-2:-1] == ns.in_(-2, 0)

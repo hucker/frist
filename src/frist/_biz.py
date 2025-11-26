@@ -286,9 +286,6 @@ class Biz:
         Both start and end are integers (can be negative). The window is computed by moving start and end business-days from ref_date.
         The target must itself be a business day to be considered "in" the business-day window.
         """
-        return self._in_business_days_impl(start, end)
-
-    def _in_business_days_impl(self, start: int, end: Optional[int]) -> bool:
         if end is None:
             end = start + 1
 
@@ -306,16 +303,12 @@ class Biz:
         # Half-open semantics: start is inclusive, end is exclusive.
         return in_half_open_date(lower, tgt, upper)
 
-
     @verify_start_end
     def in_working_days(self, start: int = 0, end: int = 0) -> bool:
         """Return True if target_time.date() is within the working-day range [start, end] counted from ref_time.date().
 
         Working days ignore holidays (only policy.workdays matter).
         """
-        return self._in_working_days_impl(start, end)
-
-    def _in_working_days_impl(self, start: int, end: Optional[int]) -> bool:
         if end is None:
             end = start + 1
 
@@ -331,7 +324,6 @@ class Biz:
 
         # Half-open semantics: include `lower`, exclude `upper`.
         return in_half_open_date(lower, tgt, upper)
-
 
     @verify_start_end
     def in_fiscal_quarters(self, start: int = 0, end: int = 0) -> bool:
@@ -350,9 +342,6 @@ class Biz:
             chrono.cal.in_fiscal_quarters(-4, -1)     # From 4 fiscal quarters ago through last fiscal quarter
             chrono.cal.in_fiscal_quarters(-8, 0)      # Last 8 fiscal quarters through this fiscal quarter
         """
-        return self._in_fiscal_quarters_impl(start, end)
-
-    def _in_fiscal_quarters_impl(self, start: int, end: Optional[int]) -> bool:
         if end is None:
             end = start + 1
 
@@ -381,7 +370,6 @@ class Biz:
         # half-open window, so `end_idx` is the exclusive end.
         return in_half_open(start_idx, target_idx, end_idx)
 
-
     @verify_start_end
     def in_fiscal_years(self, start: int = 0, end: int = 0) -> bool:
         """
@@ -399,9 +387,6 @@ class Biz:
             chrono.cal.in_fiscal_years(-5, -1)     # From 5 fiscal years ago through last fiscal year
             chrono.cal.in_fiscal_years(-10, 0)     # Last 10 fiscal years through this fiscal year
         """
-        return self._in_fiscal_years_impl(start, end)
-
-    def _in_fiscal_years_impl(self, start: int, end: Optional[int]) -> bool:
         if end is None:
             end = start + 1
 
@@ -417,6 +402,9 @@ class Biz:
         # already makes single-arg calls represent a single-year half-open
         # interval, so `end_year` is the exclusive end.
         return in_half_open(start_year, target_fy, end_year)
+
+    # (Removed duplicate private `_in_*_impl` helper functions; the public
+    # decorated `in_*` methods above are the single canonical implementation.)
     
     @staticmethod
     def get_fiscal_year(dt: dt.datetime, fy_start_month: int) -> int:
@@ -430,25 +418,26 @@ class Biz:
         return (offset // 3) + 1
 
     # Compact cached namespaces for policy-aware ranges. These provide a
-    # compact ergonomic surface that delegates to the private implementations
-    # above (e.g. `_in_business_days_impl`). They are non-invasive and keep
-    # the canonical public methods intact for compatibility.
+    # compact ergonomic surface that delegates to the public decorated `in_*`
+    # methods (e.g., `in_business_days`, `in_working_days`). The public
+    # `in_*` methods are the canonical implementations; `UnitNamespace` is
+    # an ergonomic, non-invasive adapter that forwards to them.
 
     @cached_property
     def bday(self) -> UnitNamespace:
-        return UnitNamespace(self, self._in_business_days_impl)
+        return UnitNamespace(self, self.in_business_days)
 
     @cached_property
     def wday(self) -> UnitNamespace:
-        return UnitNamespace(self, self._in_working_days_impl)
+        return UnitNamespace(self, self.in_working_days)
 
     @cached_property
     def fqtr(self) -> UnitNamespace:
-        return UnitNamespace(self, self._in_fiscal_quarters_impl)
+        return UnitNamespace(self, self.in_fiscal_quarters)
 
     @cached_property
     def fyr(self) -> UnitNamespace:
-        return UnitNamespace(self, self._in_fiscal_years_impl)
+        return UnitNamespace(self, self.in_fiscal_years)
 
 
 __all__ = ["Biz"]
