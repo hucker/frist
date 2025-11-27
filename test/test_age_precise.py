@@ -88,14 +88,14 @@ def test_months_precise(start: dt.datetime, end: dt.datetime, expected: float) -
 
 def test_months_property_normalized_lengths_all_months() -> None:
     """
-    This test is similar to the one above that treats all actual months as 1 month regardles of lenght,
+    This test is similar to the one above that treats all actual months as 1 month regardless of length,
     but in this case we use normalized month lengths using the Age.months property which is just number of
     days divided by 30.44.  Under this scheme there are 4 possible normalized month lengths corresponding to
     the actual month lengths of 28, 29, 30, and 31 days.  So this test calculates all the months over a
     fiver year periods and verifies that there are 4 distinct normalized month lengths matching the expected values.
     """
     # Arrange
-    actuals: set[float] = set()
+    actual: set[float] = set()
     for year in range(2000, 2006):
         for month in range(1, 13):
             start: dt.datetime = dt.datetime(year, month, 1)
@@ -104,7 +104,7 @@ def test_months_property_normalized_lengths_all_months() -> None:
             )
             age: Age = Age(start, end)
             normalized = age.months
-            actuals.add(normalized)
+            actual.add(normalized)
 
     expected: set[float] = {
         28 / DAYS_PER_MONTH,
@@ -114,8 +114,8 @@ def test_months_property_normalized_lengths_all_months() -> None:
     }
 
     # This equality should work even with sets of floats since the rations are exactly the same
-    assert expected == actuals, (
-        f"Expected normalized month lengths {expected}, got {actuals}"
+    assert expected == actual, (
+        f"Expected normalized month lengths {expected}, got {actual}"
     )
     assert DAYS_PER_MONTH == 30.44, (
         f"DAYS_PER_MONTH should be 30.44, got {DAYS_PER_MONTH}"

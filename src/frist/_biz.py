@@ -6,7 +6,7 @@ and range membership helpers). This module is intentionally independent from Age
 and Cal; Chrono composes Biz when policy-aware operations are required.
 """
 import datetime as dt
-from typing import Callable, Optional
+from typing import Callable
 from functools import cached_property
 
 from ._biz_policy import BizPolicy

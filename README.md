@@ -1,6 +1,6 @@
 # `Frist`: Unified Age and Calendar Logic
 
-`Frist` is a modern Python library designed to make working with time, dates, intervals and business calendars with a 'simple' and expressive property based API. `Frist` provides  property-based APIs for `Age`, `Cal` and `Biz`. The `Age` object lets you answer “How old is this?” for two datetimes (often defaulting the second date to “now”), making it perfect for file aging, log analysis, or event tracking. The `Cal` object lets you ask “Is this date in a specific window?”—such as today, yesterday, this month, this quarter, or this fiscal year—using intuitive properties for calendar logic. Calendar ranges are always aligned to a calendar time scale, day, business day, month, year, quarter, hour.  Finally, the `Biz` class lets you establish a business policy for workdays, work hours, fiscal years to make use of business calendars.
+`Frist` is a modern Python library designed to make working with time, dates, intervals and business calendars easy using a simple, expressive property-based API. `Frist` provides property-based APIs for `Age`, `Cal` and `Biz`. The `Age` object answers “How old is this?” for two datetimes (often defaulting the second datetime to “now”), making it useful for file aging, log analysis, or event tracking. The `Cal` object lets you ask “Is this date in a specific window?”—such as today, yesterday, this month, this quarter, or this fiscal year—using intuitive properties for calendar logic. Calendar ranges are aligned to calendar units (minute, hour, day, business day, week, month, quarter, year). Finally, the `Biz` class lets you establish a business policy for workdays, business hours, holidays and fiscal years so you can perform business-calendar-aware queries.
 
 `Frist` is not a [replacement](https://imgs.xkcd.com/comics/standards_2x.png) for `datetime` or `timedelta`. If the standard library meets your needs, keep using it.
 
@@ -43,7 +43,7 @@ last_3_fiscal_years = [date for date in dates if Biz(date, policy).in_fiscal_yea
 
 ignore_holidays = [date for date in dates if not Biz(date, policy).is_holiday]
 
-# Shortcut examples
+# Shortcut examples where intent is very clear
 dates_today_shortcut = [date for date in dates if Cal(date).is_today]
 dates_this_quarter = [date for date in dates if Cal(date).is_this_quarter]
 dates_last_year = [date for date in dates if Cal(date).is_last_year]
@@ -102,21 +102,11 @@ False   # not in the 7..1 days before ref
 
 ### Inclusive `thru` helper
 
-Frist also provides a small ergonomic helper available on the compact
-`UnitNamespace` properties (for example `cal.mon`, `cal.day`, `biz.bday`) named
-`thru`. The `thru` surface uses inclusive end semantics which is convenient for
-human-readable ranges such as "Mon thru Fri".
+Frist also provides a  helper available on the compact `UnitNamespace` properties (for example `cal.mon`, `cal.day`, `biz.bday`) named `thru`. The `thru` method uses inclusive end semantics which is convenient for human-readable ranges such as "Mon thru Fri" where the end is part of the range.
 
-- `in_*` methods and the main API use half-open intervals: `start <= value < end`.
-- `*.thru(start, end)` is inclusive on the end: it returns True when
-  `start <= value <= end`.
+- `*.in_` methods and the main API use half-open intervals: `start <= value < end`. - `*.thru(start, end)` is inclusive on the end: it returns True when `start <= value <= end`.
 
-Implementation note: `thru` is implemented as a thin ergonomic adapter that
-forwards to the canonical half-open `in_*` methods by advancing the exclusive
-end by one unit. For example `cal.mon.thru(-2, 0)` is equivalent to
-`cal.in_months(-2, 1)` (the inclusive end `0` becomes exclusive `1`). This
-keeps the core API canonical while offering a more natural English-style
-`thru` surface for consumers.
+Implementation note: `thru` is implemented as a thin ergonomic adapter that forwards to the canonical half-open `in_*` methods by advancing the exclusive end by one unit. For example `cal.mon.thru(-2, 0)` is equivalent to `cal.in_months(-2, 1)` (the inclusive end `0` becomes exclusive `1`). This keeps the core API canonical while offering a more natural English-style `thru` surface for consumers.
 
 Examples:
 
@@ -182,17 +172,23 @@ This is suitable for most standard business use cases. You only need to provide 
 
 Example (custom policy):
 
-```pycon
+```python
 >>> from frist import BizPolicy
 >>> import datetime as dt
->>> policy = BizPolicy(workdays={0,1,2,3,4}, holidays={"2025-01-10"}, work_hours=(9,17), fy_start_month=4)
+>>> policy = BizPolicy(
+...     workdays=[0, 1, 2, 3, 4],
+...     holidays={"2025-01-10"},
+...     start_of_business=dt.time(9, 0),
+...     end_of_business=dt.time(17, 0),
+...     fiscal_year_start_month=4,
+... )
 >>> date = dt.datetime(2025, 5, 15)
 >>> policy.get_fiscal_year(date)
-2026
+2025
 >>> policy.get_fiscal_quarter(date)
 1
->>> policy.is_holiday(dt.datetime(year=2025,month=1,day=1))
-True
+>>> policy.is_holiday(dt.datetime(year=2025, month=1, day=1))
+False
 ```
 
 ---
@@ -249,35 +245,35 @@ The Cal object provides a family of `in_*` methods (e.g., `in_days`, `in_months`
 | `fiscal_quarter` | Fiscal quarter for `dt_val`   | `int` |
 | `holiday`        | True if `dt_val` is a holiday | `bool` |
 
-| Interval Method                                    | Description                 | Return |
+| Unit accessor                                      | Description                 | Return |
 | -------------------------------------------------- | --------------------------- | ------ |
-| `in_minutes(start=0, end=None)`                    | Is target in minute window  | `bool` |
-| `in_hours(start=0, end=None)`                      | Is target in hour window    | `bool` |
-| `in_days(start=0, end=None)`                       | Is target in day window     | `bool` |
-| `in_weeks(start=0, end=None, week_start="monday")` | Is target in week window    | `bool` |
-| `in_months(start=0, end=None)`                     | Is target in month window   | `bool` |
-| `in_quarters(start=0, end=None)`                   | Is target in quarter window | `bool` |
-| `in_years(start=0, end=None)`                      | Is target in year window    | `bool` |
+| `cal.min.in_(start=0, end=None)`                   | Is target in minute window  | `bool` |
+| `cal.hr.in_(start=0, end=None)`                    | Is target in hour window    | `bool` |
+| `cal.day.in_(start=0, end=None)`                   | Is target in day window     | `bool` |
+| `cal.wk.in_(start=0, end=None, week_start="monday")` | Is target in week window    | `bool` |
+| `cal.mon.in_(start=0, end=None)`                   | Is target in month window   | `bool` |
+| `cal.qtr.in_(start=0, end=None)`                   | Is target in quarter window | `bool` |
+| `cal.yr.in_(start=0, end=None)`                    | Is target in year window    | `bool` |
 
 Shortcuts (convenience boolean properties):
 
-| Shortcut | Equivalent `in_*` call |
-| -------- | --------------------- |
-| `is_today` | `in_days(0)` |
-| `is_yesterday` | `in_days(-1)` |
-| `is_tomorrow` | `in_days(1)` |
-| `is_last_week` | `in_weeks(-1)` |
-| `is_this_week` | `in_weeks(0)` |
-| `is_next_week` | `in_weeks(1)` |
-| `is_last_month` | `in_months(-1)` |
-| `is_this_month` | `in_months(0)` |
-| `is_next_month` | `in_months(1)` |
-| `is_last_quarter` | `in_quarters(-1)` |
-| `is_this_quarter` | `in_quarters(0)` |
-| `is_next_quarter` | `in_quarters(1)` |
-| `is_last_year` | `in_years(-1)` |
-| `is_this_year` | `in_years(0)` |
-| `is_next_year` | `in_years(1)` |
+| Shortcut | Equivalent |
+| -------- | ---------------------- |
+| `is_today`       | `cal.day.in_(0)`        |
+| `is_yesterday`   | `cal.day.in_(-1)`       |
+| `is_tomorrow`    | `cal.day.in_(1)`        |
+| `is_last_week`   | `cal.wk.in_(-1)`        |
+| `is_this_week`   | `cal.wk.in_(0)`         |
+| `is_next_week`   | `cal.wk.in_(1)`         |
+| `is_last_month`  | `cal.mon.in_(-1)`       |
+| `is_this_month`  | `cal.mon.in_(0)`        |
+| `is_next_month`  | `cal.mon.in_(1)`        |
+| `is_last_quarter`| `cal.qtr.in_(-1)`       |
+| `is_this_quarter`| `cal.qtr.in_(0)`        |
+| `is_next_quarter`| `cal.qtr.in_(1)`        |
+| `is_last_year`   | `cal.yr.in_(-1)`        |
+| `is_this_year`   | `cal.yr.in_(0)`         |
+| `is_next_year`   | `cal.yr.in_(1)`         |
 
 ---
 
@@ -362,7 +358,7 @@ True
 False
 ```
 
-`Chrono(target_time: datetime, reference_time: datetime = None, cal_policy:BizPolicy|None)`
+`Chrono(target_time: datetime, reference_time: datetime = None, biz_policy:BizPolicy|None)`
 
 | Property | Description                                           |
 | -------- | ----------------------------------------------------- |
@@ -411,7 +407,7 @@ Success: no issues found in 8 source files
 
 ### Notes
 
-This project was developed iteratively using agentic AI thus most of the code was generated from prompts rather that writing code (I have been developing code professionally since 1990).  It was tricky getting tests implemented correctly. Generally I write a test case and then ask the AI to parameterize it and then I review.  I discovered that I had some code that had a bug in one case and the AI changed the test inputs (added 1) to make the test pass. I find with agentic AI that I spend more time on my testing than on coding, even to the point that I will happily delete a test file and start over if I don't like it. With manually written code I would be far less inclined to do that.
+This project was developed iteratively using agentic AI thus most of the code was generated from prompts rather that writing code.  It was tricky getting tests implemented correctly. Generally I write a test case and then ask the AI to parameterize it and then I review.  I discovered that I had some code that had a bug in one case and the AI changed the test inputs (added 1) to make the test pass. I find with agentic AI that I spend more time on my testing than on coding, even to the point that I will happily delete a test file and start over if I don't like it. With manually written code I would be far less inclined to do that.
 
 I also noted that certain types of refactoring humans are much better at.  I change the naming convention of some methods and asked the AI to fix it, after messing around with constant tab issues and bad assumptions I rolled it back and did a search and replace and change the names manually in a fraction of the time.
 

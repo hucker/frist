@@ -2,7 +2,7 @@
 """
 Calendar-based time window filtering for frist package.
 
-Provides calendar window filtering functionality for Chronoobjects).
+Provides calendar window filtering functionality for Chrono objects).
 """
 
 import datetime as dt
@@ -192,7 +192,7 @@ class Cal:
         return in_half_open_date(start_date, target_date, end_date)
 
     def _month_index(self,d: dt.datetime) -> int:
-        """Get a monatonic month index for comparison. (why didn't I think of this?)"""
+        """Get a monotonic month index for comparison. (why didn't I think of this?)"""
         return d.year * 12 + d.month
 
     @verify_start_end

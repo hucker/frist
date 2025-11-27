@@ -84,7 +84,7 @@ class Age:
         end_time: dt.datetime | float | int | None = None,
     ) -> None:
         """
-        WARNING: This method mutates the Age instance in place, beware of side effects during threaded operatoin.
+        WARNING: This method mutates the Age instance in place, beware of side effects during threaded operation.
 
 
         Update the start and/or end time for this Age instance.
