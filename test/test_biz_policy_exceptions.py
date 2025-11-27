@@ -5,7 +5,7 @@ Verifies that BizPolicy methods raise TypeError for invalid input types.
 """
 import datetime as dt
 import pytest
-from frist._cal_policy import BizPolicy
+from frist._biz_policy import BizPolicy
 
 def make_policy():
     return BizPolicy(holidays={"2025-11-13"})

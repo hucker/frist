@@ -11,7 +11,7 @@ from typing import TypeAlias
 from ._age import Age
 from ._cal import Cal
 from ._biz import Biz
-from ._cal_policy import BizPolicy
+from ._biz_policy import BizPolicy
 from ._constants import CHRONO_DATETIME_FORMATS
 
 # Alias for inputs accepted by Frist time utilities (datetime, date, POSIX ts, or string)

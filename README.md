@@ -203,7 +203,7 @@ Here is a brief overview of the various classes that make up `Frist`.
 
 ### Age Object
 
-`Age(start_time: datetime, end_time: datetime = None, cal_policy: BizPolicy = None)`
+`Age(start_time: datetime, end_time: datetime = None, biz_policy: BizPolicy = None)`
 
 | Property         | Description                                               |
 | ---------------- | --------------------------------------------------------- |
@@ -221,7 +221,7 @@ Here is a brief overview of the various classes that make up `Frist`.
 | `fiscal_quarter` | Fiscal quarter for start_time                             |
 | `start_time`     | Start datetime                                            |
 | `end_time`       | End datetime                                              |
-| `cal_policy`     | BizPolicy used for business logic                    |
+| `biz_policy`     | BizPolicy used for business logic                    |
 
 | Method                                      | Description                 |
 | ------------------------------------------- | --------------------------- |
@@ -379,14 +379,15 @@ False
 ```text
 Name                                      Stmts   Miss Branch BrPart  Cover   Missing
 -------------------------------------------------------------------------------------
-src\frist\__init__.py                         8      0      0      0   100%
-src\frist\_age.py                           119      0     34      0   100%
-src\frist\_biz.py                           176      0     28      0   100%
-src\frist\_cal.py                           142      0     12      0   100%
-src\frist\_cal_policy.py                     79      0     38      0   100%
-src\frist\_constants.py                      15      0      0      0   100%
-src\frist\_frist.py                          71      0     18      0   100%
-src\frist\_util.py                           13      0      2      0   100%
+src\frist\__init__.py                          8      0      0      0   100%
+src\frist\_age.py                            119      0     34      0   100%
+src\frist\_biz.py                            186      0     28      0   100%
+src\frist\_biz_policy.py                      79      0     38      0   100%
+src\frist\_cal.py                            160      0     12      0   100%
+src\frist\_constants.py                       15      0      0      0   100%
+src\frist\_frist.py                           73      0     18      0   100%
+src\frist\_ranges.py                          25      0      4      0   100%
+src\frist\_util.py                            18      0      2      0   100%
 ```
 
 ### Tox

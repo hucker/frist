@@ -2,7 +2,7 @@ import datetime as dt
 import pytest
 
 from frist._biz import Biz
-from frist._cal_policy import BizPolicy
+from frist._biz_policy import BizPolicy
 
 
 def test_workday_fraction_zero_length_business_day():

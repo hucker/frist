@@ -1,6 +1,6 @@
 import datetime as dt
 import pytest
-from frist._cal_policy import BizPolicy
+from frist._biz_policy import BizPolicy
 
 def make_policy():
     return BizPolicy(

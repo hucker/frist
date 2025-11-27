@@ -10,7 +10,7 @@ import pytest
 
 from frist import Cal, Chrono
 from frist._cal import normalize_weekday
-from frist._cal_policy import BizPolicy
+from frist._biz_policy import BizPolicy
 
 
 def test_simple_cal_day_windows():

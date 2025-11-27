@@ -19,7 +19,7 @@ Exports:
 from ._age import Age
 from ._cal import Cal
 from ._biz import Biz
-from ._cal_policy import BizPolicy
+from ._biz_policy import BizPolicy
 from ._frist import Chrono
 
 __version__ = "0.15.0"

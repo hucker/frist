@@ -8,7 +8,7 @@ import datetime as dt
 import pytest
 
 from frist._frist import Age, Cal, Chrono, time_pair
-from frist._cal_policy import BizPolicy
+from frist._biz_policy import BizPolicy
 
 
 

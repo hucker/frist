@@ -9,7 +9,7 @@ import datetime as dt
 from typing import Callable, Optional
 from functools import cached_property
 
-from ._cal_policy import BizPolicy
+from ._biz_policy import BizPolicy
 from ._util import verify_start_end, in_half_open,in_half_open_date
 from ._ranges import UnitNamespace
 
