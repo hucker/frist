@@ -41,3 +41,11 @@ def test_biz_unit_namespace_smoke():
         # inclusive 'thru' should map to half-open by advancing the end
         if hasattr(ns, "thru"):
             assert ns.thru(-1, 0) == ns.in_(-1, 1)
+
+        # Add one golden boolean check per unit using a weekday ref so expectations
+        # are independent of the initial `ref` used for the parity checks above.
+        weekday_ref = dt.datetime(2025, 3, 14, 12, 0, 0)  # 2025-03-14 is a Friday
+        biz_wd = Biz(target_time=weekday_ref, ref_time=weekday_ref)
+        ns_wd = getattr(biz_wd, prop)
+        assert ns_wd.in_(0) is True
+        assert ns_wd.in_(-1) is False

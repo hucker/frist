@@ -31,6 +31,10 @@ def test_cal_thru_behavior():
         # two-arg inclusive: (a..b inclusive) -> in_(a, b+1)
         assert ns.thru(-2, -1) == ns.in_(-2, 0)
 
+        # Golden check: when ref==target, current unit is True, previous is False
+        assert ns.in_(0) is True
+        assert ns.in_(-1) is False
+
         # inclusive slice syntax removed; verify call form only
 
 
@@ -48,5 +52,9 @@ def test_biz_thru_behavior():
 
         # two-arg inclusive
         assert ns.thru(-2, -1) == ns.in_(-2, 0)
+
+        # Golden check: when ref==target on a weekday, current unit True, previous False
+        assert ns.in_(0) is True
+        assert ns.in_(-1) is False
 
         # inclusive slice syntax removed; verify call form only

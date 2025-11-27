@@ -61,6 +61,13 @@ def test_cal_shortcut_properties_delegate_to_methods() -> None:
     assert cal_y.is_yesterday == cal_y.in_days(-1)
     assert cal_t.is_tomorrow == cal_t.in_days(1)
 
+    # Add explicit golden checks to avoid relying solely on production delegation:
+    # For ref == target, these should be True for "this" shortcuts and False for last/next
+    assert c.is_today is True
+    assert c.is_this_week is True
+    assert c.is_last_week is False
+    assert c.is_next_week is False
+
 
 def test_normalize_weekday_pandas_prefix_invalid() -> None:
     # ensure pandas-style prefix branch is exercised and raises for unknown code

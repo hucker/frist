@@ -74,6 +74,7 @@
 - Prefer parameterized tests when checking multiple cases (e.g., using pytest.mark.parametrize).
 - Always use temporary folders (e.g., pytest's tmp_path fixture) for filesystem interaction in tests to ensure cleanup.
 - Always type hint paramerized arguments to test functions
+- Do not repeat production code to generate test values.  Ideally use golden values that are easily confirmed visually (e.g. 14 days in February is 0.5 months or 6 hrs is 0.25 day, or 1 sec = 1/60 min )
 
 ---
 

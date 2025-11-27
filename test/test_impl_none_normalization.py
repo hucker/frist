@@ -30,6 +30,9 @@ def test_cal_public_none_normalization():
     # years
     assert cal.in_years(0) == cal.in_years(0, 1)
 
+    # Add one explicit golden-case to assert actual boolean behavior
+    assert cal.in_days(0) is True
+
 
 def test_biz_public_none_normalization():
     # use a weekday ref so business checks true
@@ -40,3 +43,7 @@ def test_biz_public_none_normalization():
     assert biz.in_working_days(0) == biz.in_working_days(0, 1)
     assert biz.in_fiscal_quarters(0) == biz.in_fiscal_quarters(0, 1)
     assert biz.in_fiscal_years(0) == biz.in_fiscal_years(0, 1)
+
+    # Golden checks: with ref==target on a weekday, these should be True
+    assert biz.in_business_days(0) is True
+    assert biz.in_working_days(0) is True

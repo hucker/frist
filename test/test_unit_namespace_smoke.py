@@ -50,3 +50,7 @@ def test_unit_namespace_smoke():
         # Assert: inclusive 'thru' should map to half-open by advancing the end
         if hasattr(ns, "thru"):
             assert ns.thru(-1, 0) == ns.in_(-1, 1)
+
+        # Golden checks: when ref==target, current unit should be True, previous should be False
+        assert ns.in_(0) is True
+        assert ns.in_(-1) is False

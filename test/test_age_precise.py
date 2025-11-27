@@ -123,48 +123,40 @@ def test_months_property_normalized_lengths_all_months() -> None:
 
 
 @pytest.mark.parametrize(
-    "same_month_start, same_month_end",
+    "same_month_start, same_month_end, expected",
     [
-        # Same day, same time
-        (dt.datetime(2023, 2, 1, 0, 0), dt.datetime(2023, 2, 1, 0, 0)),
-        # Same day, different times
-        (dt.datetime(2023, 2, 1, 0, 0), dt.datetime(2023, 2, 1, 12, 0)),
-        # Start at beginning of month, end at end of month
-        (dt.datetime(2023, 2, 1, 0, 0), dt.datetime(2023, 2, 28, 23, 59, 59)),
-        # Start and end at arbitrary times within the month
-        (dt.datetime(2023, 2, 10, 6, 0), dt.datetime(2023, 2, 20, 18, 0)),
-        # Leap year February
-        (dt.datetime(2020, 2, 1, 0, 0), dt.datetime(2020, 2, 29, 23, 59, 59)),
-        # End at first of next month (should be < 1.0)
-        (dt.datetime(2023, 2, 1, 0, 0), dt.datetime(2023, 2, 28, 0, 0)),
+        # Same day, same time -> zero-length interval
+        (dt.datetime(2023, 2, 1, 0, 0), dt.datetime(2023, 2, 1, 0, 0), 0.0),
+        # Same day, different times (12 hours of a 28-day Feb)
+        (dt.datetime(2023, 2, 1, 0, 0), dt.datetime(2023, 2, 1, 12, 0), 1 / 56),
+        # Start at beginning of month, end at last second of month
+        (dt.datetime(2023, 2, 1, 0, 0), dt.datetime(2023, 2, 28, 23, 59, 59), 2419199 / 2419200),
+        # Start and end at arbitrary times within the month (10.5 days of 28)
+        (dt.datetime(2023, 2, 10, 6, 0), dt.datetime(2023, 2, 20, 18, 0), 0.375),
+        # Leap year February: last second of 29-day Feb
+        (dt.datetime(2020, 2, 1, 0, 0), dt.datetime(2020, 2, 29, 23, 59, 59), 2505599 / 2505600),
+        # End at first of next month (should be 27/28)
+        (dt.datetime(2023, 2, 1, 0, 0), dt.datetime(2023, 2, 28, 0, 0), 27 / 28),
     ],
 )
 def test_months_precise_same_month(
-    same_month_start: dt.datetime, same_month_end: dt.datetime
+    same_month_start: dt.datetime, same_month_end: dt.datetime, expected: float
 ) -> None:
     """
-    Test Age.months_precise for intervals where start and end are in the same month, including time portions and edge cases.
+    Test Age.months_precise for intervals where start and end are in the same month.
+
+    This test uses explicit, precomputed expected values instead of reimplementing
+    the production logic to compute the expected output. That avoids duplicating
+    the implementation and makes the test more robust.
     """
     # Arrange
     age: Age = Age(same_month_start, same_month_end)
     # Act
     actual = age.months_precise
-    # Compute expected value using the same logic as months_precise
-    month_start: dt.datetime = dt.datetime(same_month_start.year, same_month_start.month, 1)
-    if same_month_start.month == 12:
-        next_month = 1
-        next_year = same_month_start.year + 1
-    else:
-        next_month = same_month_start.month + 1
-        next_year = same_month_start.year
-    month_end: dt.datetime = dt.datetime(next_year, next_month, 1)
-    total_seconds = (month_end - month_start).total_seconds()
-    interval_seconds = (same_month_end - same_month_start).total_seconds()
-    expected = interval_seconds / total_seconds if interval_seconds > 0 else 0.0
     # Assert
-    assert pytest.approx(actual, 1e-6) == expected, ( # type: ignore
+    assert pytest.approx(actual, 1e-6) == expected, (  # type: ignore
         f"months_precise (same month): expected {expected}, got {actual}"
-    )  
+    )
 
 def test_months_precise_start_equals_end() -> None:
     """
