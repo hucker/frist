@@ -44,6 +44,7 @@ def test_minute_interval_half_open():
     assert in_current is False, "Value at end of minute should not be in current interval"
     assert in_next is True, "Value at start of next minute should be in next interval"
 
+
 def test_hour_interval_half_open():
     """Test hour interval is half-open: start <= value < end."""
     # Arrange
@@ -57,6 +58,7 @@ def test_hour_interval_half_open():
     # Assert
     assert in_current is False, "Value at end of hour should not be in current interval"
     assert in_next is True, "Value at start of next hour should be in next interval"
+
 
 def test_quarter_interval_half_open():
     """Test quarter interval is half-open: start <= value < end."""
