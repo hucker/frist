@@ -22,7 +22,7 @@ from ._biz import Biz
 from ._biz_policy import BizPolicy
 from ._frist import Chrono
 
-__version__ = "0.15.0"
+__version__ = "0.17.0"
 __author__ = "Chuck Bass"
 
 __all__ = ["Chrono", "Age",  "Cal" ,"Biz","BizPolicy" ]
