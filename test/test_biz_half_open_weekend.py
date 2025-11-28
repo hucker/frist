@@ -6,7 +6,6 @@ interior, on-upper, above-upper) for `in_business_days` and
 """
 
 import datetime as dt
-import pytest
 
 from frist import Biz, BizPolicy
 

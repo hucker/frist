@@ -18,6 +18,7 @@ from ._constants import (
     SECONDS_PER_WEEK,
     SECONDS_PER_YEAR,
 )
+from ._types import TimeLike, time_pair, to_datetime
 
 
 class Age:
@@ -32,9 +33,10 @@ class Age:
         - Allows updating start and end times via the `set_times` method (kwargs-only, preserves previous values if None).
 
     Initialization:
-        Age(start_time, end_time=None)
-        - start_time: dt.datetime, dt.date, float, or int (required)
-        - end_time: dt.datetime, dt.date, float, int, or None (defaults to now)
+        Age(start_time, end_time=None, formats=None)
+        - start_time: TimeLike (dt.datetime, dt.date, float, int, or str) (required)
+        - end_time: TimeLike or None (defaults to now)
+        - formats: list[str] or None (custom datetime formats for string parsing)
 
     Updating times:
         age.set_times(start_time=..., end_time=...)
@@ -55,12 +57,13 @@ class Age:
 
     def __init__(
         self,
-        start_time: dt.datetime | dt.date | float | int,
-        end_time: dt.datetime | dt.date | float | int | None = None,
+        start_time: TimeLike,
+        end_time: TimeLike | None = None,
+        formats: list[str] | None = None,
     ):
         self._start_time: dt.datetime
         self._end_time: dt.datetime
-        self.set_times(start_time=start_time, end_time=end_time)
+        self._start_time, self._end_time = time_pair(start_time=start_time, end_time=end_time, formats__=formats)
 
 
     @staticmethod
@@ -81,8 +84,9 @@ class Age:
     def set_times(
         self,
         *,
-        start_time: dt.datetime | dt.date | float | int | None = None,
-        end_time: dt.datetime | dt.date | float | int | None = None,
+        start_time: TimeLike | None = None,
+        end_time: TimeLike | None = None,
+        formats: list[str] | None = None,
     ) -> None:
         """
         WARNING: This method mutates the Age instance in place, beware of side effects during threaded operation.
@@ -94,13 +98,15 @@ class Age:
         If a value is None, the previous value is retained.
 
         Parameters:
-            start_time (dt.datetime | dt.date | float | int | None): New start time. If None, keeps previous value.
-            end_time   (dt.datetime | dt.date | float | int | None): New end time. If None, keeps previous value.
+            start_time (TimeLike | None): New start time. If None, keeps previous value.
+            end_time (TimeLike | None): New end time. If None, keeps previous value.
+            formats (list[str] | None): Custom datetime formats for string parsing.
 
         Type support:
             - dt.datetime: Used directly (timezones not supported)
             - dt.date: Converted to datetime at midnight
             - float/int: Interpreted as a POSIX timestamp
+            - str: Parsed using supported datetime formats
 
         Raises:
             TypeError: If a provided value is not a supported type
@@ -110,30 +116,13 @@ class Age:
             age.set_times(start_time=dt.datetime(2020, 1, 1))
             age.set_times(end_time=dt.datetime(2024, 1, 1))
             age.set_times(start_time=1700000000.0)  # POSIX timestamp
+            age.set_times(start_time="2023-12-25 14:30:00")  # String format
         """
         if start_time is not None:
-            if isinstance(start_time, (float, int)):
-                self._start_time = dt.datetime.fromtimestamp(start_time)
-            elif isinstance(start_time, dt.datetime):
-                if start_time.tzinfo is not None:
-                    raise TypeError("Timezones are not supported")
-                self._start_time = start_time
-            elif isinstance(start_time, dt.date):
-                self._start_time = dt.datetime.combine(start_time, dt.time(0, 0, 0))
-            else:
-                raise TypeError("start_time must be datetime, date, float, or int")
+            self._start_time = to_datetime(start_time, formats)
 
         if end_time is not None:
-            if isinstance(end_time, (float, int)):
-                self._end_time = dt.datetime.fromtimestamp(end_time)
-            elif isinstance(end_time, dt.datetime):
-                if end_time.tzinfo is not None:
-                    raise TypeError("Timezones are not supported")
-                self._end_time = end_time
-            elif isinstance(end_time, dt.date):
-                self._end_time = dt.datetime.combine(end_time, dt.time(0, 0, 0))
-            else:
-                raise TypeError("end_time must be datetime, date, float, int, or None")
+            self._end_time = to_datetime(end_time, formats)
         elif not hasattr(self, '_end_time'):
             self._end_time = dt.datetime.now()
 

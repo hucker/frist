@@ -18,7 +18,7 @@ import datetime as dt
 
 import pytest
 
-from frist import Chrono,BizPolicy
+from frist import Chrono, BizPolicy, Age, Cal, Biz
 
 
 def test_in_days_backwards_range():
@@ -197,3 +197,26 @@ def test_end_of_month_year():
     assert z_eom.target_time.day == 31, f"Expected day 31 for end of month, got {z_eom.target_time.day}"
     assert z_eoy.target_time.month == 12, f"Expected month 12 for end of year, got {z_eoy.target_time.month}"
     assert z_eoy.target_time.day == 31, f"Expected day 31 for end of year, got {z_eoy.target_time.day}"
+
+
+@pytest.mark.parametrize("string_input, expected_datetime", [
+    # Format 1: YYYY-MM-DD HH:MM:SS
+    ("2024-01-15 14:30:45", dt.datetime(2024, 1, 15, 14, 30, 45)),
+    # Format 2: YYYY-MM-DD (date only)
+    ("2024-01-15", dt.datetime(2024, 1, 15, 0, 0, 0)),
+    # Format 3: ISO 8601 datetime
+    ("2024-01-15T14:30:45", dt.datetime(2024, 1, 15, 14, 30, 45)),
+    # Format 4: ISO 8601 UTC with Z
+    ("2024-01-15T14:30:45Z", dt.datetime(2024, 1, 15, 14, 30, 45)),
+])
+def test_string_datetime_formats_chrono_parse(string_input, expected_datetime):
+    """Test that Chrono.parse accepts all supported string datetime formats."""
+    # Arrange
+    ref_dt = dt.datetime(2024, 1, 16, 12, 0, 0)
+    
+    # Act
+    chrono = Chrono.parse(string_input, reference_time=ref_dt)
+    
+    # Assert
+    assert chrono.target_time == expected_datetime, f"Chrono.parse failed to parse {string_input}"
+    assert chrono.reference_time == ref_dt, f"Reference time should be preserved for {string_input}"

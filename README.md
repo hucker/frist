@@ -62,6 +62,8 @@ dates_last_year = [date for date in dates if Cal(date).is_last_year]
 
 - **Precomputed Holidays** The business holiday set is a precomputed list of holidays provided by the business.  It is assumed this list will take care of ALL "movable" holiday calculations and provide a list of days (that should land on working days) that are considered days off.  THere is NO calculation involved.  If New Years on a Sunday and you are closed Monday then you need to add the 2nd as a holiday.  These calendars are usually provided by HR or accounting.
 
+- **Limits to Flexibility** `Frist` attempts to have a fairly wide input surface for `datetime` representations, including datetime, date, int/float (timestamps) and strings.   Strings, generally can be reconfigured to parse a custom format, but by default expect YYYY-MM-DD HH:MM:SS YYYY-MM-DDTHH:MM:SS (ISO 8601) or YYYY-MM-DD values.
+
 ## Age
 
 The `Age` object answers "How old is X?" for two datetimes (start and end). It exposes common elapsed-time metrics as properties so you can write intent‑revealing one‑liners.
@@ -80,10 +82,16 @@ Example:
 80.0
 >>> a.years     # number of days in "average" years thus 80/365.25 days
 0.2190280629705681
->>> a.years_precise # number of days in 2025  thus 80/366
+>>> a.years_precise # number of days in 2025  thus 80/365
 0.2191780821917808
 
+# String inputs also work
+>>> b = Age("2025-09-01", "2025-11-20")
+>>> b.days
+80.0
 ```
+
+Note: the precise times are somewhat academic, but solve important problems.  If you have the days from February 1 to Feb 28, inclusive what does that mean?  When using precise months that means 1.0 months.  If you have the days from April 1 to April 28 inclusive, you have 28/31 months.  If you use "normal" months which divide by the average days/month you can NEVER get 1.0 months.  Also worth nothing, when time periods span months the math is performed on each fractional month so  Feb 22 thru May 1 (inclusive) is 7/28 + 31/31 + 1/30 months
 
 ---
 
@@ -206,9 +214,23 @@ False
 
 Here is a brief overview of the various classes that make up `Frist`.
 
+### TimeLike Input Types
+
+All Frist classes accept flexible time inputs through the `TimeLike` type, which supports:
+
+- `datetime` objects (timezone-naive only)
+- `date` objects (converted to datetime at midnight)
+- `float`/`int` values (interpreted as POSIX timestamps)
+- `str` values in supported formats:
+  - `YYYY-MM-DD HH:MM:SS` (e.g., `"2023-12-25 14:30:00"`)
+  - `YYYY-MM-DD` (e.g., `"2023-12-25"`)
+  - ISO 8601 variants (e.g., `"2023-12-25T14:30:00"`)
+
+**Custom Formats:** All constructors accept an optional `formats` parameter (list of str) to override the default datetime parsing formats for custom date string formats.
+
 ### Age Object
 
-`Age(start_time: datetime, end_time: datetime = None, biz_policy: BizPolicy = None)`
+`Age(start_time: TimeLike, end_time: TimeLike | None = None, formats: list[str] | None = None)`
 
 | Property         | Description                                               |
 | ---------------- | --------------------------------------------------------- |
@@ -230,7 +252,7 @@ Here is a brief overview of the various classes that make up `Frist`.
 
 | Method                                      | Description                 |
 | ------------------------------------------- | --------------------------- |
-| `set_times(start_time=None, end_time=None)` | Update start/end times      |
+| `set_times(start_time=None, end_time=None)` | Update start/end times (accepts TimeLike inputs) |
 | `parse(age_str)`                            | Parse age string to seconds |
 
 The `months_precise` and `years_precise` properties calculate the `exact` number of calendar months or years between two dates, accounting for the actual length of each month and year. Unlike the approximate versions (which use averages like 30.44 days/month or 365.25 days/year), these properties provide results that match real-world calendar boundaries. They are more intuitively correct but are slower to compute since the first and last month/year need to be handled differently.  Basically, Feb 1 to Feb 28 (non leap year) is 1.0 precise months long, while Jan 1 to Jan31 is also 1 precise month long. And Jan 1 to Feb 14 is 1.5 precise months.  For years it is similar but the effect is smaller.  The 365 days in 2021 is 1 precise year as are the 366 days in 2024.
@@ -244,7 +266,7 @@ The Cal object provides a family of `in_*` methods (e.g., `in_days`, `in_months`
  `day.in_(-1)`: Is the target date yesterday?
  `day.in_(-1, 1)`: Is the target date within ±1 calendar day of the reference?
 
-`Cal(target_dt: datetime, ref_dt: datetime, fy_start_month: int = 1, holidays: set[str] = None)`
+`Cal(target_dt: TimeLike, ref_dt: TimeLike, formats: list[str] | None = None)`
 
 | Property         | Description                   | Return |
 | ---------------- | ----------------------------- | ------ |
@@ -294,7 +316,7 @@ It also computes fractional day contributions using the policy's business hours.
 
 ***Business days and workdays are tricky to calculate and involve iteration because no/few assumptions can be made about the way the days fall. Normally this isn't a huge deal because the time spans are a few days, not 1000's of days.***
 
-`Biz(target_time: datetime, ref_time: datetime | None, policy: BizPolicy | None)`
+`Biz(target_time: TimeLike, ref_time: TimeLike | None, policy: BizPolicy | None, formats: list[str] | None = None)`
 
 | Property / Attribute | Description                                                         | Return |
 | -------------------- | ------------------------------------------------------------------- | ------ |
@@ -367,7 +389,7 @@ True
 False
 ```
 
-`Chrono(target_time: datetime, reference_time: datetime = None, biz_policy:BizPolicy|None)`
+`Chrono(target_time: TimeLike, reference_time: TimeLike = None, biz_policy:BizPolicy|None, formats: list[str] | None = None)`
 
 | Property | Description                                           |
 | -------- | ----------------------------------------------------- |

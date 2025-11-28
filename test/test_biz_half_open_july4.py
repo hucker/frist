@@ -7,7 +7,6 @@ the window and use explicit dates for clarity.
 """
 
 import datetime as dt
-import pytest
 
 from frist import Biz, BizPolicy
 

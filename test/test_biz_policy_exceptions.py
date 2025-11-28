@@ -3,7 +3,6 @@ Unit tests for BizPolicy exception handling.
 
 Verifies that BizPolicy methods raise TypeError for invalid input types.
 """
-import datetime as dt
 import pytest
 from frist._biz_policy import BizPolicy
 

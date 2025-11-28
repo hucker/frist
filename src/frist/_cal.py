@@ -12,6 +12,7 @@ from ._constants import WEEKDAY_INDEX
 from ._util import verify_start_end, in_half_open,in_half_open_date,in_half_open_dt
 from functools import cached_property
 from ._ranges import UnitNamespace
+from ._types import TimeLike, to_datetime
 
 if TYPE_CHECKING:  # pragma: no cover
     pass
@@ -70,31 +71,12 @@ class Cal:
 
     def __init__(
         self,
-        target_dt: dt.datetime | dt.date | float | int,
-        ref_dt: dt.datetime | dt.date | float | int,
+        target_dt: TimeLike,
+        ref_dt: TimeLike,
+        formats: list[str] | None = None,
     ) -> None:
-        # Convert to datetime if needed
-        if isinstance(target_dt, (float, int)):
-            self._target_dt = dt.datetime.fromtimestamp(target_dt)
-        elif isinstance(target_dt, dt.datetime):
-            if target_dt.tzinfo is not None:
-                raise TypeError("Timezones are not supported")
-            self._target_dt = target_dt
-        elif isinstance(target_dt, dt.date):
-            self._target_dt = dt.datetime.combine(target_dt, dt.time(0, 0, 0))
-        else:
-            raise TypeError("target_dt must be datetime, date, float, or int")
-
-        if isinstance(ref_dt, (float, int)):
-            self._ref_dt = dt.datetime.fromtimestamp(ref_dt)
-        elif isinstance(ref_dt, dt.datetime):
-            if ref_dt.tzinfo is not None:
-                raise TypeError("Timezones are not supported")
-            self._ref_dt = ref_dt
-        elif isinstance(ref_dt, dt.date):
-            self._ref_dt = dt.datetime.combine(ref_dt, dt.time(0, 0, 0))
-        else:
-            raise TypeError("ref_dt must be datetime, date, float, or int")
+        self._target_dt = to_datetime(target_dt, formats)
+        self._ref_dt = to_datetime(ref_dt, formats)
 
 
     @property

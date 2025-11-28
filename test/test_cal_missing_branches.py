@@ -12,36 +12,47 @@ from frist._cal import normalize_weekday, Cal
 
 
 def test_normalize_weekday_invalid_raises() -> None:
+    """Test that normalize_weekday raises ValueError for invalid day specifications."""
+    # Act & Assert
     with pytest.raises(ValueError, match="Invalid day specification"):
         normalize_weekday("not-a-day")
 
 
 def test_cal_init_numeric_and_typeerror() -> None:
+    """Test Cal initialization with numeric timestamps and invalid types."""
+    # Arrange
     ref = dt.datetime(2025, 3, 15, 12, 0, 0)
+    
+    # Act & Assert
     # numeric timestamp (int)
     ts = int(ref.timestamp())
     c = Cal(target_dt=ts, ref_dt=ts)
-    assert isinstance(c.target_dt, dt.datetime)
-    assert isinstance(c.ref_dt, dt.datetime)
+    assert isinstance(c.target_dt, dt.datetime), "target_dt should be converted to datetime"
+    assert isinstance(c.ref_dt, dt.datetime), "ref_dt should be converted to datetime"
 
     # invalid target_dt type
-    with pytest.raises(TypeError, match="target_dt must be datetime, date, float, or int"):
+    with pytest.raises(TypeError, match="Unrecognized datetime string format"):
         Cal(target_dt="bad", ref_dt=ref)
 
     # invalid ref_dt type
-    with pytest.raises(TypeError, match="ref_dt must be datetime, date, float, or int"):
+    with pytest.raises(TypeError, match="Unrecognized datetime string format"):
         Cal(target_dt=ref, ref_dt="bad")
 
 
 def test_cal_shortcut_properties_delegate_to_methods() -> None:
+    """Test that Cal shortcut properties delegate to in_() methods correctly."""
+    # Arrange
     ref = dt.datetime(2025, 4, 10, 12, 0, 0)
+    
+    # Act
     # choose a target equal to ref for 'this' shortcuts
     c = Cal(target_dt=ref, ref_dt=ref)
 
+    # Assert
     # Golden assertions for shortcuts (explicit expectations, not parity checks)
-    assert c.is_today is True
-    assert c.is_this_week is True
-    assert c.is_this_month is True
+    assert c.is_today is True, "Target should be today when equal to reference"
+    assert c.is_this_week is True, "Target should be this week when equal to reference"
+    assert c.is_this_month is True, "Target should be this month when equal to reference"
     assert c.is_this_quarter is True
     assert c.is_this_year is True
 
@@ -65,6 +76,7 @@ def test_cal_shortcut_properties_delegate_to_methods() -> None:
 
 
 def test_normalize_weekday_pandas_prefix_invalid() -> None:
+    """Test that normalize_weekday raises ValueError for invalid pandas-style day codes."""
     # ensure pandas-style prefix branch is exercised and raises for unknown code
     with pytest.raises(ValueError, match="Invalid day specification"):
         normalize_weekday("w-xyz")

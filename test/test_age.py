@@ -6,7 +6,7 @@ Tests the Age class as a standalone utility without file dependencies.
 
 import datetime as dt
 import pytest
-from frist import Age, BizPolicy
+from frist import Age
 
 
 @pytest.mark.parametrize(
@@ -183,10 +183,10 @@ def test_age_negative_time_difference():
     age: Age = Age(timestamp, base_time)
 
     # Assert
-    assert age.seconds == -86400.0
-    assert age.minutes == -1440.0
-    assert age.hours == -24.0
-    assert age.days == -1.0
+    assert age.seconds == -86400.0, "Age seconds should be -86400 for 1 day difference"
+    assert age.minutes == -1440.0, "Age minutes should be -1440 for 1 day difference"
+    assert age.hours == -24.0, "Age hours should be -24 for 1 day difference"
+    assert age.days == -1.0, "Age days should be -1 for 1 day difference"
 
 
 @pytest.mark.parametrize(
@@ -237,7 +237,7 @@ def test_age_init_invalid_start_type() -> None:
     Act & Assert: TypeError is raised
     """
     import pytest
-    with pytest.raises(TypeError, match="start_time must be datetime, date, float, or int"):
+    with pytest.raises(TypeError, match="Unrecognized datetime string format"):
         Age("not-a-date") # type: ignore # Exception expected
 
 def test_age_init_invalid_end_type() -> None:
@@ -246,7 +246,7 @@ def test_age_init_invalid_end_type() -> None:
     Act & Assert: TypeError is raised
     """
     import pytest
-    with pytest.raises(TypeError, match="end_time must be datetime, date, float, int, or None"):
+    with pytest.raises(TypeError, match="Unrecognized datetime string format"):
         Age(dt.datetime.now(), "not-a-date") # type: ignore # Exception expected
 
 def test_age_parse_invalid_format() -> None:
@@ -290,7 +290,7 @@ def test_set_times_invalid_start_type() -> None:
     Act & Assert: TypeError is raised
     """
     age = Age(dt.datetime(2020, 1, 1), dt.datetime(2021, 1, 1))
-    with pytest.raises(TypeError, match="start_time must be datetime, date, float, or int"):
+    with pytest.raises(TypeError, match="Unrecognized datetime string format"):
         age.set_times(start_time="not-a-date") # type: ignore
 
 def test_set_times_invalid_end_type() -> None:
@@ -299,19 +299,22 @@ def test_set_times_invalid_end_type() -> None:
     Act & Assert: TypeError is raised
     """
     age = Age(dt.datetime(2020, 1, 1), dt.datetime(2021, 1, 1))
-    with pytest.raises(TypeError, match="end_time must be datetime, date, float, int, or None"):
+    with pytest.raises(TypeError, match="Unrecognized datetime string format"):
         age.set_times(end_time="not-a-date") # type: ignore
 
 
 def test_age_with_dates():
     """Age correctly handles date inputs and calculates 24 hours for one day apart."""
+    # Arrange
     start_date = dt.date(2025, 1, 1)
     end_date = dt.date(2025, 1, 2)
     
+    # Act
     age = Age(start_date, end_date)
     
-    assert age.days == 1.0
-    assert age.hours == 24.0
+    # Assert
+    assert age.days == 1.0, "Age should be 1 day for date inputs one day apart"
+    assert age.hours == 24.0, "Age should be 24 hours for date inputs one day apart"
 
 
 @pytest.mark.parametrize("start, end", [
@@ -321,16 +324,20 @@ def test_age_with_dates():
 ])
 def test_age_with_mixed_date_types(start, end):
     """Age correctly handles mixed date/datetime inputs."""
+    # Arrange & Act
     age = Age(start, end)
     
-    assert age.days == 1.0
-    assert age.hours == 24.0
+    # Assert
+    assert age.days == 1.0, "Age should be 1 day for inputs one day apart"
+    assert age.hours == 24.0, "Age should be 24 hours for inputs one day apart"
 
 
 def test_age_timezone_not_supported():
     """Age raises TypeError for timezone-aware datetimes."""
+    # Arrange
     tz_dt = dt.datetime(2025, 1, 1, tzinfo=dt.timezone.utc)
     
+    # Act & Assert
     with pytest.raises(TypeError, match="Timezones are not supported"):
         Age(tz_dt)
     
@@ -344,3 +351,42 @@ def test_age_timezone_not_supported():
     
     with pytest.raises(TypeError, match="Timezones are not supported"):
         age.set_times(end_time=tz_dt)
+
+
+def test_age_negative():
+    """Age handles negative durations when start_time > end_time."""
+    # Arrange
+    start = dt.datetime(2021, 1, 1)
+    end = dt.datetime(2020, 1, 1)
+    
+    # Act
+    age = Age(start, end)
+    
+    # Assert
+    assert age.days == -366.0, "Age should be -366 days (2020 was a leap year)"
+    assert age.seconds == -31622400.0, "Age should be -31622400 seconds"
+    assert age.hours < 0, "Age hours should be negative"
+    assert age.minutes < 0, "Age minutes should be negative"
+    assert age.weeks < 0, "Age weeks should be negative"
+
+
+@pytest.mark.parametrize("prop, expected", [
+    ("seconds", -31622400.0),
+    ("minutes", -527040.0),
+    ("hours", -8784.0),
+    ("days", -366.0),
+    ("weeks", pytest.approx(-52.285714, rel=1e-3)),
+    ("months", pytest.approx(-12.02365, rel=1e-3)),
+    ("years", pytest.approx(-1.00274, rel=1e-3)),
+])
+def test_age_negative_properties(prop, expected):
+    """Age properties are negative when start_time > end_time."""
+    # Arrange
+    start = dt.datetime(2021, 1, 1)
+    end = dt.datetime(2020, 1, 1)
+    
+    # Act
+    age = Age(start, end)
+    
+    # Assert
+    assert getattr(age, prop) == expected, f"Age {prop} should be {expected} for negative duration"

@@ -12,82 +12,7 @@ from ._age import Age
 from ._cal import Cal
 from ._biz import Biz
 from ._biz_policy import BizPolicy
-from ._constants import CHRONO_DATETIME_FORMATS
-
-# Alias for inputs accepted by Frist time utilities (datetime, date, POSIX ts, or string)
-# Note: explicit optionality (`| None`) should be expressed at the call site.
-TimeLike: TypeAlias = dt.datetime | dt.date | float | int | str
-
-
-def time_pair(
-    *,
-    start_time: TimeLike | None = None,
-    end_time: TimeLike | None = None,
-    formats__: list[str] | None = None,
-) -> tuple[dt.datetime, dt.datetime]:
-    """
-    Normalize and validate a pair of time values.
-
-    Accepts start_time and end_time as keyword arguments, which may be datetime objects,
-    POSIX timestamps (float or int), strings in allowed formats, or None.
-    Converts timestamps and strings to datetime objects.
-    If end_time is None, defaults to the current time. If start_time is None, raises TypeError.
-    The allowed string formats are defined in _constants.py and can be overridden.
-
-    Args:
-        start_time (datetime | float | int | str | None): The start time. Must not be None.
-        end_time (datetime | float | int | str | None): The end time. If None, defaults to now.
-        formats__ (list[str], optional): List of datetime formats to use for string parsing.
-
-    Returns:
-        tuple[datetime, datetime]: Normalized (start_time, end_time) as datetime objects.
-
-    Raises:
-        TypeError: If start_time is None or either value is not a supported type.
-
-    Example:
-        time_pair(start_time=dt.datetime(2020, 1, 1))
-        time_pair(end_time=dt.datetime(2024, 1, 1))
-        time_pair(start_time=1700000000.0)  # POSIX timestamp
-        time_pair(start_time="2023-12-25 14:30:00")  # String format
-        time_pair(start_time="2023-12-25")  # String format
-    """
-    formats:list[str] = formats__ or CHRONO_DATETIME_FORMATS
-
-    def to_datetime(val: TimeLike) -> dt.datetime:
-        
-        # In order of expected frequency of use
-        if isinstance(val, dt.datetime):
-            if val.tzinfo is not None:
-                raise TypeError("Timezones are not supported")
-            return val        
-        elif isinstance(val, dt.date):
-            return dt.datetime.combine(val, dt.time(0, 0, 0))
-        elif isinstance(val, (float, int)):
-            return dt.datetime.fromtimestamp(val)
-        elif isinstance(val, str):  # type: ignore # Run time type checker
-            for format in formats:
-                try:
-                    return dt.datetime.strptime(val,format)
-                except ValueError:
-                    continue
-            raise TypeError(f"Unrecognized datetime string format: {val}")
-        else:
-            raise TypeError("Value must be datetime, date, float, int, or str")
-
-    if start_time is None:
-        raise TypeError("start_time cannot be None")
-    normalized_start_time: dt.datetime = to_datetime(start_time)
-
-    # Keep mypy happy, this code is does not "run"
-    normalized_end_time: dt.datetime
-    
-    if end_time is None:
-        normalized_end_time = dt.datetime.now()
-    else:
-        normalized_end_time = to_datetime(end_time)
-
-    return normalized_start_time, normalized_end_time
+from ._types import TimeLike, time_pair
 
 
 class Chrono:
@@ -119,14 +44,16 @@ class Chrono:
         target_time: TimeLike,
         reference_time: TimeLike | None = None,
         policy: BizPolicy | None = None,
+        formats: list[str] | None = None,
     ):
         """
         Initialize Chrono with target and reference times and an optional BizPolicy.
 
         Args:
-            target_time (datetime): The datetime to analyze (e.g., file timestamp, event time).
-            reference_time (datetime, optional): The reference datetime for calculations (defaults to now).
+            target_time (TimeLike): The datetime to analyze (e.g., file timestamp, event time).
+            reference_time (TimeLike, optional): The reference datetime for calculations (defaults to now).
             policy (BizPolicy, optional): BizPolicy object for business rules (defaults to fiscal year Jan, 9-5, no holidays).
+            formats (list[str], optional): Custom datetime formats for string parsing.
 
         Raises:
             ValueError: If target_time is not a datetime instance.
@@ -135,10 +62,11 @@ class Chrono:
             >>> Chrono(target_time=datetime(2024, 5, 1))
             >>> Chrono(target_time=datetime(2024, 5, 1), reference_time=datetime(2025, 5, 1))
             >>> Chrono(target_time=datetime(2024, 5, 1), policy=BizPolicy(fiscal_year_start_month=4))
+            >>> Chrono(target_time="2024-05-01", formats=["%Y-%m-%d"])
         """
         
         # Normalize target and reference so we get clean  datetime objects
-        target,ref = time_pair(start_time=target_time,end_time=reference_time) 
+        target,ref = time_pair(start_time=target_time, end_time=reference_time, formats__=formats) 
 
         # This keeps the typechecker happy
         self.target_time:dt.datetime = target

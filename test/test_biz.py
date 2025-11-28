@@ -320,13 +320,15 @@ def test_biz_timezone_not_supported():
 
 def test_biz_with_dates():
     """Biz correctly handles date inputs and calculates 1 business day for one day apart."""
+    # Arrange
     target_date = dt.date(2025, 1, 1)  # Assuming Jan 1 is a business day
     ref_date = dt.date(2025, 1, 2)
     
+    # Act
     biz = Biz(target_date, ref_date)
     
-    # From midnight to midnight next day should be 1 full business day
-    assert biz.business_days == 1.0
+    # Assert
+    assert biz.business_days == 1.0, "Business days should be 1.0 for date inputs one day apart"
 
 
 @pytest.mark.parametrize("target, ref, expected", [
@@ -338,31 +340,24 @@ def test_biz_with_dates():
 ])
 def test_biz_with_mixed_date_types(target, ref, expected):
     """Biz correctly handles mixed date/datetime/timestamp inputs."""
+    # Arrange & Act
     biz = Biz(target, ref)
     
-    # Check that business_days is as expected
-    assert biz.business_days == pytest.approx(expected, rel=1e-3)
-
-
-def test_biz_timezone_not_supported():
-    """Biz raises TypeError for timezone-aware datetimes."""
-    tz_dt = dt.datetime(2025, 1, 1, tzinfo=dt.timezone.utc)
-    
-    with pytest.raises(TypeError, match="Timezones are not supported"):
-        Biz(tz_dt)
-    
-    with pytest.raises(TypeError, match="Timezones are not supported"):
-        Biz(dt.datetime(2025, 1, 1), tz_dt)
+    # Assert
+    assert biz.business_days == pytest.approx(expected, rel=1e-3), f"Business days should be approximately {expected}"
 
 
 def test_biz_default_ref_time():
     """Biz uses current time as default ref_time when not provided."""
+    # Arrange
     target = dt.datetime(2025, 1, 1, 12, 0, 0)
+    
+    # Act
     biz = Biz(target)
     
-    # ref_time should be close to now
+    # Assert
     now = dt.datetime.now()
-    assert (now - biz.ref_time).total_seconds() < 1.0
+    assert (now - biz.ref_time).total_seconds() < 1.0, "Reference time should be close to current time"
 
 
 def test_biz_with_timestamps():
@@ -376,11 +371,11 @@ def test_biz_with_timestamps():
 
 def test_biz_invalid_target_type():
     """Biz raises TypeError for invalid target_time type."""
-    with pytest.raises(TypeError, match="target_time must be datetime, date, float, or int"):
+    with pytest.raises(TypeError, match="Unrecognized datetime string format"):
         Biz("invalid")  # type: ignore
 
 
 def test_biz_invalid_ref_type():
     """Biz raises TypeError for invalid ref_time type."""
-    with pytest.raises(TypeError, match="ref_time must be datetime, date, float, int, or None"):
+    with pytest.raises(TypeError, match="Unrecognized datetime string format"):
         Biz(dt.datetime(2025, 1, 1), "invalid")  # type: ignore

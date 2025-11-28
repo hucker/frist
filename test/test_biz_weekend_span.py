@@ -7,7 +7,6 @@ explicit dates and assert expected fractional sums.
 
 import datetime as dt
 import pytest
-from typing import Tuple
 
 from frist import Biz, BizPolicy
 
