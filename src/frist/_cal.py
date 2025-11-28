@@ -353,7 +353,7 @@ class Cal:
 
         Shortcut: equivalent to calling self.in_days(0).
         """
-        return self.in_days(0)
+        return self.day.in_(0)
 
     @property
     def is_yesterday(self) -> bool:
@@ -361,7 +361,7 @@ class Cal:
 
         Shortcut: equivalent to calling self.in_days(-1).
         """
-        return self.in_days(-1)
+        return self.day.in_(-1)
 
     @property
     def is_tomorrow(self) -> bool:
@@ -369,7 +369,7 @@ class Cal:
 
         Shortcut: equivalent to calling self.in_days(1).
         """
-        return self.in_days(1)
+        return self.day.in_(1)
 
     @property
     def is_last_week(self) -> bool:
@@ -378,7 +378,7 @@ class Cal:
         Week start follows the default used by in_weeks (Monday).
         Shortcut: equivalent to calling self.in_weeks(-1).
         """
-        return self.in_weeks(-1)
+        return self.wk.in_(-1)
     
     @property
     def is_this_week(self) -> bool:
@@ -387,7 +387,7 @@ class Cal:
         Week start follows the default used by in_weeks (Monday).
         Shortcut: equivalent to calling self.in_weeks(0).
         """
-        return self.in_weeks(0)
+        return self.wk.in_(0)
 
     @property
     def is_next_week(self) -> bool:
@@ -395,7 +395,7 @@ class Cal:
 
         Shortcut: equivalent to calling self.in_weeks(1).
         """
-        return self.in_weeks(1)
+        return self.wk.in_(1)
 
     @property
     def is_last_month(self) -> bool:
@@ -403,14 +403,14 @@ class Cal:
 
         Shortcut: equivalent to calling self.in_months(-1).
         """
-        return self.in_months(-1)
+        return self.mon.in_(-1)
     @property
     def is_this_month(self) -> bool:
         """Return True if target is in the same calendar month as the reference.
 
         Shortcut: equivalent to calling self.in_months(0).
         """
-        return self.in_months(0)
+        return self.mon.in_(0)
 
     @property
     def is_next_month(self) -> bool:
@@ -418,7 +418,7 @@ class Cal:
 
         Shortcut: equivalent to calling self.in_months(1).
         """
-        return self.in_months(1)
+        return self.mon.in_(1)
 
     @property
     def is_this_quarter(self) -> bool:
@@ -427,7 +427,7 @@ class Cal:
         Quarters are calendar aligned (Q1: Jan–Mar, Q2: Apr–Jun, Q3: Jul–Sep, Q4: Oct–Dec).
         Shortcut: equivalent to calling self.in_quarters(0).
         """
-        return self.in_quarters(0)
+        return self.qtr.in_(0)
 
     @property
     def is_last_quarter(self) -> bool:
@@ -435,7 +435,7 @@ class Cal:
 
         Shortcut: equivalent to calling self.in_quarters(-1).
         """
-        return self.in_quarters(-1)
+        return self.qtr.in_(-1)
 
     @property
     def is_next_quarter(self) -> bool:
@@ -443,7 +443,7 @@ class Cal:
 
         Shortcut: equivalent to calling self.in_quarters(1).
         """
-        return self.in_quarters(1)
+        return self.qtr.in_(1)
 
     @property
     def is_this_year(self) -> bool:
@@ -451,7 +451,7 @@ class Cal:
 
         Shortcut: equivalent to calling self.in_years(0).
         """
-        return self.in_years(0)
+        return self.year.in_(0)
 
     @property
     def is_next_year(self) -> bool:
@@ -459,7 +459,7 @@ class Cal:
 
         Shortcut: equivalent to calling self.in_years(1).
         """
-        return self.in_years(1)
+        return self.year.in_(1)
 
     @property
     def is_last_year(self) -> bool:
@@ -467,7 +467,7 @@ class Cal:
 
         Shortcut: equivalent to calling self.in_years(-1).
         """
-        return self.in_years(-1)
+        return self.year.in_(-1)
 
     # Compact cached namespaces (short 2-4 char names). These are lazy
     # properties that construct a small namespace object delegating to the
@@ -499,5 +499,5 @@ class Cal:
         return UnitNamespace(self, self.in_quarters)
 
     @cached_property
-    def yr(self) -> UnitNamespace:
+    def year(self) -> UnitNamespace:
         return UnitNamespace(self, self.in_years)

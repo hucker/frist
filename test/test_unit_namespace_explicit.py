@@ -39,5 +39,5 @@ def test_unit_namespace_explicit_checks():
     assert cal.qtr.in_(-1) is False
 
     # Act / Assert: Years
-    assert cal.yr.in_(0) is True
-    assert cal.yr.in_(-1) is False
+    assert cal.year.in_(0) is True
+    assert cal.year.in_(-1) is False

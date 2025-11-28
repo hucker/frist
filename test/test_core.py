@@ -179,9 +179,9 @@ def test_chrono_calendar_property():
     cal: Cal = z.cal
 
     # Test calendar window functionality
-    assert cal.in_days(0, 1)  # Same day (half-open: 0..1)
-    assert cal.in_hours(-6, 0)  # Within 6 hours
-    assert not cal.in_days(-1)  # Not yesterday
+    assert cal.day.in_(0, 1)  # Same day (half-open: 0..1)
+    assert cal.hr.in_(-6, 0)  # Within 6 hours
+    assert not cal.day.in_(-1)  # Not yesterday
 
 
 def test_chrono_with_reference_time():

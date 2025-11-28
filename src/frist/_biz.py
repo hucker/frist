@@ -63,7 +63,7 @@ class Biz:
 
         Equivalent to calling `in_business_days(-1)`.
         """
-        return self.in_business_days(-1)
+        return self.bday.in_(-1)
 
     @property
     def is_business_this_day(self) -> bool:
@@ -71,7 +71,7 @@ class Biz:
 
         Equivalent to calling `in_business_days(0)`.
         """
-        return self.in_business_days(0)
+        return self.bday.in_(0)
 
     @property
     def is_business_next_day(self) -> bool:
@@ -79,7 +79,7 @@ class Biz:
 
         Equivalent to calling `in_business_days(1)`.
         """
-        return self.in_business_days(1)
+        return self.bday.in_(1)
 
     @property
     def is_workday_last_day(self) -> bool:
@@ -87,7 +87,7 @@ class Biz:
 
         Equivalent to calling `in_working_days(-1)`.
         """
-        return self.in_working_days(-1)
+        return self.wday.in_(-1)
 
     @property
     def is_workday_this_day(self) -> bool:
@@ -95,7 +95,7 @@ class Biz:
 
         Equivalent to calling `in_working_days(0)`.
         """
-        return self.in_working_days(0)
+        return self.wday.in_(0)
 
     @property
     def is_workday_next_day(self) -> bool:
@@ -103,7 +103,7 @@ class Biz:
 
         Equivalent to calling `in_working_days(1)`.
         """
-        return self.in_working_days(1)
+        return self.wday.in_(1)
 
     # Fiscal shortcuts (explicitly fiscal-aware)
     @property
@@ -112,7 +112,7 @@ class Biz:
 
         Equivalent to calling `in_fiscal_quarters(-1)`.
         """
-        return self.in_fiscal_quarters(-1)
+        return self.fqtr.in_(-1)
 
     @property
     def is_this_fiscal_quarter(self) -> bool:
@@ -120,7 +120,7 @@ class Biz:
 
         Equivalent to calling `in_fiscal_quarters(0)`.
         """
-        return self.in_fiscal_quarters(0)
+        return self.fqtr.in_(0)
 
     @property
     def is_next_fiscal_quarter(self) -> bool:
@@ -128,7 +128,7 @@ class Biz:
 
         Equivalent to calling `in_fiscal_quarters(1)`.
         """
-        return self.in_fiscal_quarters(1)
+        return self.fqtr.in_(1)
 
     @property
     def is_last_fiscal_year(self) -> bool:
@@ -136,7 +136,7 @@ class Biz:
 
         Equivalent to calling `in_fiscal_years(-1)`.
         """
-        return self.in_fiscal_years(-1)
+        return self.fyear.in_(-1)
 
     @property
     def is_this_fiscal_year(self) -> bool:
@@ -144,7 +144,7 @@ class Biz:
 
         Equivalent to calling `in_fiscal_years(0)`.
         """
-        return self.in_fiscal_years(0)
+        return self.fyear.in_(0)
 
     @property
     def is_next_fiscal_year(self) -> bool:
@@ -152,7 +152,7 @@ class Biz:
 
         Equivalent to calling `in_fiscal_years(1)`.
         """
-        return self.in_fiscal_years(1)
+        return self.fyear.in_(1)
 
     # Alias for external convenience
     #@property
@@ -428,7 +428,7 @@ class Biz:
         return UnitNamespace(self, self.in_fiscal_quarters)
 
     @cached_property
-    def fyr(self) -> UnitNamespace:
+    def fyear(self) -> UnitNamespace:
         return UnitNamespace(self, self.in_fiscal_years)
 
 

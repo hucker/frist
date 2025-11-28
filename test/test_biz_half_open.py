@@ -50,7 +50,7 @@ def test_biz_in_business_and_working_days_half_open_five_cases() -> None:
 
   # Act
   # -- business days (excludes holidays)
-  b_biz: Callable[[dt.datetime], bool] = lambda t: Biz(t, ref, policy).in_business_days(-1, 1)
+  b_biz: Callable[[dt.datetime], bool] = lambda t: Biz(t, ref, policy).bday.in_(-1, 1)
 
   # Assert
   assert b_biz(dt_below_lower) is False, "below lower should be outside business window"
@@ -61,7 +61,7 @@ def test_biz_in_business_and_working_days_half_open_five_cases() -> None:
 
   # Act
   # -- working days (ignores holidays)
-  b_work: Callable[[dt.datetime], bool] = lambda t: Biz(t, ref, policy).in_working_days(-1, 1)
+  b_work: Callable[[dt.datetime], bool] = lambda t: Biz(t, ref, policy).wday.in_(-1, 1)
 
   # Assert
   assert b_work(dt_below_lower) is False, "below lower should be outside working window"

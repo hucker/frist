@@ -25,10 +25,10 @@ def test_simple_cal_day_windows():
     # Assert
     assert cal.target_dt == target_time, "cal.target_dt should match target_time"
     assert cal.ref_dt == reference_time, "cal.ref_dt should match reference_time"
-    assert cal.in_days(-1, 0), "Target should be yesterday relative to reference"
-    assert cal.in_days(-1, 0), "Target should be in range yesterday through today"
-    assert not cal.in_days(0), "Target should not be today"
-    assert not cal.in_days(-2), "Target should not be two days ago"
+    assert cal.day.in_(-1, 0), "Target should be yesterday relative to reference"
+    assert cal.day.in_(-1, 0), "Target should be in range yesterday through today"
+    assert not cal.day.in_(0), "Target should not be today"
+    assert not cal.day.in_(-2), "Target should not be two days ago"
 
 
 def test_cal_with_chrono():
@@ -64,9 +64,9 @@ def test_cal_in_minutes():
     # (membership checks below)
 
     # Assert
-    assert cal.in_minutes(-5, 0), "Should be within last 5 minutes through now"
-    assert not cal.in_minutes(1, 5), "Should not be within future minutes"
-    assert cal.in_minutes(-10, 0), "Should be within broader range including target"
+    assert cal.min.in_(-5, 0), "Should be within last 5 minutes through now"
+    assert not cal.min.in_(1, 5), "Should not be within future minutes"
+    assert cal.min.in_(-10, 0), "Should be within broader range including target"
 
 
 def test_cal_in_hours():
@@ -82,9 +82,9 @@ def test_cal_in_hours():
     # (membership checks below)
 
     # Assert
-    assert cal.in_hours(-2, 0), "Should be within last 2 hours through now"
-    assert not cal.in_hours(-1, 0), "Should not be within just last hour (too narrow)"
-    assert cal.in_hours(-3, 0), "Should be within broader range"
+    assert cal.hr.in_(-2, 0), "Should be within last 2 hours through now"
+    assert not cal.hr.in_(-1, 0), "Should not be within just last hour (too narrow)"
+    assert cal.hr.in_(-3, 0), "Should be within broader range"
 
 
 def test_cal_in_days():
@@ -100,10 +100,10 @@ def test_cal_in_days():
     # (membership checks below)
 
     # Assert
-    assert cal.in_days(-1, 1), "Target should be in range yesterday through today"
-    assert cal.in_days(-1, 0), "Target should be just yesterday"
-    assert not cal.in_days(0), "Target should not be today (target was yesterday)"
-    assert not cal.in_days(-2, -1), "Target should not be two days ago only"
+    assert cal.day.in_(-1, 1), "Target should be in range yesterday through today"
+    assert cal.day.in_(-1, 0), "Target should be just yesterday"
+    assert not cal.day.in_(0), "Target should not be today (target was yesterday)"
+    assert not cal.day.in_(-2, -1), "Target should not be two days ago only"
 
 
 def test_cal_in_weeks():
@@ -120,9 +120,9 @@ def test_cal_in_weeks():
     # (membership checks below)
 
     # Assert
-    assert cal.in_weeks(-1, 0), "Target should be in range last week through this week"
-    assert cal.in_weeks(-1, 0), "Target should be just last week"
-    assert not cal.in_weeks(0), "Target should not be this week"
+    assert cal.wk.in_(-1, 0), "Target should be in range last week through this week"
+    assert cal.wk.in_(-1, 0), "Target should be just last week"
+    assert not cal.wk.in_(0), "Target should not be this week"
 
 
 def test_cal_in_weeks_custom_start():
@@ -157,9 +157,9 @@ def test_cal_in_months():
     # (membership checks below)
 
     # Assert
-    assert cal.in_months(-1, 0), "Target should be in range last month through this month"
-    assert cal.in_months(-1, 0), "Target should be just last month"
-    assert not cal.in_months(0), "Target should not be this month"
+    assert cal.mon.in_(-1, 0), "Target should be in range last month through this month"
+    assert cal.mon.in_(-1, 0), "Target should be just last month"
+    assert not cal.mon.in_(0), "Target should not be this month"
 
 
 def test_cal_in_quarters():
@@ -175,9 +175,9 @@ def test_cal_in_quarters():
     # (membership checks below)
 
     # Assert
-    assert cal.in_quarters(-1, 0), "Target should be in range last quarter through this quarter"
-    assert cal.in_quarters(-1), "Target should be just last quarter (Q1)"
-    assert not cal.in_quarters(0), "Target should not be this quarter (Q2)"
+    assert cal.qtr.in_(-1, 0), "Target should be in range last quarter through this quarter"
+    assert cal.qtr.in_(-1), "Target should be just last quarter (Q1)"
+    assert not cal.qtr.in_(0), "Target should not be this quarter (Q2)"
 
 
 def test_cal_in_years():
@@ -193,13 +193,13 @@ def test_cal_in_years():
     # (membership checks below)
 
     # Assert
-    assert cal.in_years(-1, 0), "Target should be in range last year through this year"
-    assert cal.in_years(-1), "Target should be just last year"
-    assert not cal.in_years(0), "Target should not be this year"
+    assert cal.year.in_(-1, 0), "Target should be in range last year through this year"
+    assert cal.year.in_(-1), "Target should be just last year"
+    assert not cal.year.in_(0), "Target should not be this year"
 
 
 def test_cal_single_vs_range():
-    """Test single time unit vs range specications."""
+    """Test single time unit vs range specifications."""
     target_time: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
     reference_time: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)
 
@@ -211,10 +211,10 @@ def test_cal_single_vs_range():
     # (membership checks below)
 
     # Assert
-    assert cal.in_days(-1, 0), "Target should be just yesterday"
+    assert cal.day.in_(-1, 0), "Target should be just yesterday"
 
     # Assert (range)
-    assert cal.in_days(-1, 0), "Target should be in range yesterday through today"
+    assert cal.day.in_(-1, 0), "Target should be in range yesterday through today"
 
 
 def test_weekday_normalization():
@@ -265,13 +265,13 @@ def test_cal_edge_cases():
     # (membership checks below)
 
     # Assert: All current windows should return True
-    assert cal.in_minutes(0), "Target should be in current minute window"
-    assert cal.in_hours(0), "Target should be in current hour window"
-    assert cal.in_days(0, 1), "Target should be in current day window"
-    assert cal.in_months(0, 1), "Target should be in current month window"
-    assert cal.in_quarters(0), "Target should be in current quarter window"
-    assert cal.in_years(0), "Target should be in current year window"
-    assert cal.in_weeks(0), "Target should be in current week window"
+    assert cal.min.in_(0), "Target should be in current minute window"
+    assert cal.hr.in_(0), "Target should be in current hour window"
+    assert cal.day.in_(0, 1), "Target should be in current day window"
+    assert cal.mon.in_(0, 1), "Target should be in current month window"
+    assert cal.qtr.in_(0), "Target should be in current quarter window"
+    assert cal.year.in_(0), "Target should be in current year window"
+    assert cal.wk.in_(0), "Target should be in current week window"
 
 
 def test_cal_month_edge_cases():
@@ -288,8 +288,8 @@ def test_cal_month_edge_cases():
     # (membership checks below)
 
     # Assert: Should be in the previous month
-    assert cal.in_months(-1, 0), "Target should be last month"
-    assert not cal.in_months(0), "Target should not be this month"
+    assert cal.mon.in_(-1, 0), "Target should be last month"
+    assert not cal.mon.in_(0), "Target should not be this month"
 
     # Arrange (multiple years back)
     target_time: dt.datetime = dt.datetime(2022, 6, 15, 12, 0, 0)  # June 2022
@@ -299,8 +299,8 @@ def test_cal_month_edge_cases():
     cal: Cal = z.cal
 
     # Assert: Should be about 19 months ago
-    assert cal.in_months(-20, -18)
-    assert not cal.in_months(-12, 0)
+    assert cal.mon.in_(-20, -18)
+    assert not cal.mon.in_(-12, 0)
 
 
 def test_cal_quarter_edge_cases():
@@ -314,8 +314,8 @@ def test_cal_quarter_edge_cases():
     cal: Cal = z.cal
 
     # Assert: Should be in the previous quarter
-    assert cal.in_quarters(-1)  # Last quarter
-    assert not cal.in_quarters(0)  # This quarter
+    assert cal.qtr.in_(-1)  # Last quarter
+    assert not cal.qtr.in_(0)  # This quarter
 
     # Test edge quarters
     target_time: dt.datetime = dt.datetime(2024, 3, 31, 12, 0, 0)  # End of Q1
@@ -325,8 +325,8 @@ def test_cal_quarter_edge_cases():
     cal: Cal = z.cal
 
     # Assert
-    assert cal.in_quarters(-1), "Target should be previous quarter"
-    assert not cal.in_quarters(0), "Target should not be current quarter"
+    assert cal.qtr.in_(-1), "Target should be previous quarter"
+    assert not cal.qtr.in_(0), "Target should not be current quarter"
 
 
 def test_cal_year_edge_cases():
@@ -340,11 +340,11 @@ def test_cal_year_edge_cases():
     cal: Cal = z.cal
 
     # Assert: Should be in the previous year
-    assert cal.in_years(-1), "Target should be last year"
-    assert not cal.in_years(0), "Target should not be this year"
+    assert cal.year.in_(-1), "Target should be last year"
+    assert not cal.year.in_(0), "Target should not be this year"
 
     # Assert: Multi-year range
-    assert cal.in_years(-2, 0), "Target should be in range 2 years ago through now"
+    assert cal.year.in_(-2, 0), "Target should be in range 2 years ago through now"
 
 
 def test_cal_week_different_starts():
@@ -390,11 +390,11 @@ def test_cal_minutes_edge_cases():
     # (membership checks below)
 
     # Assert
-    assert cal.in_minutes(-1), "Target should be previous minute"
-    assert not cal.in_minutes(0), "Target should not be current minute"
+    assert cal.min.in_(-1), "Target should be previous minute"
+    assert not cal.min.in_(0), "Target should not be current minute"
 
     # Assert: Test range spanning multiple minutes
-    assert cal.in_minutes(-5, 0), "Target should be in range 5 minutes ago through now"
+    assert cal.min.in_(-5, 0), "Target should be in range 5 minutes ago through now"
 
 
 def test_cal_hours_edge_cases():
@@ -408,11 +408,11 @@ def test_cal_hours_edge_cases():
     cal: Cal = z.cal
 
     # Assert: Should be in the previous hour
-    assert cal.in_hours(-1), "Target should be previous hour"
-    assert not cal.in_hours(0), "Target should not be current hour"
+    assert cal.hr.in_(-1), "Target should be previous hour"
+    assert not cal.hr.in_(0), "Target should not be current hour"
 
     # Assert: Test range spanning multiple hours
-    assert cal.in_hours(-6, 0), "Target should be in range 6 hours ago through now"
+    assert cal.hr.in_(-6, 0), "Target should be in range 6 hours ago through now"
 
 
 def test_cal_future_windows():
@@ -426,12 +426,12 @@ def test_cal_future_windows():
     cal: Cal = z.cal
 
     # Act / Assert: Test future windows
-    assert cal.in_days(1, 2), "Target should be tomorrow"
-    assert cal.in_hours(24), "Target should be 24 hours from now"
-    assert cal.in_minutes(1440), "Target should be 1440 minutes from now"
+    assert cal.day.in_(1, 2), "Target should be tomorrow"
+    assert cal.hr.in_(24), "Target should be 24 hours from now"
+    assert cal.min.in_(1440), "Target should be 1440 minutes from now"
 
     # Assert: Future weeks
-    assert cal.in_weeks(0, 1), "Target should be in range this week through next week"
+    assert cal.wk.in_(0, 1), "Target should be in range this week through next week"
 
     # Future months
     target_time: dt.datetime = dt.datetime(2024, 2, 15, 12, 0, 0)  # Next month
@@ -441,7 +441,7 @@ def test_cal_future_windows():
     cal: Cal = z.cal
 
     # Assert
-    assert cal.in_months(1, 2), "Target should be next month"
+    assert cal.mon.in_(1, 2), "Target should be next month"
 
     # Future quarters
     target_time: dt.datetime = dt.datetime(2024, 7, 15, 12, 0, 0)  # Q3
@@ -451,7 +451,7 @@ def test_cal_future_windows():
     cal: Cal = z.cal
 
     # Assert
-    assert cal.in_quarters(2), "Target should be 2 quarters from now"
+    assert cal.qtr.in_(2), "Target should be 2 quarters from now"
 
     # Future years
     target_time: dt.datetime = dt.datetime(2026, 1, 15, 12, 0, 0)  # 2026
@@ -461,7 +461,7 @@ def test_cal_future_windows():
     cal: Cal = z.cal
 
     # Assert
-    assert cal.in_years(2), "Target should be 2 years from now"
+    assert cal.year.in_(2), "Target should be 2 years from now"
 
 
 def test_cal_month_complex_calculations():
@@ -480,8 +480,8 @@ def test_cal_month_complex_calculations():
     # Total = 34 months back
 
     # Assert
-    assert cal.in_months(-34, -33), "Target should be exactly 34 months ago"
-    assert cal.in_months(-35, -33), "Target should be in range around the target (34 months ago)"
+    assert cal.mon.in_(-34, -33), "Target should be exactly 34 months ago"
+    assert cal.mon.in_(-35, -33), "Target should be in range around the target (34 months ago)"
 
 
 def test_cal_quarter_complex_calculations():
@@ -495,7 +495,7 @@ def test_cal_quarter_complex_calculations():
     cal: Cal = z.cal
 
     # Assert: This should be about 10 quarters ago
-    assert cal.in_quarters(-12, -8), "Target should be in range about 10 quarters ago"
+    assert cal.qtr.in_(-12, -8), "Target should be in range about 10 quarters ago"
 
 
 @pytest.mark.parametrize(
@@ -581,7 +581,7 @@ def test_cal_month_year_rollover_edge_cases():
     cal: Cal = z.cal
 
     # This should be about 59 months ago
-    assert cal.in_months(-60, -58)
+    assert cal.mon.in_(-60, -58)
 
     # Case 2: Many months in the future
     target_time: dt.datetime = dt.datetime(2028, 12, 15, 12, 0, 0)
@@ -591,7 +591,7 @@ def test_cal_month_year_rollover_edge_cases():
     cal: Cal = z.cal
 
     # This should be about 59 months in the future
-    assert cal.in_months(58, 60)
+    assert cal.mon.in_(58, 60)
 
 
 def test_cal_quarter_year_rollover_edge_cases():
@@ -606,7 +606,7 @@ def test_cal_quarter_year_rollover_edge_cases():
     cal: Cal = z.cal
 
     # This should be about 19 quarters ago
-    assert cal.in_quarters(-20, -18)
+    assert cal.qtr.in_(-20, -18)
 
     # Case 2: Many quarters in the future
     target_time: dt.datetime = dt.datetime(2029, 8, 15, 12, 0, 0)  # Q3 2029
@@ -616,7 +616,7 @@ def test_cal_quarter_year_rollover_edge_cases():
     cal: Cal = z.cal
 
     # This should be about 22 quarters in the future
-    assert cal.in_quarters(21, 23)
+    assert cal.qtr.in_(21, 23)
 
 
 def test_normalize_weekday_error_with_detailed_message():
@@ -661,19 +661,19 @@ def test_in_xxx_raises_on_backwards_ranges():
 
     # Act & Assert: backwards ranges should raise
     with pytest.raises(ValueError):
-        cal.in_days(2, -2)
+        cal.day.in_(2, -2)
     with pytest.raises(ValueError):
-        cal.in_months(5, 0)
+        cal.mon.in_(5, 0)
     with pytest.raises(ValueError):
-        cal.in_quarters(3, 1)
+        cal.qtr.in_(3, 1)
     with pytest.raises(ValueError):
-        cal.in_years(4, 2)
+        cal.year.in_(4, 2)
     with pytest.raises(ValueError):
-        cal.in_weeks(3, 0)
+        cal.wk.in_(3, 0)
     with pytest.raises(ValueError):
-        cal.in_hours(10, 5)
+        cal.hr.in_(10, 5)
     with pytest.raises(ValueError):
-        cal.in_minutes(15, 10)
+        cal.min.in_(15, 10)
 
 
 
@@ -730,13 +730,13 @@ def test_in_months_edge_cases():
     cal: Cal = Cal(target, ref)
     # Arrange
     # This month
-    assert cal.in_months(0, 1), "Target should be this month"
+    assert cal.mon.in_(0, 1), "Target should be this month"
     # Last month
-    assert not cal.in_months(-1), "Target should not be last month"
+    assert not cal.mon.in_(-1), "Target should not be last month"
     # Next month
-    assert not cal.in_months(1), "Target should not be next month"
+    assert not cal.mon.in_(1), "Target should not be next month"
     # Range: last 12 months through this month
-    assert cal.in_months(-12, 1), "Target should be in range last 12 months through this month"
+    assert cal.mon.in_(-12, 1), "Target should be in range last 12 months through this month"
 
 
 @pytest.mark.parametrize("spec,expected", [

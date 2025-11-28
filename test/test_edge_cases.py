@@ -30,7 +30,7 @@ def test_in_days_backwards_range():
     cal = z.cal
     # Act & Assert
     with pytest.raises(ValueError):
-        cal.in_days(2, -2)
+        cal.day.in_(2, -2)
 
 
 

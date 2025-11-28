@@ -4,7 +4,7 @@
 
 `Frist` is not a [replacement](https://imgs.xkcd.com/comics/standards_2x.png) for `datetime` or `timedelta`. If the standard library meets your needs, keep using it.
 
-Frist does more than shorten expressions: it reduces many common calendar and business-date queries to a single, expressive property (for example, `Cal(...).is_this_quarter`, `Age(...).days`, or `Biz(...).in_business_days(0)`). That one-property approach makes intent explicit, avoids repeating low-level date math across projects, and centralizes tricky edge cases such as half-open intervals, fiscal boundaries, and business-hour fractions.
+Frist does more than shorten expressions: it reduces many common calendar and business-date queries to a single, expressive property (for example, `Cal(...).is_this_quarter`, `Age(...).days`, or `Biz(...).bday.in_(0)`). That one-property approach makes intent explicit, avoids repeating low-level date math across projects, and centralizes tricky edge cases such as half-open intervals, fiscal boundaries, and business-hour fractions.
 
 Here are some examples of a dataset with a bunch of datetimes.
 
@@ -29,17 +29,17 @@ last_four_and_half_minutes = [date for date in dates if Age(date).minutes <= 4.5
 
 last_three_years = [date for date in dates if Age(date).years < 3.0]
 
-dates_today = [date for date in dates if Cal(date).in_days(0)]
+dates_today = [date for date in dates if Cal(date).day.in_(0)]
 
-last_two_months = [date for date in dates if Cal(date).in_months(-2, 0)]
+last_two_months = [date for date in dates if Cal(date).mon.in_(-2, 0)]
 
-last_three_cal_years = [date for date in dates if Cal(date).in_years(-3, 0)]
+last_three_cal_years = [date for date in dates if Cal(date).year.in_(-3, 0)]
 
-last_five_business_days = [date for date in dates if Biz(date).in_business_days(-5, 0)]
+last_five_business_days = [date for date in dates if Biz(date).bday.in_(-5, 0)]
 
-this_fiscal_year = [date for date in dates if Biz(date, policy).in_fiscal_years(0)]
+this_fiscal_year = [date for date in dates if Biz(date, policy).fyear.in_(0)]
 
-last_3_fiscal_years = [date for date in dates if Biz(date, policy).in_fiscal_years(-2, 0)]
+last_3_fiscal_years = [date for date in dates if Biz(date, policy).fyear.in_(-2, 0)]
 
 ignore_holidays = [date for date in dates if not Biz(date, policy).is_holiday]
 
@@ -94,9 +94,9 @@ Example:
 >>> target = dt.datetime(2025,9,15)
 >>> ref = dt.datetime(2025,11,20)
 >>> c = Cal(target_dt=target, ref_dt=ref)
->>> c.in_months(-2, 0)
+>>> c.mon.in_(-2, 0)
 True    # target was in Sept/Oct (the two full months before Nov)
->>> c.in_days(-7, -1)
+>>> c.day.in_(-7, -1)
 False   # not in the 7..1 days before ref
 ```
 
@@ -106,7 +106,7 @@ Frist also provides a  helper available on the compact `UnitNamespace` propertie
 
 - `*.in_` methods and the main API use half-open intervals: `start <= value < end`. - `*.thru(start, end)` is inclusive on the end: it returns True when `start <= value <= end`.
 
-Implementation note: `thru` is implemented as a thin ergonomic adapter that forwards to the canonical half-open `in_*` methods by advancing the exclusive end by one unit. For example `cal.mon.thru(-2, 0)` is equivalent to `cal.in_months(-2, 1)` (the inclusive end `0` becomes exclusive `1`). This keeps the core API canonical while offering a more natural English-style `thru` surface for consumers.
+Implementation note: `thru` is implemented as a thin ergonomic adapter that forwards to the canonical half-open `in_*` methods by advancing the exclusive end by one unit. For example `cal.mon.thru(-2, 0)` is equivalent to `cal.mon.in_(-2, 1)` (the inclusive end `0` becomes exclusive `1`). This keeps the core API canonical while offering a more natural English-style `thru` surface for consumers.
 
 Examples:
 
@@ -118,7 +118,7 @@ Examples:
 >>> Cal(dt.datetime(2025,11,17), ref).day.thru(-3, -1)   # Mon thru Wed
 True
 >>> # Equivalent half-open call
->>> Cal(dt.datetime(2025,11,17), ref).in_days(-3, 0)
+>>> Cal(dt.datetime(2025,11,17), ref).day.in_(-3, 0)
 True
 ```
 
@@ -145,13 +145,10 @@ Example:
 3.0      # counts Wed/Thu/Fri as workdays (holidays ignored)
 >>> b.business_days
 2.0      # Dec 25 removed from business-day total
->>> b.in_business_days(0)
+>>> b.bday.in_(0)
 False    # target is a holiday -> not a business day
->>> b.in_working_days(0)
+>>> b.wday.in_(0)
 True     # still a weekday per policy
-```
-
-## BizPolicy
 
 The `BizPolicy` object lets you customize business logic for calendar calculations using half-open intervals You can define:
 
@@ -165,7 +162,7 @@ The `BizPolicy` object lets you customize business logic for calendar calculatio
 If you do not provide a `BizPolicy`, Frist uses a default policy:
 
 - Workdays: Monday–Friday (0–4)
-- Work hours: 9AM–5PM
+>>> c.day.in_(-1)
 - Holidays: none
 
 This is suitable for most standard business use cases. You only need to provide a custom `BizPolicy` if your calendar logic requires non-standard workweeks, holidays, or business hours.
@@ -174,7 +171,6 @@ Example (custom policy):
 
 ```python
 >>> from frist import BizPolicy
->>> import datetime as dt
 >>> policy = BizPolicy(
 ...     workdays=[0, 1, 2, 3, 4],
 ...     holidays={"2025-01-10"},
@@ -232,8 +228,8 @@ The `months_precise` and `years_precise` properties calculate the `exact` number
 
 The Cal object provides a family of `in_*` methods (e.g., `in_days`, `in_months`, `in_years` etc) to check if the target date falls within a calendar window relative to the reference date. These methods use calendar units (not elapsed time) using half-open intervals. The start is inclusive, the end is exclusive. This makes it easy to check if a date is in a specific calendar range (e.g., last week, next month, fiscal quarter) using intuitive, unit-based logic.
 
-- `in_days(-1)`: Is the target date yesterday?
-- `in_days(-1, 1)`: Is the target date within ±1 calendar day of the reference?
+ `day.in_(-1)`: Is the target date yesterday?
+ `day.in_(-1, 1)`: Is the target date within ±1 calendar day of the reference?
 
 `Cal(target_dt: datetime, ref_dt: datetime, fy_start_month: int = 1, holidays: set[str] = None)`
 
@@ -253,7 +249,7 @@ The Cal object provides a family of `in_*` methods (e.g., `in_days`, `in_months`
 | `cal.wk.in_(start=0, end=None, week_start="monday")` | Is target in week window    | `bool` |
 | `cal.mon.in_(start=0, end=None)`                   | Is target in month window   | `bool` |
 | `cal.qtr.in_(start=0, end=None)`                   | Is target in quarter window | `bool` |
-| `cal.yr.in_(start=0, end=None)`                    | Is target in year window    | `bool` |
+| `cal.year.in_(start=0, end=None)`                   | Is target in year window    | `bool` |
 
 Shortcuts (convenience boolean properties):
 
@@ -271,9 +267,9 @@ Shortcuts (convenience boolean properties):
 | `is_last_quarter`| `cal.qtr.in_(-1)`       |
 | `is_this_quarter`| `cal.qtr.in_(0)`        |
 | `is_next_quarter`| `cal.qtr.in_(1)`        |
-| `is_last_year`   | `cal.yr.in_(-1)`        |
-| `is_this_year`   | `cal.yr.in_(0)`         |
-| `is_next_year`   | `cal.yr.in_(1)`         |
+| `is_last_year`   | `cal.year.in_(-1)`        |
+| `is_this_year`   | `cal.year.in_(0)`         |
+| `is_next_year`   | `cal.year.in_(1)`         |
 
 ---
 
@@ -309,12 +305,12 @@ Shortcuts (convenience boolean properties):
 
 | Shortcut | Equivalent `in_*` call |
 | -------- | --------------------- |
-| `is_business_last_day` | `in_business_days(-1)` (observes holidays) |
-| `is_business_this_day` | `in_business_days(0)` (observes holidays) |
-| `is_business_next_day` | `in_business_days(1)` (observes holidays) |
-| `is_workday_last_day` | `in_working_days(-1)` |
-| `is_workday_this_day` | `in_working_days(0)` |
-| `is_workday_next_day` | `in_working_days(1)` |
+| `is_business_last_day` | `bday.in_(-1)` (observes holidays) |
+| `is_business_this_day` | `bday.in_(0)` (observes holidays) |
+| `is_business_next_day` | `bday.in_(1)` (observes holidays) |
+| `is_workday_last_day` | `wday.in_(-1)` |
+| `is_workday_this_day` | `wday.in_(0)` |
+| `is_workday_next_day` | `wday.in_(1)` |
 | `is_last_fiscal_quarter` | `in_fiscal_quarters(-1)` |
 | `is_this_fiscal_quarter` | `in_fiscal_quarters(0)` |
 | `is_next_fiscal_quarter` | `in_fiscal_quarters(1)` |
@@ -342,9 +338,9 @@ In some situations you will need to have all three of these classes together bec
 0.0106
 
 # Cal (calendar-window queries)
->>> z.cal.in_days(-5)         # was target 5 days before reference?
+>>> z.cal.day.in_(-5)         # was target 5 days before reference?
 True
->>> z.cal.in_months(0)        # same calendar month as reference?
+>>> z.cal.mon.in_(0)        # same calendar month as reference?
 True
 
 # Biz (policy-aware business logic — properties are floats)
@@ -352,9 +348,9 @@ True
 1.0
 >>> z.biz.business_days       # fractional business days (excludes holidays from policy)
 0.0
->>> z.biz.in_working_days(0)  # range-membership helper (bool)
+>>> z.biz.wday.in_(0)  # range-membership helper (bool)
 True
->>> z.biz.in_business_days(0) # range-membership helper (bool)
+>>> z.biz.bday.in_(0) # range-membership helper (bool)
 False
 ```
 

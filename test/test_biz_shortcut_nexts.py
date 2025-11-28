@@ -24,10 +24,10 @@ def test_is_business_and_workday_next_day_shortcuts():
 
     # Act / Assert
     assert b.is_business_next_day is True, "is_business_next_day should be True for Fri when ref is Thu"
-    assert b.is_business_next_day == b.in_business_days(1), "business shortcut should equal in_business_days(1)"
+    assert b.is_business_next_day == b.bday.in_(1), "business shortcut should equal in_business_days(1)"
 
     assert b.is_workday_next_day is True, "is_workday_next_day should be True for Fri when ref is Thu"
-    assert b.is_workday_next_day == b.in_working_days(1), "workday shortcut should equal in_working_days(1)"
+    assert b.is_workday_next_day == b.wday.in_(1), "workday shortcut should equal in_working_days(1)"
 
 
 def test_is_next_fiscal_quarter_and_year_shortcuts():
@@ -41,11 +41,11 @@ def test_is_next_fiscal_quarter_and_year_shortcuts():
     target_q = dt.datetime(2025, 4, 10, 12, 0)
     bq = Biz(target_q, ref, BizPolicy())
     assert bq.is_next_fiscal_quarter is True, "is_next_fiscal_quarter should be True for Apr when ref is Mar"
-    assert bq.is_next_fiscal_quarter == bq.in_fiscal_quarters(1), "fiscal quarter shortcut mismatch"
+    assert bq.is_next_fiscal_quarter == bq.fqtr.in_(1), "fiscal quarter shortcut mismatch"
 
     # Arrange / Act - year boundary
     ref_y = dt.datetime(2025, 12, 31, 12, 0)
     target_y = dt.datetime(2026, 1, 1, 12, 0)
     by = Biz(target_y, ref_y, BizPolicy())
     assert by.is_next_fiscal_year is True, "is_next_fiscal_year should be True across year boundary"
-    assert by.is_next_fiscal_year == by.in_fiscal_years(1), "fiscal year shortcut mismatch"
+    assert by.is_next_fiscal_year == by.fyear.in_(1), "fiscal year shortcut mismatch"

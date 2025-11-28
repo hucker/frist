@@ -29,5 +29,5 @@ def test_biz_unit_namespace_explicit_checks():
     assert biz.fqtr.in_(-1) is False
 
     # Act / Assert: fiscal years
-    assert biz.fyr.in_(0) is True
-    assert biz.fyr.in_(-1) is False
+    assert biz.fyear.in_(0) is True
+    assert biz.fyear.in_(-1) is False

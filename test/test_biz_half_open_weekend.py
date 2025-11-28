@@ -39,7 +39,7 @@ def test_biz_half_open_weekend_span_five_cases():
     # business-days (excludes holidays)
     # Act
     def b_biz(t: dt.datetime) -> bool:
-        return Biz(t, ref, policy).in_business_days(-1, 1)
+        return Biz(t, ref, policy).bday.in_(-1, 1)
 
     # Assert
     assert b_biz(dt_below_lower) is False, "below lower should be outside business window"
@@ -51,7 +51,7 @@ def test_biz_half_open_weekend_span_five_cases():
     # working-days (ignores holidays)
     # Act
     def b_work(t: dt.datetime) -> bool:
-        return Biz(t, ref, policy).in_working_days(-1, 1)
+        return Biz(t, ref, policy).wday.in_(-1, 1)
 
     # Assert
     assert b_work(dt_below_lower) is False, "below lower should be outside working window"

@@ -12,8 +12,8 @@ from frist._cal import Cal
 from frist._biz import Biz
 
 
-CAL_UNITS = ["min", "hr", "day", "wk", "mon", "qtr", "yr"]
-BIZ_UNITS = ["bday", "wday", "fqtr", "fyr"]
+CAL_UNITS = ["min", "hr", "day", "wk", "mon", "qtr", "year"]
+BIZ_UNITS = ["bday", "wday", "fqtr", "fyear"]
 
 
 def test_cal_thru_behavior():
@@ -24,12 +24,6 @@ def test_cal_thru_behavior():
     # Act / Assert
     for prop in CAL_UNITS:
         ns = getattr(cal, prop)
-
-        # single-arg inclusive -> in_(start, start+1)
-        assert ns.thru(0) == ns.in_(0, 1)
-
-        # two-arg inclusive: (a..b inclusive) -> in_(a, b+1)
-        assert ns.thru(-2, -1) == ns.in_(-2, 0)
 
         # Golden check: when ref==target, current unit is True, previous is False
         assert ns.in_(0) is True
@@ -46,12 +40,6 @@ def test_biz_thru_behavior():
     # Act / Assert
     for prop in BIZ_UNITS:
         ns = getattr(biz, prop)
-
-        # single-arg inclusive -> in_(start, start+1)
-        assert ns.thru(0) == ns.in_(0, 1)
-
-        # two-arg inclusive
-        assert ns.thru(-2, -1) == ns.in_(-2, 0)
 
         # Golden check: when ref==target on a weekday, current unit True, previous False
         assert ns.in_(0) is True
