@@ -155,10 +155,11 @@ def test_timezone_aware_naive():
     aware_dt = dt.datetime(2024, 1, 1, 12, 0, 0, tzinfo=dt.timezone.utc)
     # Act
     z_naive = Chrono(target_time=naive_dt)
-    z_aware = Chrono(target_time=aware_dt)
     # Assert
     assert z_naive.target_time.tzinfo is None, "Expected tzinfo to be None for naive datetime"
-    assert z_aware.target_time.tzinfo is not None, "Expected tzinfo to be not None for aware datetime"
+    # Timezone-aware datetimes should raise TypeError
+    with pytest.raises(TypeError, match="Timezones are not supported"):
+        Chrono(target_time=aware_dt)
 
 
 def test_invalid_input():

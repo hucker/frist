@@ -25,11 +25,11 @@ def test_cal_init_numeric_and_typeerror() -> None:
     assert isinstance(c.ref_dt, dt.datetime)
 
     # invalid target_dt type
-    with pytest.raises(TypeError, match="target_dt must be datetime, float, or int"):
+    with pytest.raises(TypeError, match="target_dt must be datetime, date, float, or int"):
         Cal(target_dt="bad", ref_dt=ref)
 
     # invalid ref_dt type
-    with pytest.raises(TypeError, match="ref_dt must be datetime, float, or int"):
+    with pytest.raises(TypeError, match="ref_dt must be datetime, date, float, or int"):
         Cal(target_dt=ref, ref_dt="bad")
 
 

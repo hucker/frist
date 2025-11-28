@@ -682,7 +682,7 @@ def test_cal_init_invalid_target_type():
     Arrange: Provide invalid target_dt type
     Act & Assert: TypeError is raised
     """
-    with pytest.raises(TypeError, match="target_dt must be datetime, float, or int"):
+    with pytest.raises(TypeError, match="target_dt must be datetime, date, float, or int"):
         Cal("not-a-date", dt.datetime.now()) # type: ignore # Intentional type error for testing
 
 
@@ -691,7 +691,7 @@ def test_cal_init_invalid_ref_type():
     Arrange: Provide invalid ref_dt type
     Act & Assert: TypeError is raised
     """
-    with pytest.raises(TypeError, match="ref_dt must be datetime, float, or int"):
+    with pytest.raises(TypeError, match="ref_dt must be datetime, date, float, or int"):
         Cal(dt.datetime.now(), "not-a-date") # type: ignore # Intentional type error for testing
 
 
@@ -767,3 +767,53 @@ def test_normalize_weekday_invalid(bad_spec):
     # Act & Assert: invalid specs raise
     with pytest.raises(ValueError, match="Invalid day specification"):
         normalize_weekday(bad_spec)
+
+
+def test_cal_timezone_not_supported():
+    """Cal raises TypeError for timezone-aware datetimes."""
+    tz_dt = dt.datetime(2025, 1, 1, tzinfo=dt.timezone.utc)
+    
+    with pytest.raises(TypeError, match="Timezones are not supported"):
+        Cal(tz_dt, dt.datetime(2025, 1, 1))
+    
+    with pytest.raises(TypeError, match="Timezones are not supported"):
+        Cal(dt.datetime(2025, 1, 1), tz_dt)
+
+
+def test_cal_with_dates():
+    """Cal correctly handles date inputs and recognizes one day apart."""
+    target_date = dt.date(2025, 1, 1)  # midnight Jan 1
+    ref_date = dt.date(2025, 1, 2)     # midnight Jan 2
+    
+    cal = Cal(target_date, ref_date)
+    
+    # Target is yesterday relative to ref
+    assert cal.day.in_(-1)
+    assert not cal.day.in_(0)
+    assert cal.is_yesterday
+
+
+@pytest.mark.parametrize("target, ref", [
+    (dt.date(2025, 1, 1), dt.date(2025, 1, 2)),
+    (dt.date(2025, 1, 1), dt.datetime(2025, 1, 2, 0, 0, 0)),
+    (dt.datetime(2025, 1, 1, 0, 0, 0), dt.date(2025, 1, 2)),
+])
+def test_cal_with_mixed_date_types(target, ref):
+    """Cal correctly handles mixed date/datetime inputs."""
+    cal = Cal(target, ref)
+    
+    # Target is yesterday relative to ref
+    assert cal.day.in_(-1)
+    assert not cal.day.in_(0)
+    assert cal.is_yesterday
+
+
+def test_cal_timezone_not_supported():
+    """Cal raises TypeError for timezone-aware datetimes."""
+    tz_dt = dt.datetime(2025, 1, 1, tzinfo=dt.timezone.utc)
+    
+    with pytest.raises(TypeError, match="Timezones are not supported"):
+        Cal(tz_dt, dt.datetime(2025, 1, 1))
+    
+    with pytest.raises(TypeError, match="Timezones are not supported"):
+        Cal(dt.datetime(2025, 1, 1), tz_dt)

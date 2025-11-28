@@ -58,9 +58,11 @@ def time_pair(
         
         # In order of expected frequency of use
         if isinstance(val, dt.datetime):
+            if val.tzinfo is not None:
+                raise TypeError("Timezones are not supported")
             return val        
         elif isinstance(val, dt.date):
-            return dt.datetime(val.year, val.month, val.day)
+            return dt.datetime.combine(val, dt.time(0, 0, 0))
         elif isinstance(val, (float, int)):
             return dt.datetime.fromtimestamp(val)
         elif isinstance(val, str):  # type: ignore # Run time type checker
@@ -71,7 +73,7 @@ def time_pair(
                     continue
             raise TypeError(f"Unrecognized datetime string format: {val}")
         else:
-            raise TypeError("Value must be datetime, float, int, or str")
+            raise TypeError("Value must be datetime, date, float, int, or str")
 
     if start_time is None:
         raise TypeError("start_time cannot be None")

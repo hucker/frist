@@ -237,7 +237,7 @@ def test_age_init_invalid_start_type() -> None:
     Act & Assert: TypeError is raised
     """
     import pytest
-    with pytest.raises(TypeError, match="start_time must be datetime, float, or int"):
+    with pytest.raises(TypeError, match="start_time must be datetime, date, float, or int"):
         Age("not-a-date") # type: ignore # Exception expected
 
 def test_age_init_invalid_end_type() -> None:
@@ -246,7 +246,7 @@ def test_age_init_invalid_end_type() -> None:
     Act & Assert: TypeError is raised
     """
     import pytest
-    with pytest.raises(TypeError, match="end_time must be datetime, float, int, or None"):
+    with pytest.raises(TypeError, match="end_time must be datetime, date, float, int, or None"):
         Age(dt.datetime.now(), "not-a-date") # type: ignore # Exception expected
 
 def test_age_parse_invalid_format() -> None:
@@ -290,7 +290,7 @@ def test_set_times_invalid_start_type() -> None:
     Act & Assert: TypeError is raised
     """
     age = Age(dt.datetime(2020, 1, 1), dt.datetime(2021, 1, 1))
-    with pytest.raises(TypeError, match="start_time must be datetime, float, or int"):
+    with pytest.raises(TypeError, match="start_time must be datetime, date, float, or int"):
         age.set_times(start_time="not-a-date") # type: ignore
 
 def test_set_times_invalid_end_type() -> None:
@@ -299,5 +299,48 @@ def test_set_times_invalid_end_type() -> None:
     Act & Assert: TypeError is raised
     """
     age = Age(dt.datetime(2020, 1, 1), dt.datetime(2021, 1, 1))
-    with pytest.raises(TypeError, match="end_time must be datetime, float, int, or None"):
+    with pytest.raises(TypeError, match="end_time must be datetime, date, float, int, or None"):
         age.set_times(end_time="not-a-date") # type: ignore
+
+
+def test_age_with_dates():
+    """Age correctly handles date inputs and calculates 24 hours for one day apart."""
+    start_date = dt.date(2025, 1, 1)
+    end_date = dt.date(2025, 1, 2)
+    
+    age = Age(start_date, end_date)
+    
+    assert age.days == 1.0
+    assert age.hours == 24.0
+
+
+@pytest.mark.parametrize("start, end", [
+    (dt.date(2025, 1, 1), dt.date(2025, 1, 2)),
+    (dt.date(2025, 1, 1), dt.datetime(2025, 1, 2, 0, 0, 0)),
+    (dt.datetime(2025, 1, 1, 0, 0, 0), dt.date(2025, 1, 2)),
+])
+def test_age_with_mixed_date_types(start, end):
+    """Age correctly handles mixed date/datetime inputs."""
+    age = Age(start, end)
+    
+    assert age.days == 1.0
+    assert age.hours == 24.0
+
+
+def test_age_timezone_not_supported():
+    """Age raises TypeError for timezone-aware datetimes."""
+    tz_dt = dt.datetime(2025, 1, 1, tzinfo=dt.timezone.utc)
+    
+    with pytest.raises(TypeError, match="Timezones are not supported"):
+        Age(tz_dt)
+    
+    with pytest.raises(TypeError, match="Timezones are not supported"):
+        Age(dt.datetime(2025, 1, 1), tz_dt)
+    
+    # Also for set_times
+    age = Age(dt.datetime(2020, 1, 1), dt.datetime(2021, 1, 1))
+    with pytest.raises(TypeError, match="Timezones are not supported"):
+        age.set_times(start_time=tz_dt)
+    
+    with pytest.raises(TypeError, match="Timezones are not supported"):
+        age.set_times(end_time=tz_dt)

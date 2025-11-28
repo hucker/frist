@@ -49,6 +49,19 @@ dates_this_quarter = [date for date in dates if Cal(date).is_this_quarter]
 dates_last_year = [date for date in dates if Cal(date).is_last_year]
 ```
 
+## Caveats
+
+- **Fixed-length business days:** Calculations assume standard day lengths; DST transitions 
+  are ignored. Fractional-day values always use these standard lengths.
+
+- **No timezone support:** All datetimes are treated as naive; timezones are not considered.
+
+- **Fiscal-year and fiscal-quarter logic:** You can set the fiscal year to start on any 
+  month. Each fiscal year has four quarters, each 3 months long, with Q1 starting on the 
+  first day of the chosen month.
+
+- **Precomputed Holidays** The business holiday set is a precomputed list of holidays provided by the business.  It is assumed this list will take care of ALL "movable" holiday calculations and provide a list of days (that should land on working days) that are considered days off.  THere is NO calculation involved.  If New Years on a Sunday and you are closed Monday then you need to add the 2nd as a holiday.  These calendars are usually provided by HR or accounting.
+
 ## Age
 
 The `Age` object answers "How old is X?" for two datetimes (start and end). It exposes common elapsed-time metrics as properties so you can write intent‑revealing one‑liners.

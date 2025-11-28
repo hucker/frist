@@ -70,23 +70,31 @@ class Cal:
 
     def __init__(
         self,
-        target_dt: dt.datetime | float | int,
-        ref_dt: dt.datetime | float | int,
+        target_dt: dt.datetime | dt.date | float | int,
+        ref_dt: dt.datetime | dt.date | float | int,
     ) -> None:
         # Convert to datetime if needed
         if isinstance(target_dt, (float, int)):
             self._target_dt = dt.datetime.fromtimestamp(target_dt)
-        elif isinstance(target_dt, dt.datetime): # type: ignore # Explicit type check for runtime safety
+        elif isinstance(target_dt, dt.datetime):
+            if target_dt.tzinfo is not None:
+                raise TypeError("Timezones are not supported")
             self._target_dt = target_dt
+        elif isinstance(target_dt, dt.date):
+            self._target_dt = dt.datetime.combine(target_dt, dt.time(0, 0, 0))
         else:
-            raise TypeError("target_dt must be datetime, float, or int")
+            raise TypeError("target_dt must be datetime, date, float, or int")
 
         if isinstance(ref_dt, (float, int)):
             self._ref_dt = dt.datetime.fromtimestamp(ref_dt)
-        elif isinstance(ref_dt, dt.datetime): # type: ignore # Explicit type check for runtime safety
+        elif isinstance(ref_dt, dt.datetime):
+            if ref_dt.tzinfo is not None:
+                raise TypeError("Timezones are not supported")
             self._ref_dt = ref_dt
+        elif isinstance(ref_dt, dt.date):
+            self._ref_dt = dt.datetime.combine(ref_dt, dt.time(0, 0, 0))
         else:
-            raise TypeError("ref_dt must be datetime, float, or int")
+            raise TypeError("ref_dt must be datetime, date, float, or int")
 
 
     @property

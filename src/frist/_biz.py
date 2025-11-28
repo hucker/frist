@@ -24,17 +24,42 @@ class Biz:
     The class is intentionally small and focused: it performs policy-aware
     operations and leaves policy-free calendar/time calculations to `Cal`.
     """
-    def __init__(self, target_time: dt.datetime, ref_time: dt.datetime | None=None, policy: BizPolicy | None=None) -> None:
+    def __init__(self, target_time: dt.datetime | dt.date | float | int, ref_time: dt.datetime | dt.date | float | int | None=None, policy: BizPolicy | None=None) -> None:
         """Initialize a `Biz` instance.
 
         Args:
-            target_time: The datetime being inspected or measured from.
-            ref_time: The reference datetime (defaults to now when omitted).
+            target_time: The datetime being inspected or measured from. Can be dt.datetime, dt.date, float, or int.
+            ref_time: The reference datetime (defaults to now when omitted). Can be dt.datetime, dt.date, float, int, or None.
             policy: Optional `BizPolicy`. If omitted, a default policy is used.
         """
         self.cal_policy: BizPolicy = policy or BizPolicy()
-        self.target_time: dt.datetime = target_time
-        self.ref_time: dt.datetime = ref_time or dt.datetime.now()
+        
+        # Convert target_time
+        if isinstance(target_time, (float, int)):
+            self.target_time = dt.datetime.fromtimestamp(target_time)
+        elif isinstance(target_time, dt.datetime):
+            if target_time.tzinfo is not None:
+                raise TypeError("Timezones are not supported")
+            self.target_time = target_time
+        elif isinstance(target_time, dt.date):
+            self.target_time = dt.datetime.combine(target_time, dt.time(0, 0, 0))
+        else:
+            raise TypeError("target_time must be datetime, date, float, or int")
+        
+        # Convert ref_time
+        if ref_time is not None:
+            if isinstance(ref_time, (float, int)):
+                self.ref_time = dt.datetime.fromtimestamp(ref_time)
+            elif isinstance(ref_time, dt.datetime):
+                if ref_time.tzinfo is not None:
+                    raise TypeError("Timezones are not supported")
+                self.ref_time = ref_time
+            elif isinstance(ref_time, dt.date):
+                self.ref_time = dt.datetime.combine(ref_time, dt.time(0, 0, 0))
+            else:
+                raise TypeError("ref_time must be datetime, date, float, int, or None")
+        else:
+            self.ref_time = dt.datetime.now()
 
     def __repr__(self) -> str:
         """Return a concise representation useful for debugging."""
