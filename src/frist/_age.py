@@ -123,8 +123,6 @@ class Age:
 
         if end_time is not None:
             self._end_time = to_datetime(end_time, formats)
-        elif not hasattr(self, '_end_time'):
-            self._end_time = dt.datetime.now()
 
     # Suggestion: You can use set_times inside __init__ to centralize type handling and validation for start/end times. This makes future updates easier and keeps logic DRY.
 
