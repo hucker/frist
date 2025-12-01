@@ -8,6 +8,7 @@ for Cal calendar window calculations, regardless of input dates.
 import datetime as dt
 from typing import Tuple
 
+import pytest
 from hypothesis import given, strategies as st
 
 from frist import Cal
@@ -25,6 +26,7 @@ datetime_strategy = st.datetimes(
 datetime_pair_strategy = st.tuples(datetime_strategy, datetime_strategy)
 
 
+@pytest.mark.hypothesis
 @given(target_ref=st.tuples(datetime_strategy, datetime_strategy))
 def test_cal_construction_properties(target_ref: Tuple[dt.datetime, dt.datetime]):
     """Test that Cal objects are constructed correctly."""
@@ -35,6 +37,7 @@ def test_cal_construction_properties(target_ref: Tuple[dt.datetime, dt.datetime]
     assert cal.ref_dt == ref_dt
 
 
+@pytest.mark.hypothesis
 @given(target_ref=datetime_pair_strategy)
 def test_cal_in_minutes_consistency(target_ref: Tuple[dt.datetime, dt.datetime]):
     """Test in_minutes method consistency."""
@@ -56,6 +59,7 @@ def test_cal_in_minutes_consistency(target_ref: Tuple[dt.datetime, dt.datetime])
             assert cal.in_minutes(start, end) == expected
 
 
+@pytest.mark.hypothesis
 @given(target_ref=datetime_pair_strategy)
 def test_cal_in_hours_consistency(target_ref: Tuple[dt.datetime, dt.datetime]):
     """Test in_hours method consistency."""
@@ -76,6 +80,7 @@ def test_cal_in_hours_consistency(target_ref: Tuple[dt.datetime, dt.datetime]):
             assert cal.in_hours(start, end) == expected
 
 
+@pytest.mark.hypothesis
 @given(target_ref=datetime_pair_strategy)
 def test_cal_in_days_consistency(target_ref: Tuple[dt.datetime, dt.datetime]):
     """Test in_days method consistency."""
@@ -96,6 +101,7 @@ def test_cal_in_days_consistency(target_ref: Tuple[dt.datetime, dt.datetime]):
             assert cal.in_days(start, end) == expected
 
 
+@pytest.mark.hypothesis
 @given(target_ref=datetime_pair_strategy)
 def test_cal_in_weeks_consistency(target_ref: Tuple[dt.datetime, dt.datetime]):
     """Test in_weeks method consistency."""
@@ -116,6 +122,7 @@ def test_cal_in_weeks_consistency(target_ref: Tuple[dt.datetime, dt.datetime]):
             assert cal.in_weeks(start, end) == expected
 
 
+@pytest.mark.hypothesis
 @given(target_ref=datetime_pair_strategy)
 def test_cal_unit_namespace_consistency(target_ref: Tuple[dt.datetime, dt.datetime]):
     """Test that UnitNamespace properties delegate correctly to in_* methods."""
@@ -136,6 +143,7 @@ def test_cal_unit_namespace_consistency(target_ref: Tuple[dt.datetime, dt.dateti
     assert cal.day.thru(-1, 0) == cal.in_days(-1, 1)  # -1 through 0 = -1 to 1 (half-open)
 
 
+@pytest.mark.hypothesis
 @given(target_ref=datetime_pair_strategy)
 def test_cal_convenience_methods(target_ref: Tuple[dt.datetime, dt.datetime]):
     """Test convenience methods like is_today, is_yesterday, etc."""
@@ -184,6 +192,7 @@ def test_cal_convenience_methods(target_ref: Tuple[dt.datetime, dt.datetime]):
     assert cal.is_last_month == expected_last_month
 
 
+@pytest.mark.hypothesis
 @given(day_spec=st.sampled_from([
     'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
     'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun',
@@ -216,6 +225,7 @@ def test_normalize_weekday_comprehensive(day_spec: str):
         assert result == 6
 
 
+@pytest.mark.hypothesis
 @given(target_ref=datetime_pair_strategy)
 def test_cal_quarter_calculations(target_ref: Tuple[dt.datetime, dt.datetime]):
     """Test quarter-based calculations."""

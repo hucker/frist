@@ -27,6 +27,7 @@ datetime_pair_strategy = st.tuples(datetime_strategy, datetime_strategy).map(
 )
 
 
+@pytest.mark.hypothesis
 @given(start_end=datetime_pair_strategy)
 def test_age_always_non_negative(start_end: Tuple[dt.datetime, dt.datetime]):
     """Age calculations should always be non-negative."""
@@ -44,6 +45,7 @@ def test_age_always_non_negative(start_end: Tuple[dt.datetime, dt.datetime]):
     assert age.months_precise >= 0
 
 
+@pytest.mark.hypothesis
 @given(start_end=datetime_pair_strategy)
 def test_age_consistency_properties(start_end: Tuple[dt.datetime, dt.datetime]):
     """Age should have consistent relationships between units."""
@@ -62,6 +64,7 @@ def test_age_consistency_properties(start_end: Tuple[dt.datetime, dt.datetime]):
     assert 0 <= age.years <= 201  # Max ~200 years from 1900-2100 range
 
 
+@pytest.mark.hypothesis
 @given(start_end=datetime_pair_strategy)
 def test_precise_vs_approximate_consistency(start_end: Tuple[dt.datetime, dt.datetime]):
     """Precise calculations should be close to approximate ones."""
@@ -73,6 +76,7 @@ def test_precise_vs_approximate_consistency(start_end: Tuple[dt.datetime, dt.dat
     assert abs(age.months_precise - age.months) < 1.1  # Allow for month length variations
 
 
+@pytest.mark.hypothesis
 @given(start_end=datetime_pair_strategy)
 def test_age_symmetry_with_negative_intervals(start_end: Tuple[dt.datetime, dt.datetime]):
     """Age should return negative values when end < start."""
@@ -86,6 +90,7 @@ def test_age_symmetry_with_negative_intervals(start_end: Tuple[dt.datetime, dt.d
     assert abs(abs(age_forward.years_precise) - abs(age_reverse.years_precise)) < 1e-10
 
 
+@pytest.mark.hypothesis
 @given(start=datetime_strategy, days_offset=st.integers(0, 365*200))
 def test_age_with_date_offsets(start: dt.datetime, days_offset: int):
     """Test Age with systematic date offsets."""
@@ -100,6 +105,7 @@ def test_age_with_date_offsets(start: dt.datetime, days_offset: int):
     assert abs(age.years - expected_years) < 1
 
 
+@pytest.mark.hypothesis
 @given(start_end=datetime_pair_strategy)
 def test_age_zero_length_intervals(start_end: Tuple[dt.datetime, dt.datetime]):
     """Test behavior with very small intervals."""
@@ -112,6 +118,7 @@ def test_age_zero_length_intervals(start_end: Tuple[dt.datetime, dt.datetime]):
         assert age.days < 0.001
 
 
+@pytest.mark.hypothesis
 @given(start_end=datetime_pair_strategy)
 def test_leap_year_edge_cases(start_end: Tuple[dt.datetime, dt.datetime]):
     """Test Age calculations around leap year boundaries."""
@@ -126,6 +133,7 @@ def test_leap_year_edge_cases(start_end: Tuple[dt.datetime, dt.datetime]):
         assert age_leap.days == 2  # Feb 28 to Mar 1 in leap year = 2 days
 
 
+@pytest.mark.hypothesis
 @given(start_end=datetime_pair_strategy)
 def test_age_string_parsing_consistency(start_end: Tuple[dt.datetime, dt.datetime]):
     """Test that Age can be created from string representations."""
@@ -143,6 +151,7 @@ def test_age_string_parsing_consistency(start_end: Tuple[dt.datetime, dt.datetim
     assert abs(age_datetime.seconds - age_strings.seconds) < 2  # Allow for microsecond differences
 
 
+@pytest.mark.hypothesis
 @given(start_end=datetime_pair_strategy)
 def test_age_bounds_checking(start_end: Tuple[dt.datetime, dt.datetime]):
     """Test that Age handles extreme date ranges properly."""

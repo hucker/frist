@@ -442,4 +442,8 @@ This project was developed iteratively using agentic AI thus most of the code wa
 
 I also noted that certain types of refactoring humans are much better at.  I change the naming convention of some methods and asked the AI to fix it, after messing around with constant tab issues and bad assumptions I rolled it back and did a search and replace and change the names manually in a fraction of the time.
 
+## Development and Testing Notes
+
+While the `frist` library maintains high test coverage (100%) and utilizes property-based testing with Hypothesis, this level of coverage was not a strict requirement for the library's development. Rather, it emerged as part of a learning experience exploring agentic AI capabilities in software testing and quality assurance. The comprehensive test suite demonstrates some possibilities of automated testing tools but is not indicative of typical development practices for this type of utility library.
+
 Contributions are welcome. Please prefer small, reviewable pull requests and include tests that exercise expected behavior and edge cases.

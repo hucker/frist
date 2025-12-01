@@ -33,6 +33,9 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["test"]
 addopts = "--cov=frist --cov-report=term-missing"
+markers = [
+    "hypothesis: Property-based tests using Hypothesis library",
+]
 
 [project.urls]
 Homepage = "https://github.com/hucker/frist"
