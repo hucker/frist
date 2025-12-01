@@ -417,6 +417,9 @@ src\frist\_ranges.py                          25      0      4      0   100%
 src\frist\_util.py                            18      0      2      0   100%
 ```
 
+> Note: running `pytest -m smoke` on the current branch produced ~62% coverage and completed in ~0.46s
+> (test run: `2 passed, 486 deselected`).
+
 ### Tox
 
 ```text

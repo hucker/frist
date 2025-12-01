@@ -7,6 +7,7 @@ Style: Arrange / Act / Assert (AA) per project `codeguide.md`.
 """
 
 import datetime as dt
+import pytest
 
 from frist._biz import Biz
 
@@ -18,7 +19,7 @@ UNIT_MAP = [
     ("fyear", "in_fiscal_years"),
 ]
 
-
+@pytest.mark.smoke
 def test_biz_unit_namespace_smoke():
     # Arrange
     ref = dt.datetime(2025, 3, 15, 12, 34, 56)

@@ -5,7 +5,7 @@ name = "frist"
 version = "0.17.0"
 description = "Calendar-based time window filtering, age calculations, and business logic for dates and times."
 authors = [
-    { name = "Chuck Hucker", email = "chuck@hucker.com" }
+    { name = "Chuck Bass", email = "chuck@acrocad.net" }
 ]
 readme = "README.md"
 requires-python = ">=3.10"
@@ -35,6 +35,7 @@ testpaths = ["test"]
 addopts = "--cov=frist --cov-report=term-missing"
 markers = [
     "hypothesis: Property-based tests using Hypothesis library",
+    "smoke: Quick smoke tests that exercise core API and fast checks",
 ]
 
 [project.urls]

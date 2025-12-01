@@ -7,6 +7,7 @@ Style: follow Arrange / Act / Assert (AA) comments per project `codeguide.md`.
 """
 
 import datetime as dt
+import pytest
 
 from frist._cal import Cal
 
@@ -21,7 +22,7 @@ UNIT_MAP = [
     ("year", "in_years"),
 ]
 
-
+@pytest.mark.smoke
 def test_unit_namespace_smoke():
     """Smoke test for compact unit namespaces.
 

@@ -236,7 +236,6 @@ def test_age_init_invalid_start_type() -> None:
     Arrange: Provide invalid start_time type
     Act & Assert: TypeError is raised
     """
-    import pytest
     with pytest.raises(TypeError, match="Unrecognized datetime string format"):
         Age("not-a-date") # type: ignore # Exception expected
 
@@ -245,7 +244,6 @@ def test_age_init_invalid_end_type() -> None:
     Arrange: Provide invalid end_time type
     Act & Assert: TypeError is raised
     """
-    import pytest
     with pytest.raises(TypeError, match="Unrecognized datetime string format"):
         Age(dt.datetime.now(), "not-a-date") # type: ignore # Exception expected
 
@@ -254,7 +252,6 @@ def test_age_parse_invalid_format() -> None:
     Arrange: Provide invalid age string
     Act & Assert: ValueError is raised
     """
-    import pytest
     with pytest.raises(ValueError, match="Invalid age format"):
         Age.parse("bad-format")
 
@@ -263,7 +260,6 @@ def test_age_parse_unknown_unit() -> None:
     Arrange: Provide age string with unknown unit
     Act & Assert: ValueError is raised
     """
-    import pytest
     with pytest.raises(ValueError, match="Unknown unit"):
         Age.parse("5fortnights")
 
@@ -282,6 +278,20 @@ def test_age_end_time_defaults_to_now() -> None:
     now = dt.datetime.now()
     assert (now - age.end_time).total_seconds() < 0.1, "end_time should default to current time"
     assert age.end_time >= start, "end_time should be after start_time"
+
+@pytest.mark.smoke
+def test_age_with_dates():
+    """Age correctly handles date inputs and calculates 24 hours for one day apart."""
+    # Arrange
+    start_date = dt.date(2025, 1, 1)
+    end_date = dt.date(2025, 1, 2)
+    
+    # Act
+    age = Age(start_date, end_date)
+    
+    # Assert
+    assert age.days == 1.0, "Age should be 1 day for date inputs one day apart"
+    assert age.hours == 24.0, "Age should be 24 hours for date inputs one day apart"
 
 
 def test_set_times_invalid_start_type() -> None:
