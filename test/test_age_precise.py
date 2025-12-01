@@ -11,23 +11,23 @@ from frist._constants import DAYS_PER_MONTH
         (
             dt.datetime(2021, 1, 1),
             dt.datetime(2021, 7, 2),
-            (dt.datetime(2021, 7, 2) - dt.datetime(2021, 1, 1)).days / 365,
+            (dt.datetime(2021, 7, 2) - dt.datetime(2021, 1, 1)).total_seconds() / (24 * 3600) / 365,
         ),
         # Leap year, same year
         (
             dt.datetime(2020, 2, 1),
             dt.datetime(2020, 8, 1),
-            (dt.datetime(2020, 8, 1) - dt.datetime(2020, 2, 1)).days / 366,
+            (dt.datetime(2020, 8, 1) - dt.datetime(2020, 2, 1)).total_seconds() / (24 * 3600) / 366,
         ),
         # Across leap year
         (
             dt.datetime(2019, 7, 1),
             dt.datetime(2020, 7, 1),
             (
-                (dt.datetime(2019, 12, 31, 23, 59, 59) - dt.datetime(2019, 7, 1)).days
+                (dt.datetime(2019, 12, 31, 23, 59, 59) - dt.datetime(2019, 7, 1)).total_seconds() / (24 * 3600)
                 / 365
             )
-            + ((dt.datetime(2020, 7, 1) - dt.datetime(2020, 1, 1)).days / 366),
+            + ((dt.datetime(2020, 7, 1) - dt.datetime(2020, 1, 1)).total_seconds() / (24 * 3600) / 366),
         ),
         # Multiple years, includes leap
         # Edge: start/end same day
@@ -180,7 +180,7 @@ def test_years_precise_same_year() -> None:
     age: Age = Age(start, end)
     actual = age.years_precise
     days_in_year = (dt.datetime(2023, 1, 1) - dt.datetime(2022, 1, 1)).days
-    expected = (end - start).days / days_in_year
+    expected = (end - start).total_seconds() / (24 * 3600) / days_in_year
     assert pytest.approx(actual, 1e-6) == expected, (  # type: ignore
         f"years_precise (same year): expected {expected}, got {actual}"
     )  
@@ -196,16 +196,6 @@ def test_months_precise_start_greater_than_end_raises() -> None:
     with pytest.raises(ValueError, match="start_time must be before end_time"):
         _ = age.months_precise
 
-
-def test_years_precise_start_greater_than_end_raises() -> None:
-    """
-    Test years_precise raises ValueError when start > end.
-    """
-    start: dt.datetime = dt.datetime(2024, 1, 1)
-    end: dt.datetime = dt.datetime(2023, 1, 1)
-    age: Age = Age(start, end)
-    with pytest.raises(ValueError, match="start_time must be before end_time"):
-        _ = age.years_precise
 
 
 def test_next_month_year_rollover() -> None:

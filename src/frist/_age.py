@@ -9,6 +9,7 @@ import datetime as dt
 import re
 
 from ._constants import (
+    DAYS_PER_WEEK,
     DAYS_PER_MONTH,
     DAYS_PER_YEAR,
     SECONDS_PER_DAY,
@@ -150,7 +151,7 @@ class Age:
     @property
     def weeks(self) -> float:
         """Get age in weeks."""
-        return self.days / 7
+        return self.days / DAYS_PER_WEEK
 
     @property
     def months(self) -> float:
@@ -211,32 +212,44 @@ class Age:
         # Allow negative ages if base_time is before timestamp
         # Uses 365.25 days/year for approximation; does not distinguish leap/non-leap years.
         return self.days / DAYS_PER_YEAR
-
+    
     @property
     def years_precise(self) -> float:
         """
         Get age in years (precise calculation based on calendar years).
         Fractional years are calculated using the actual number of days in each year.
         """
-        start = self.start_time
-        end = self.end_time
+        scale = 1.0
+        start:dt.datetime = self.start_time
+        end:dt.datetime = self.end_time
         if start > end:
-            raise ValueError("start_time must be before end_time")
+            start, end = end, start
+            scale = -1.0
+        
+        def _fractional_days(dt1: dt.datetime, dt2: dt.datetime) -> float:
+            """Calculate fractional days between two datetimes."""
+            return (dt2 - dt1).total_seconds() / (24 * 3600)
+        
         # Same year: fraction only
         if start.year == end.year:
             days_in_year = (dt.datetime(start.year + 1, 1, 1) - dt.datetime(start.year, 1, 1)).days
-            return (end - start).days / days_in_year
+            return scale * (_fractional_days(start, end) / days_in_year)
+        
         # First year fraction
         end_of_first_year = dt.datetime(start.year, 12, 31, 23, 59, 59)
         days_in_first_year = (dt.datetime(start.year + 1, 1, 1) - dt.datetime(start.year, 1, 1)).days
-        first_year_fraction = (end_of_first_year - start).days / days_in_first_year
+        first_year_fraction = _fractional_days(start, end_of_first_year) / days_in_first_year
+        
         # Last year fraction
         start_of_last_year = dt.datetime(end.year, 1, 1)
         days_in_last_year = (dt.datetime(end.year + 1, 1, 1) - dt.datetime(end.year, 1, 1)).days
-        last_year_fraction = (end - start_of_last_year).days / days_in_last_year
+        last_year_fraction = _fractional_days(start_of_last_year, end) / days_in_last_year
+        
         # Full years in between
         full_years = end.year - start.year - 1
-        return first_year_fraction + full_years + last_year_fraction
+        
+        return scale * (first_year_fraction + full_years + last_year_fraction)
+
 
     @staticmethod
     def parse(age_str: str) -> float:
@@ -301,3 +314,6 @@ class Age:
 
 
 __all__ = ["Age"]
+
+#a1 = Age(dt.datetime(2020,1,1), dt.datetime(2021,1,1))
+#print(a1.years_precise)

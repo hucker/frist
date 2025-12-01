@@ -390,3 +390,22 @@ def test_age_negative_properties(prop, expected):
     
     # Assert
     assert getattr(age, prop) == expected, f"Age {prop} should be {expected} for negative duration"
+
+
+def test_age_smoke():
+    """Smoke test for Age class instantiation and basic properties."""
+    # Arrange
+    start = dt.datetime(2023, 1, 1, 0, 0, 0)
+    
+    # Act & Assert: Test years_precise increments correctly for 1-20 years
+    for years in range(1, 21):  # 1 to 20 years
+        end = start.replace(year=start.year + years)
+        
+        # Test positive direction: start to end
+        age_positive = Age(start, end)
+        assert age_positive.years_precise == pytest.approx(years, rel=1e-6), f"Failed for {years} years (positive)"
+        
+        # Test negative direction: end to start
+        age_negative = Age(end, start)
+        assert age_negative.years_precise == pytest.approx(-years, rel=1e-6), f"Failed for {years} years (negative)"
+

@@ -288,3 +288,106 @@ def test_chrono_holiday_property():
     empty_policy: BizPolicy = BizPolicy(holidays=set())
     chrono_empty: Chrono = Chrono(target_time=target_tim, policy=empty_policy)
     assert chrono_empty.biz.holiday is False
+
+
+@pytest.mark.parametrize(
+    "input_type",
+    ["datetime", "float", "int", "str_datetime"],
+)
+def test_age_equivalent_inputs_produce_same_results(input_type: str) -> None:
+    """
+    Test that equivalent TimeLike representations of the same instant produce identical Age calculations.
+    
+    This tests that datetime, timestamp (float/int), and string representations of the same time
+    all produce identical Age objects and calculations.
+    """
+    # Arrange: Define reference times with specific time components
+    start_dt = dt.datetime(2020, 6, 15, 14, 30, 45)
+    end_dt = dt.datetime(2023, 9, 22, 9, 15, 30)
+    
+    # Convert to equivalent representations
+    time_formats = {
+        "datetime": start_dt,
+        "float": start_dt.timestamp(),
+        "int": int(start_dt.timestamp()),
+        "str_datetime": start_dt.strftime("%Y-%m-%d %H:%M:%S"),
+    }
+    
+    end_time_formats = {
+        "datetime": end_dt,
+        "float": end_dt.timestamp(),
+        "int": int(end_dt.timestamp()),
+        "str_datetime": end_dt.strftime("%Y-%m-%d %H:%M:%S"),
+    }
+    
+    start_input = time_formats[input_type]
+    end_input = end_time_formats[input_type]
+    
+    # Act: Create Age object
+    age = Age(start_input, end_input)
+    
+    # Assert: Results should be identical to reference datetime Age
+    reference_age = Age(start_dt, end_dt)
+    
+    assert age.days == pytest.approx(reference_age.days, rel=1e-10), f"Days differ for {input_type}"
+    assert age.seconds == reference_age.seconds, f"Seconds differ for {input_type}"
+    assert age.years_precise == pytest.approx(reference_age.years_precise, rel=1e-10), f"Years precise differ for {input_type}"
+    assert age.months_precise == pytest.approx(reference_age.months_precise, rel=1e-10), f"Months precise differ for {input_type}"
+
+
+@pytest.mark.parametrize(
+    "input_type",
+    ["date", "str_date"],
+)
+def test_age_midnight_inputs_produce_same_results(input_type: str) -> None:
+    """
+    Test that date and date-string representations (both midnight) produce identical Age calculations.
+    """
+    # Arrange: Define reference times at midnight
+    start_dt = dt.datetime(2020, 6, 15, 0, 0, 0)  # Midnight
+    end_dt = dt.datetime(2023, 9, 22, 0, 0, 0)    # Midnight
+    
+    # Convert to midnight representations
+    time_formats = {
+        "date": start_dt.date(),
+        "str_date": start_dt.strftime("%Y-%m-%d"),
+    }
+    
+    end_time_formats = {
+        "date": end_dt.date(),
+        "str_date": end_dt.strftime("%Y-%m-%d"),
+    }
+    
+    start_input = time_formats[input_type]
+    end_input = end_time_formats[input_type]
+    
+    # Act: Create Age object
+    age = Age(start_input, end_input)
+    
+    # Assert: Results should be identical to reference midnight datetime Age
+    reference_age = Age(start_dt, end_dt)
+    
+    assert age.days == pytest.approx(reference_age.days, rel=1e-10), f"Days differ for {input_type}"
+    assert age.seconds == reference_age.seconds, f"Seconds differ for {input_type}"
+    assert age.years_precise == pytest.approx(reference_age.years_precise, rel=1e-10), f"Years precise differ for {input_type}"
+    assert age.months_precise == pytest.approx(reference_age.months_precise, rel=1e-10), f"Months precise differ for {input_type}"
+
+
+def test_age_datetime_vs_date_different_results() -> None:
+    """
+    Test that datetime with time components produces different results than date (which loses time).
+    """
+    # Arrange
+    start_dt = dt.datetime(2020, 6, 15, 14, 30, 45)  # With time
+    end_dt = dt.datetime(2023, 9, 22, 9, 15, 30)     # With time
+    
+    start_date = start_dt.date()  # Loses time -> midnight
+    end_date = end_dt.date()      # Loses time -> midnight
+    
+    # Act
+    age_datetime = Age(start_dt, end_dt)
+    age_date = Age(start_date, end_date)
+    
+    # Assert: Should be different (date loses time information)
+    assert age_datetime.days != age_date.days, "Datetime and date should produce different results"
+    assert abs(age_datetime.days - age_date.days) > 0.1, "Difference should be significant"
