@@ -3,7 +3,7 @@
 These tests verify the ergonomic `cal.<unit>` namespace (compact form)
 delegates to the canonical `Cal.in_*` methods and supports call and inclusive `thru` sugar.
 
-Style: follow Arrange / Act / Assert (AA) comments per project `codeguide.md`.
+Style: follow Arrange / Act / Assert (AA) comments per project `CODEGUIDE.md`.
 """
 
 import datetime as dt
@@ -13,11 +13,11 @@ from frist._cal import Cal
 
 
 UNIT_MAP = [
-    ("min", "in_minutes"),
-    ("hr", "in_hours"),
+    ("minute", "in_minutes"),
+    ("hour", "in_hours"),
     ("day", "in_days"),
-    ("wk", "in_weeks"),
-    ("mon", "in_months"),
+    ("week", "in_weeks"),
+    ("month", "in_months"),
     ("qtr", "in_quarters"),
     ("year", "in_years"),
 ]

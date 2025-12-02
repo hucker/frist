@@ -31,7 +31,7 @@ last_three_years = [date for date in dates if Age(date).years < 3.0]
 
 dates_today = [date for date in dates if Cal(date).day.in_(0)]
 
-last_two_months = [date for date in dates if Cal(date).mon.in_(-2, 0)]
+last_two_months = [date for date in dates if Cal(date).month.in_(-2, 0)]
 
 last_three_cal_years = [date for date in dates if Cal(date).year.in_(-3, 0)]
 
@@ -115,7 +115,7 @@ Example:
 >>> target = dt.datetime(2025,9,15)
 >>> ref = dt.datetime(2025,11,20)
 >>> c = Cal(target_dt=target, ref_dt=ref)
->>> c.mon.in_(-2, 0)
+>>> c.month.in_(-2, 0)
 True    # target was in Sept/Oct (the two full months before Nov)
 >>> c.day.in_(-7, -1)
 False   # not in the 7..1 days before ref
@@ -127,7 +127,7 @@ Frist also provides a  helper available on the compact `UnitNamespace` propertie
 
 - `*.in_` methods and the main API use half-open intervals: `start <= value < end`. - `*.thru(start, end)` is inclusive on the end: it returns True when `start <= value <= end`.
 
-Implementation note: `thru` is implemented as a thin ergonomic adapter that forwards to the canonical half-open `in_*` methods by advancing the exclusive end by one unit. For example `cal.mon.thru(-2, 0)` is equivalent to `cal.mon.in_(-2, 1)` (the inclusive end `0` becomes exclusive `1`). This keeps the core API canonical while offering a more natural English-style `thru` surface for consumers.
+Implementation note: `thru` is implemented as a thin ergonomic adapter that forwards to the canonical half-open `in_*` methods by advancing the exclusive end by one unit. For example `cal.month.thru(-2, 0)` is equivalent to `cal.month.in_(-2, 1)` (the inclusive end `0` becomes exclusive `1`). This keeps the core API canonical while offering a more natural English-style `thru` surface for consumers.
 
 Examples:
 
@@ -278,33 +278,33 @@ The Cal object provides a family of `in_*` methods (e.g., `in_days`, `in_months`
 
 | Unit accessor                                      | Description                 | Return |
 | -------------------------------------------------- | --------------------------- | ------ |
-| `cal.min.in_(start=0, end=None)`                   | Is target in minute window  | `bool` |
-| `cal.hr.in_(start=0, end=None)`                    | Is target in hour window    | `bool` |
+| `cal.minute.in_(start=0, end=None)`                | Is target in minute window  | `bool` |
+| `cal.hour.in_(start=0, end=None)`                  | Is target in hour window    | `bool` |
 | `cal.day.in_(start=0, end=None)`                   | Is target in day window     | `bool` |
-| `cal.wk.in_(start=0, end=None, week_start="monday")` | Is target in week window    | `bool` |
-| `cal.mon.in_(start=0, end=None)`                   | Is target in month window   | `bool` |
+| `cal.week.in_(start=0, end=None, week_start="monday")` | Is target in week window    | `bool` |
+| `cal.month.in_(start=0, end=None)`                 | Is target in month window   | `bool` |
 | `cal.qtr.in_(start=0, end=None)`                   | Is target in quarter window | `bool` |
-| `cal.year.in_(start=0, end=None)`                   | Is target in year window    | `bool` |
+| `cal.year.in_(start=0, end=None)`                  | Is target in year window    | `bool` |
 
 Shortcuts (convenience boolean properties):
 
 | Shortcut | Equivalent |
 | -------- | ---------------------- |
-| `is_today`       | `cal.day.in_(0)`        |
-| `is_yesterday`   | `cal.day.in_(-1)`       |
-| `is_tomorrow`    | `cal.day.in_(1)`        |
-| `is_last_week`   | `cal.wk.in_(-1)`        |
-| `is_this_week`   | `cal.wk.in_(0)`         |
-| `is_next_week`   | `cal.wk.in_(1)`         |
-| `is_last_month`  | `cal.mon.in_(-1)`       |
-| `is_this_month`  | `cal.mon.in_(0)`        |
-| `is_next_month`  | `cal.mon.in_(1)`        |
-| `is_last_quarter`| `cal.qtr.in_(-1)`       |
-| `is_this_quarter`| `cal.qtr.in_(0)`        |
-| `is_next_quarter`| `cal.qtr.in_(1)`        |
-| `is_last_year`   | `cal.year.in_(-1)`        |
-| `is_this_year`   | `cal.year.in_(0)`         |
-| `is_next_year`   | `cal.year.in_(1)`         |
+| `is_today`       | `cal.day.in_(0)`   |
+| `is_yesterday`   | `cal.day.in_(-1)`  |
+| `is_tomorrow`    | `cal.day.in_(1)`   |
+| `is_last_week`   | `cal.week.in_(-1)` |
+| `is_this_week`   | `cal.week.in_(0)`  |
+| `is_next_week`   | `cal.week.in_(1)`  |
+| `is_last_month`  | `cal.month.in_(-1)`|
+| `is_this_month`  | `cal.month.in_(0)` |
+| `is_next_month`  | `cal.month.in_(1)` |
+| `is_last_quarter`| `cal.qtr.in_(-1)`  |
+| `is_this_quarter`| `cal.qtr.in_(0)`   |
+| `is_next_quarter`| `cal.qtr.in_(1)`   |
+| `is_last_year`   | `cal.year.in_(-1)` |
+| `is_this_year`   | `cal.year.in_(0)`  |
+| `is_next_year`   | `cal.year.in_(1)`  |
 
 ---
 
@@ -375,7 +375,7 @@ In some situations you will need to have all three of these classes together bec
 # Cal (calendar-window queries)
 >>> z.cal.day.in_(-5)         # was target 5 days before reference?
 True
->>> z.cal.mon.in_(0)        # same calendar month as reference?
+>>> z.cal.month.in_(0)        # same calendar month as reference?
 True
 
 # Biz (policy-aware business logic — properties are floats)

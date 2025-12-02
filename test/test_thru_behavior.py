@@ -12,7 +12,7 @@ from frist._cal import Cal
 from frist._biz import Biz
 
 
-CAL_UNITS = ["min", "hr", "day", "wk", "mon", "qtr", "year"]
+CAL_UNITS = ["minute", "hour", "day", "week", "month", "qtr", "year"]
 BIZ_UNITS = ["bday", "wday", "fqtr", "fyear"]
 
 

@@ -180,7 +180,7 @@ def test_chrono_calendar_property():
 
     # Test calendar window functionality
     assert cal.day.in_(0, 1)  # Same day (half-open: 0..1)
-    assert cal.hr.in_(-6, 0)  # Within 6 hours
+    assert cal.hour.in_(-6, 0)  # Within 6 hours
     assert not cal.day.in_(-1)  # Not yesterday
 
 
@@ -511,7 +511,7 @@ def test_chrono_property_integration():
     assert chrono.age.days == pytest.approx(4.0)
     
     # Cal should show within same week
-    assert chrono.cal.wk.in_(0)  # Same week
+    assert chrono.cal.week.in_(0)  # Same week
     assert chrono.cal.day.in_(-4)  # Exactly 4 days ago
     
     # Biz should show business days (assuming standard policy)

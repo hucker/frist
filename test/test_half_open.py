@@ -81,7 +81,7 @@ def test_cal_half_open_boundaries_explicit(ref: dt.datetime) -> None:
         ((2025, 1, 1, 12, 1, 0, 0), False),
     ]
     for tup, expected in minute_cases:
-        assert _cal_from(_explicit(tup), r).min.in_(0) is expected
+        assert _cal_from(_explicit(tup), r).minute.in_(0) is expected
 
     # Hour tests
     hour_cases = [
@@ -92,7 +92,7 @@ def test_cal_half_open_boundaries_explicit(ref: dt.datetime) -> None:
         ((2025, 1, 1, 13, 0, 0, 0), False),
     ]
     for tup, expected in hour_cases:
-        assert _cal_from(_explicit(tup), r).hr.in_(0) is expected
+        assert _cal_from(_explicit(tup), r).hour.in_(0) is expected
 
     # Day tests
     day_cases = [
@@ -115,7 +115,7 @@ def test_cal_half_open_boundaries_explicit(ref: dt.datetime) -> None:
         ((2025, 1, 6, 0, 0, 0, 0), False),
     ]
     for tup, expected in week_cases:
-        assert _cal_from(_explicit(tup), r).wk.in_(0) is expected
+        assert _cal_from(_explicit(tup), r).week.in_(0) is expected
 
     # Month tests (January 2025)
     month_cases = [
@@ -126,7 +126,7 @@ def test_cal_half_open_boundaries_explicit(ref: dt.datetime) -> None:
         ((2025, 2, 1, 0, 0, 0, 0), False),
     ]
     for tup, expected in month_cases:
-        assert _cal_from(_explicit(tup), r).mon.in_(0) is expected
+        assert _cal_from(_explicit(tup), r).month.in_(0) is expected
 
     # Quarter tests (Q1 2025)
     quarter_cases = [

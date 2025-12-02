@@ -8,9 +8,9 @@ class UnitNamespace:
     """Compact unit namespace that delegates to a Cal `in_*` method.
 
     Usage examples (compact):
-      cal.mon.in_(-2, 0)     # half-open (default)
-      cal.mon(-2, 0)         # maps to in_
-      cal.mon.thru(-2, 0)    # inclusive end
+      cal.month.in_(-2, 0)     # half-open (default)
+      cal.month(-2, 0)         # maps to in_
+      cal.month.thru(-2, 0)    # inclusive end
             # slice syntax is not supported
     """
 
@@ -43,7 +43,7 @@ class UnitNamespace:
     def thru(self):
         """Return a callable object supporting call syntax for inclusive "through" semantics.
 
-        Example: `cal.mon.thru(-2, 0)`.
+        Example: `cal.month.thru(-2, 0)`.
         """
 
         parent = self

@@ -368,7 +368,7 @@ class Cal:
         Week start follows the default used by in_weeks (Monday).
         Shortcut: equivalent to calling self.in_weeks(-1).
         """
-        return self.wk.in_(-1)
+        return self.week.in_(-1)
     
     @property
     def is_this_week(self) -> bool:
@@ -377,7 +377,7 @@ class Cal:
         Week start follows the default used by in_weeks (Monday).
         Shortcut: equivalent to calling self.in_weeks(0).
         """
-        return self.wk.in_(0)
+        return self.week.in_(0)
 
     @property
     def is_next_week(self) -> bool:
@@ -385,7 +385,7 @@ class Cal:
 
         Shortcut: equivalent to calling self.in_weeks(1).
         """
-        return self.wk.in_(1)
+        return self.week.in_(1)
 
     @property
     def is_last_month(self) -> bool:
@@ -393,14 +393,14 @@ class Cal:
 
         Shortcut: equivalent to calling self.in_months(-1).
         """
-        return self.mon.in_(-1)
+        return self.month.in_(-1)
     @property
     def is_this_month(self) -> bool:
         """Return True if target is in the same calendar month as the reference.
 
         Shortcut: equivalent to calling self.in_months(0).
         """
-        return self.mon.in_(0)
+        return self.month.in_(0)
 
     @property
     def is_next_month(self) -> bool:
@@ -408,7 +408,7 @@ class Cal:
 
         Shortcut: equivalent to calling self.in_months(1).
         """
-        return self.mon.in_(1)
+        return self.month.in_(1)
 
     @property
     def is_this_quarter(self) -> bool:
@@ -465,11 +465,11 @@ class Cal:
     # the canonical API surface which remains the `in_*` methods.
 
     @cached_property
-    def min(self) -> UnitNamespace:
+    def minute(self) -> UnitNamespace:
         return UnitNamespace(self, self.in_minutes)
 
     @cached_property
-    def hr(self) -> UnitNamespace:
+    def hour(self) -> UnitNamespace:
         return UnitNamespace(self, self.in_hours)
 
     @cached_property
@@ -477,11 +477,11 @@ class Cal:
         return UnitNamespace(self, self.in_days)
 
     @cached_property
-    def wk(self) -> UnitNamespace:
+    def week(self) -> UnitNamespace:
         return UnitNamespace(self, lambda s, e: self.in_weeks(s, e))
 
     @cached_property
-    def mon(self) -> UnitNamespace:
+    def month(self) -> UnitNamespace:
         return UnitNamespace(self, self.in_months)
 
     @cached_property

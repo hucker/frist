@@ -38,8 +38,8 @@ def test_minute_interval_half_open():
     value: dt.datetime = dt.datetime(2024, 1, 1, 12, 1, 0)
     cal: Cal = Chrono(target_time=value, reference_time=ref_dt).cal
     # Act
-    in_current = cal.min.in_(0)
-    in_next = cal.min.in_(1)
+    in_current = cal.minute.in_(0)
+    in_next = cal.minute.in_(1)
     # Assert
     assert in_current is False, "Value at end of minute should not be in current interval"
     assert in_next is True, "Value at start of next minute should be in next interval"
@@ -53,8 +53,8 @@ def test_hour_interval_half_open():
     z: Chrono = Chrono(target_time=value, reference_time=ref_dt)
     cal: Cal = z.cal
     # Act
-    in_current = cal.hr.in_(0)
-    in_next = cal.hr.in_(1)
+    in_current = cal.hour.in_(0)
+    in_next = cal.hour.in_(1)
     # Assert
     assert in_current is False, "Value at end of hour should not be in current interval"
     assert in_next is True, "Value at start of next hour should be in next interval"
@@ -82,19 +82,19 @@ def test_in_xxx_start_greater_than_end(cal_factory:Cal):
     cal:Cal = cal_factory
     # All should raise ValueError when start > end
     with pytest.raises(ValueError):
-        cal.min.in_(1, 0)
+        cal.minute.in_(1, 0)
     with pytest.raises(ValueError):
-        cal.hr.in_(1, 0)
+        cal.hour.in_(1, 0)
     with pytest.raises(ValueError):
         cal.day.in_(1, 0)
     with pytest.raises(ValueError):
-        cal.mon.in_(1, 0)
+        cal.month.in_(1, 0)
     with pytest.raises(ValueError):
         cal.qtr.in_(1, 0)
     with pytest.raises(ValueError):
         cal.year.in_(1, 0)
     with pytest.raises(ValueError):
-        cal.wk.in_(1, 0)
+        cal.week.in_(1, 0)
 
 
 def test_year_interval_half_open():

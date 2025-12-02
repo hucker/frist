@@ -130,13 +130,13 @@ def test_cal_unit_namespace_consistency(target_ref: Tuple[dt.datetime, dt.dateti
     cal = Cal(target_dt, ref_dt)
 
     # Test that cached properties delegate to the correct methods
-    assert cal.min.in_(5, 10) == cal.in_minutes(5, 10)
-    assert cal.hr.in_(1, 3) == cal.in_hours(1, 3)
+    assert cal.minute.in_(5, 10) == cal.in_minutes(5, 10)
+    assert cal.hour.in_(1, 3) == cal.in_hours(1, 3)
     assert cal.day.in_(-1, 1) == cal.in_days(-1, 1)
-    assert cal.wk.in_(0, 2) == cal.in_weeks(0, 2)
+    assert cal.week.in_(0, 2) == cal.in_weeks(0, 2)
 
     # Test call syntax
-    assert cal.min(5, 10) == cal.in_minutes(5, 10)
+    assert cal.minute(5, 10) == cal.in_minutes(5, 10)
     assert cal.day(-1, 1) == cal.in_days(-1, 1)
 
     # Test thru syntax (inclusive end)

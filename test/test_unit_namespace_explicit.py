@@ -15,24 +15,24 @@ def test_unit_namespace_explicit_checks():
     cal = Cal(target_dt=ref, ref_dt=ref)
 
     # Act / Assert: Minutes
-    assert cal.min.in_(0) is True
-    assert cal.min.in_(-1) is False
+    assert cal.minute.in_(0) is True
+    assert cal.minute.in_(-1) is False
 
     # Act / Assert: Hours
-    assert cal.hr.in_(0) is True
-    assert cal.hr.in_(1) is False
+    assert cal.hour.in_(0) is True
+    assert cal.hour.in_(1) is False
 
     # Act / Assert: Days
     assert cal.day.in_(0) is True
     assert cal.day.in_(-1) is False
 
     # Act / Assert: Weeks (ISO Monday start)
-    assert cal.wk.in_(0) is True
-    assert cal.wk.in_(-1) is False
+    assert cal.week.in_(0) is True
+    assert cal.week.in_(-1) is False
 
     # Act / Assert: Months
-    assert cal.mon.in_(0) is True
-    assert cal.mon.in_(-1) is False
+    assert cal.month.in_(0) is True
+    assert cal.month.in_(-1) is False
 
     # Act / Assert: Quarters
     assert cal.qtr.in_(0) is True
