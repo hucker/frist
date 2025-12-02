@@ -4,7 +4,7 @@
 
 `Frist` is not a [replacement](https://imgs.xkcd.com/comics/standards_2x.png) for `datetime` or `timedelta`. If the standard library meets your needs, keep using it.
 
-Frist does more than shorten expressions: it reduces many common calendar and business-date queries to a single, expressive property (for example, `Cal(...).is_this_quarter`, `Age(...).days`, or `Biz(...).bday.in_(0)`). That one-property approach makes intent explicit, avoids repeating low-level date math across projects, and centralizes tricky edge cases such as half-open intervals, fiscal boundaries, and business-hour fractions.
+Frist does more than shorten expressions: it reduces many common calendar and business-date queries to a single, expressive property (for example, `Cal(...).is_this_quarter`, `Age(...).days`, or `Biz(...).biz_day.in_(0)`). That one-property approach makes intent explicit, avoids repeating low-level date math across projects, and centralizes tricky edge cases such as half-open intervals, fiscal boundaries, and business-hour fractions.
 
 Here are some examples of a dataset with a bunch of datetimes.
 
@@ -35,11 +35,11 @@ last_two_months = [date for date in dates if Cal(date).month.in_(-2, 0)]
 
 last_three_cal_years = [date for date in dates if Cal(date).year.in_(-3, 0)]
 
-last_five_business_days = [date for date in dates if Biz(date).bday.in_(-5, 0)]
+last_five_business_days = [date for date in dates if Biz(date).biz_day.in_(-5, 0)]
 
-this_fiscal_year = [date for date in dates if Biz(date, policy).fyear.in_(0)]
+this_fiscal_year = [date for date in dates if Biz(date, policy).fis_year.in_(0)]
 
-last_3_fiscal_years = [date for date in dates if Biz(date, policy).fyear.in_(-2, 0)]
+last_3_fiscal_years = [date for date in dates if Biz(date, policy).fis_year.in_(-2, 0)]
 
 ignore_holidays = [date for date in dates if not Biz(date, policy).is_holiday]
 
@@ -123,7 +123,7 @@ False   # not in the 7..1 days before ref
 
 ### Inclusive `thru` helper
 
-Frist also provides a  helper available on the compact `UnitNamespace` properties (for example `cal.mon`, `cal.day`, `biz.bday`) named `thru`. The `thru` method uses inclusive end semantics which is convenient for human-readable ranges such as "Mon thru Fri" where the end is part of the range.
+Frist also provides a  helper available on the compact `UnitNamespace` properties (for example `cal.mon`, `cal.day`, `biz.biz_day`) named `thru`. The `thru` method uses inclusive end semantics which is convenient for human-readable ranges such as "Mon thru Fri" where the end is part of the range.
 
 - `*.in_` methods and the main API use half-open intervals: `start <= value < end`. - `*.thru(start, end)` is inclusive on the end: it returns True when `start <= value <= end`.
 
@@ -166,9 +166,9 @@ Example:
 3.0      # counts Wed/Thu/Fri as workdays (holidays ignored)
 >>> b.business_days
 2.0      # Dec 25 removed from business-day total
->>> b.bday.in_(0)
+>>> b.biz_day.in_(0)
 False    # target is a holiday -> not a business day
->>> b.wday.in_(0)
+>>> b.work_day.in_(0)
 True     # still a weekday per policy
 
 The `BizPolicy` object lets you customize business logic for calendar calculations using half-open intervals You can define:
@@ -340,12 +340,12 @@ Shortcuts (convenience boolean properties):
 
 | Shortcut | Equivalent `in_*` call |
 | -------- | --------------------- |
-| `is_business_last_day` | `bday.in_(-1)` (observes holidays) |
-| `is_business_this_day` | `bday.in_(0)` (observes holidays) |
-| `is_business_next_day` | `bday.in_(1)` (observes holidays) |
-| `is_workday_last_day` | `wday.in_(-1)` |
-| `is_workday_this_day` | `wday.in_(0)` |
-| `is_workday_next_day` | `wday.in_(1)` |
+| `is_business_last_day` | `biz_day.in_(-1)` (observes holidays) |
+| `is_business_this_day` | `biz_day.in_(0)` (observes holidays) |
+| `is_business_next_day` | `biz_day.in_(1)` (observes holidays) |
+| `is_workday_last_day` | `work_day.in_(-1)` |
+| `is_workday_this_day` | `work_day.in_(0)` |
+| `is_workday_next_day` | `work_day.in_(1)` |
 | `is_last_fiscal_quarter` | `in_fiscal_quarters(-1)` |
 | `is_this_fiscal_quarter` | `in_fiscal_quarters(0)` |
 | `is_next_fiscal_quarter` | `in_fiscal_quarters(1)` |
@@ -383,9 +383,9 @@ True
 1.0
 >>> z.biz.business_days       # fractional business days (excludes holidays from policy)
 0.0
->>> z.biz.wday.in_(0)  # range-membership helper (bool)
+>>> z.biz.work_day.in_(0)  # range-membership helper (bool)
 True
->>> z.biz.bday.in_(0) # range-membership helper (bool)
+>>> z.biz.biz_day.in_(0) # range-membership helper (bool)
 False
 ```
 
@@ -399,22 +399,23 @@ False
 
 ### Status
 
-[![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13%20|%203.14-blue?logo=python&logoColor=white)](https://www.python.org/) [![Coverage](https://img.shields.io/badge/coverage-100%25-green)](https://github.com/hucker/frist/actions) [![Pytest](https://img.shields.io/badge/pytest-100%25%20pass%20%7C%20368%20tests-green?logo=pytest&logoColor=white)](https://docs.pytest.org/en/stable/) [![Ruff](https://img.shields.io/badge/ruff-100%25-green?logo=ruff&logoColor=white)](https://github.com/charliermarsh/ruff) [![Tox](https://img.shields.io/static/v1?label=tox&message=3.10-3.14&color=green&logo=tox&logoColor=white)](https://tox.readthedocs.io/) [![Mypy](https://img.shields.io/static/v1?label=mypy&message=0%20issues&color=green&logo=mypy&logoColor=white)](https://mypy-lang.org/)
+[![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13%20|%203.14-blue?logo=python&logoColor=white)](https://www.python.org/) [![Coverage](https://img.shields.io/badge/coverage-100%25-green)](https://github.com/hucker/frist/actions) [![Pytest](https://img.shields.io/badge/pytest-100%25%20pass%20%7C%20479%20tests-green?logo=pytest&logoColor=white)](https://docs.pytest.org/en/stable/) [![Ruff](https://img.shields.io/badge/ruff-100%25-green?logo=ruff&logoColor=white)](https://github.com/charliermarsh/ruff) [![Tox](https://img.shields.io/static/v1?label=tox&message=3.10-3.14&color=green&logo=tox&logoColor=white)](https://tox.readthedocs.io/) [![Mypy](https://img.shields.io/static/v1?label=mypy&message=0%20issues&color=green&logo=mypy&logoColor=white)](https://mypy-lang.org/)
 
 ### Pytest (100% pass/100% coverage)
 
 ```text
-Name                                      Stmts   Miss Branch BrPart  Cover   Missing
+Name                       Stmts   Miss Branch BrPart  Cover   Missing
 -------------------------------------------------------------------------------------
-src\frist\__init__.py                          8      0      0      0   100%
-src\frist\_age.py                            119      0     34      0   100%
-src\frist\_biz.py                            186      0     28      0   100%
-src\frist\_biz_policy.py                      79      0     38      0   100%
-src\frist\_cal.py                            160      0     12      0   100%
-src\frist\_constants.py                       15      0      0      0   100%
-src\frist\_frist.py                           73      0     18      0   100%
-src\frist\_ranges.py                          25      0      4      0   100%
-src\frist\_util.py                            18      0      2      0   100%
+src\frist\__init__.py          8      0      0      0   100%
+src\frist\_age.py            114      0     34      0   100%
+src\frist\_biz.py            187      0     28      0   100%
+src\frist\_biz_policy.py      79      0     38      0   100%
+src\frist\_cal.py             90      0     12      0   100%
+src\frist\_constants.py       15      0      0      0   100%
+src\frist\_frist.py           48      0     18      0   100%
+src\frist\_ranges.py         120      1      4      0    99%   247
+src\frist\_types.py           31      0      0      0   100%
+src\frist\_util.py            18      2      2      0    89%   22-26
 ```
 
 > Note: running `pytest -m smoke` on the current branch produced ~62% coverage and completed in ~0.46s

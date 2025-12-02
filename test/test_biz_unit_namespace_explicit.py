@@ -17,17 +17,17 @@ def test_biz_unit_namespace_explicit_checks():
     biz = Biz(target_time=ref, ref_time=ref)
 
     # Act / Assert: business days
-    assert biz.bday.in_(0) is True
-    assert biz.bday.in_(-1) is False
+    assert biz.biz_day.in_(0) is True
+    assert biz.biz_day.in_(-1) is False
 
     # Act / Assert: working days
-    assert biz.wday.in_(0) is True
-    assert biz.wday.in_(-1) is False
+    assert biz.work_day.in_(0) is True
+    assert biz.work_day.in_(-1) is False
 
     # Act / Assert: fiscal quarters
-    assert biz.fqtr.in_(0) is True
-    assert biz.fqtr.in_(-1) is False
+    assert biz.fis_qtr.in_(0) is True
+    assert biz.fis_qtr.in_(-1) is False
 
     # Act / Assert: fiscal years
-    assert biz.fyear.in_(0) is True
-    assert biz.fyear.in_(-1) is False
+    assert biz.fis_year.in_(0) is True
+    assert biz.fis_year.in_(-1) is False

@@ -70,17 +70,17 @@ def test_move_n_days_n_zero_and_early_returns_via_public_api():
     target = dt.datetime(2025, 11, 20, 10, 0)  # Thursday (workday)
     ref = dt.datetime(2025, 11, 20, 10, 0)
     b = Biz(target, ref, pol2)
-    assert b.bday.in_(0) is True, "in_business_days(0) should be True when target==ref and not a holiday"
-    assert b.wday.in_(0) is True, "in_working_days(0) should be True when target==ref and is a workday"
+    assert b.biz_day.in_(0) is True, "in_business_days(0) should be True when target==ref and not a holiday"
+    assert b.work_day.in_(0) is True, "in_working_days(0) should be True when target==ref and is a workday"
 
     # Act / Assert - business_days False when target is a holiday
     target_hol = dt.datetime(2025, 11, 21, 10, 0)
     ref_hol = dt.datetime(2025, 11, 21, 10, 0)
     b_hol = Biz(target_hol, ref_hol, policy)
-    assert b_hol.bday.in_(0) is False, "in_business_days(0) should be False for a holiday target"
+    assert b_hol.biz_day.in_(0) is False, "in_business_days(0) should be False for a holiday target"
 
     # Act / Assert - working_days False when target is not a workday (weekend)
     target_weekend = dt.datetime(2025, 11, 23, 10, 0)
     ref_weekend = dt.datetime(2025, 11, 23, 10, 0)
     b_weekend = Biz(target_weekend, ref_weekend, pol2)
-    assert b_weekend.wday.in_(0) is False, "in_working_days(0) should be False for weekend target"
+    assert b_weekend.work_day.in_(0) is False, "in_working_days(0) should be False for weekend target"

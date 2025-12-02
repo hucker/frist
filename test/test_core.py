@@ -461,19 +461,19 @@ def test_biz_business_day_arithmetic():
     
     # Target: Monday, Jan 1 (2 business days before ref)
     chrono_past = Chrono(target_time=dt.datetime(2024, 1, 1), reference_time=ref_time, policy=policy)
-    assert chrono_past.biz.bday.in_(-2)  # Exactly 2 business days before
+    assert chrono_past.biz.biz_day.in_(-2)  # Exactly 2 business days before
     
     # Target: Friday, Jan 5 (2 business days after ref)
     chrono_future = Chrono(target_time=dt.datetime(2024, 1, 5), reference_time=ref_time, policy=policy)
-    assert chrono_future.biz.bday.in_(2)  # Exactly 2 business days after
+    assert chrono_future.biz.biz_day.in_(2)  # Exactly 2 business days after
     
     # Target: Saturday, Jan 6 (not a business day)
     chrono_weekend = Chrono(target_time=dt.datetime(2024, 1, 6), reference_time=ref_time, policy=policy)
-    assert chrono_weekend.biz.bday.in_(-10, 10) is False  # Not a business day
+    assert chrono_weekend.biz.biz_day.in_(-10, 10) is False  # Not a business day
     
     # Working days (ignore holidays)
-    assert chrono_past.biz.wday.in_(-2)  # Monday is a workday
-    assert chrono_weekend.biz.wday.in_(-10, 10) is False  # Saturday is not a workday
+    assert chrono_past.biz.work_day.in_(-2)  # Monday is a workday
+    assert chrono_weekend.biz.work_day.in_(-10, 10) is False  # Saturday is not a workday
 
 
 def test_biz_business_days_calculation():

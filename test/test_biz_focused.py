@@ -57,13 +57,13 @@ def test_in_working_and_business_days_range_with_holiday() -> None:
     biz: Biz = Biz(target, ref, policy)
 
     # Act / Assert - no holiday
-    assert biz.wday.in_(-2, 0) is True, "target should be in working_days(-2,0)"
-    assert biz.bday.in_(-2, 0) is True, "target should be in business_days(-2,0)"
+    assert biz.work_day.in_(-2, 0) is True, "target should be in working_days(-2,0)"
+    assert biz.biz_day.in_(-2, 0) is True, "target should be in business_days(-2,0)"
 
     # Arrange - make Jan 2 a holiday
     policy2: BizPolicy = BizPolicy(holidays={"2024-01-02"})
     biz2: Biz = Biz(target, ref, policy2)
 
     # Act / Assert - business-day membership should be False while working-day membership remains True
-    assert biz2.wday.in_(-2, 0) is True, "working_days should ignore holiday"
-    assert biz2.bday.in_(-2, 0) is False, "business_days should exclude holiday"
+    assert biz2.work_day.in_(-2, 0) is True, "working_days should ignore holiday"
+    assert biz2.biz_day.in_(-2, 0) is False, "business_days should exclude holiday"

@@ -2,7 +2,6 @@ from __future__ import annotations
 from typing import Callable, Optional
 import datetime as dt
 from ._util import in_half_open_date
-from ._cal import Cal
 __all__ = ["UnitNamespace"]
 
 
@@ -68,7 +67,7 @@ class UnitNamespace:
 class MinuteNamespace(UnitNamespace):
     """Minute-specific namespace that implements _in_impl with minute logic."""
 
-    def __init__(self, cal: Cal) -> None:
+    def __init__(self, cal: object) -> None:
         super().__init__(cal)  # no fn needed
 
     def _in_impl(self, start: int, end: int) -> bool:
@@ -91,7 +90,7 @@ class MinuteNamespace(UnitNamespace):
 class HourNamespace(UnitNamespace):
     """Hour-specific namespace that implements _in_impl with hour logic."""
 
-    def __init__(self, cal: Cal) -> None:
+    def __init__(self, cal: object) -> None:
         super().__init__(cal)  # no fn needed
 
     def _in_impl(self, start: int, end: int) -> bool:

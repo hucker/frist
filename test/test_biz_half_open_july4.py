@@ -44,7 +44,7 @@ def test_biz_half_open_with_july4_holiday():
 
     # business-days (excludes holidays)
     def b_biz(t: dt.datetime) -> bool:
-      return Biz(t, ref, policy).bday.in_(-1, 1)
+      return Biz(t, ref, policy).biz_day.in_(-1, 1)
 
     assert b_biz(dt_below_lower) is False
     assert b_biz(dt_on_lower) is True
@@ -56,7 +56,7 @@ def test_biz_half_open_with_july4_holiday():
 
     # working-days (ignores holidays)
     def b_work(t: dt.datetime) -> bool:
-      return Biz(t, ref, policy).wday.in_(-1, 1)
+      return Biz(t, ref, policy).work_day.in_(-1, 1)
 
     assert b_work(dt_below_lower) is False
     # For working-days the start=-1 window lands on Friday (07-04),

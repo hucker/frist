@@ -13,7 +13,7 @@ from frist._biz import Biz
 
 
 CAL_UNITS = ["minute", "hour", "day", "week", "month", "qtr", "year"]
-BIZ_UNITS = ["bday", "wday", "fqtr", "fyear"]
+BIZ_UNITS = ["biz_day", "work_day", "fis_qtr", "fis_year"]
 
 
 def test_cal_thru_behavior():

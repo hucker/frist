@@ -74,10 +74,10 @@ def test_in_business_and_working_days_ranges():
     biz: Biz = Biz(target, ref, policy)
 
     # Assert - Using a window of [-1, 0] business-days from ref should include the 19th
-    assert biz.bday.in_(-1, 0) is True, "19th should be within business-days(-1,0)"
+    assert biz.biz_day.in_(-1, 0) is True, "19th should be within business-days(-1,0)"
 
     # Assert - Working-days window should also include the 19th
-    assert biz.wday.in_(-1, 0) is True, "19th should be within working-days(-1,0)"
+    assert biz.work_day.in_(-1, 0) is True, "19th should be within working-days(-1,0)"
 
 
 def test_in_fiscal_quarters_and_years():
@@ -90,22 +90,22 @@ def test_in_fiscal_quarters_and_years():
     # Act / Assert - Target in same fiscal quarter (Q2): July 1, 2025
     target_q2: dt.datetime = dt.datetime(2025, 7, 1, 9, 0)
     biz_q2: Biz = Biz(target_q2, ref, policy)
-    assert biz_q2.fqtr.in_(0) is True, "Target in same fiscal quarter should be True"
+    assert biz_q2.fis_qtr.in_(0) is True, "Target in same fiscal quarter should be True"
 
     # Act / Assert - Target in previous quarter (Q1): May 15, 2025
     target_q1: dt.datetime = dt.datetime(2025, 5, 15, 9, 0)
     biz_q1: Biz = Biz(target_q1, ref, policy)
-    assert biz_q1.fqtr.in_(-1, 0) is True, "Target in previous fiscal quarter should be True"
+    assert biz_q1.fis_qtr.in_(-1, 0) is True, "Target in previous fiscal quarter should be True"
 
     # Act / Assert - Fiscal year checks: target in same fiscal year (Nov 2025)
     target_same_fy: dt.datetime = dt.datetime(2025, 11, 1, 12, 0)
     biz_same_fy: Biz = Biz(target_same_fy, ref, policy)
-    assert biz_same_fy.fyear.in_(0) is True, "Target in same fiscal year should be True"
+    assert biz_same_fy.fis_year.in_(0) is True, "Target in same fiscal year should be True"
 
     # Act / Assert - Target in next fiscal year: April 1, 2026 (start of FY2026)
     target_next_fy: dt.datetime = dt.datetime(2026, 4, 1, 9, 0)
     biz_next_fy: Biz = Biz(target_next_fy, ref, policy)
-    assert biz_next_fy.fyear.in_(1) is True, "Target in next fiscal year should be True"
+    assert biz_next_fy.fis_year.in_(1) is True, "Target in next fiscal year should be True"
 
 
 def test_in_business_working_days_start_greater_than_end_raises():
@@ -117,10 +117,10 @@ def test_in_business_working_days_start_greater_than_end_raises():
     biz: Biz = Biz(target, ref, policy)
 
     with pytest.raises(ValueError):
-        biz.bday.in_(1, 0)
+        biz.biz_day.in_(1, 0)
 
     with pytest.raises(ValueError):
-        biz.wday.in_(1, 0)
+        biz.work_day.in_(1, 0)
 
 
 def test_biz_repr_contains_fields():
@@ -153,8 +153,8 @@ def test_in_working_days_returns_false_for_non_workday():
 
     assert biz.is_workday is False
     # Even if asking for a range including the target day, it should be False
-    assert biz.wday.in_(0, 1) is False
-    assert biz.wday.in_(-1, 0) is False
+    assert biz.work_day.in_(0, 1) is False
+    assert biz.work_day.in_(-1, 0) is False
 
 
 def test_fiscal_methods_raise_on_start_greater_than_end():
@@ -168,10 +168,10 @@ def test_fiscal_methods_raise_on_start_greater_than_end():
     biz: Biz = Biz(target, ref, policy)
 
     with pytest.raises(ValueError):
-        biz.fqtr.in_(1, 0)
+        biz.fis_qtr.in_(1, 0)
 
     with pytest.raises(ValueError):
-        biz.fyear.in_(2, 1)
+        biz.fis_year.in_(2, 1)
 
 
 def test_multi_day_fraction_working_and_business_days():
@@ -214,14 +214,14 @@ def test_in_working_and_business_days_range_with_holiday():
     policy: BizPolicy = BizPolicy()
     biz: Biz = Biz(target, ref, policy)
 
-    assert biz.wday.in_(-2, 0) is True
-    assert biz.bday.in_(-2, 0) is True
+    assert biz.work_day.in_(-2, 0) is True
+    assert biz.biz_day.in_(-2, 0) is True
 
     # If Jan 2 is a holiday, in_business_days should be False but in_working_days still True
     policy2: BizPolicy = BizPolicy(holidays={"2024-01-02"})
     biz2: Biz = Biz(target, ref, policy2)
-    assert biz2.wday.in_(-2, 0) is True
-    assert biz2.bday.in_(-2, 0) is False
+    assert biz2.work_day.in_(-2, 0) is True
+    assert biz2.biz_day.in_(-2, 0) is False
 
 
 def test_business_days_raises_when_target_after_ref():

@@ -92,10 +92,10 @@ def test_unitnamespace_call_and_thru() -> None:
     # thru two-arg for previous..current should be True (inclusive)
     assert day_ns.thru(-1, 0) is True
 
-    # Also exercise a Biz UnitNamespace (wday)
+    # Also exercise a Biz UnitNamespace (work_day)
     policy = BizPolicy()
     b = Biz(target_time=REF, ref_time=REF, policy=policy)
-    w_ns = b.wday
+    w_ns = b.work_day
     assert w_ns.in_(0) is True
     assert w_ns(0) is True
     assert w_ns.between(0) is True

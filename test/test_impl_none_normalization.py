@@ -25,5 +25,5 @@ def test_biz_public_none_normalization():
     biz = Biz(target_time=ref, ref_time=ref)
 
     # Golden checks: with ref==target on a weekday, these should be True
-    assert biz.bday.in_(0) is True
-    assert biz.wday.in_(0) is True
+    assert biz.biz_day.in_(0) is True
+    assert biz.work_day.in_(0) is True

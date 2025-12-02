@@ -180,19 +180,15 @@ def test_biz_in_fiscal_years_consistency(target_ref: Tuple[dt.datetime, dt.datet
 @pytest.mark.hypothesis
 @given(target_ref=datetime_pair_strategy, policy=biz_policy_strategy)
 def test_biz_unit_namespace_consistency(target_ref: Tuple[dt.datetime, dt.datetime], policy: BizPolicy):
-    """Test that UnitNamespace properties delegate correctly to in_* methods."""
+    """Test that UnitNamespace call syntax works correctly."""
     target_dt, ref_dt = target_ref
     biz = Biz(target_dt, ref_dt, policy)
 
-    # Test that cached properties delegate to the correct methods
-    assert biz.bday.in_(-1, 1) == biz.in_business_days(-1, 1)
-    assert biz.wday.in_(0, 2) == biz.in_working_days(0, 2)
-    assert biz.fqtr.in_(-1, 0) == biz.in_fiscal_quarters(-1, 0)
-    assert biz.fyear.in_(-1, 1) == biz.in_fiscal_years(-1, 1)
-
-    # Test call syntax
-    assert biz.bday(-1, 1) == biz.in_business_days(-1, 1)
-    assert biz.fyear(-1, 1) == biz.in_fiscal_years(-1, 1)
+    # Test call syntax (should delegate to in_)
+    assert biz.biz_day(-1, 1) == biz.biz_day.in_(-1, 1)
+    assert biz.work_day(0, 2) == biz.work_day.in_(0, 2)
+    assert biz.fis_qtr(-1, 0) == biz.fis_qtr.in_(-1, 0)
+    assert biz.fis_year(-1, 1) == biz.fis_year.in_(-1, 1)
 
 
 @pytest.mark.hypothesis
@@ -203,23 +199,23 @@ def test_biz_convenience_properties(target_ref: Tuple[dt.datetime, dt.datetime],
     biz = Biz(target_dt, ref_dt, policy)
 
     # Test business day properties
-    assert biz.is_business_last_day == biz.bday.in_(-1)
-    assert biz.is_business_this_day == biz.bday.in_(0)
-    assert biz.is_business_next_day == biz.bday.in_(1)
+    assert biz.is_business_last_day == biz.biz_day.in_(-1)
+    assert biz.is_business_this_day == biz.biz_day.in_(0)
+    assert biz.is_business_next_day == biz.biz_day.in_(1)
 
     # Test working day properties
-    assert biz.is_workday_last_day == biz.wday.in_(-1)
-    assert biz.is_workday_this_day == biz.wday.in_(0)
-    assert biz.is_workday_next_day == biz.wday.in_(1)
+    assert biz.is_workday_last_day == biz.work_day.in_(-1)
+    assert biz.is_workday_this_day == biz.work_day.in_(0)
+    assert biz.is_workday_next_day == biz.work_day.in_(1)
 
     # Test fiscal properties
-    assert biz.is_last_fiscal_quarter == biz.fqtr.in_(-1)
-    assert biz.is_this_fiscal_quarter == biz.fqtr.in_(0)
-    assert biz.is_next_fiscal_quarter == biz.fqtr.in_(1)
+    assert biz.is_last_fiscal_quarter == biz.fis_qtr.in_(-1)
+    assert biz.is_this_fiscal_quarter == biz.fis_qtr.in_(0)
+    assert biz.is_next_fiscal_quarter == biz.fis_qtr.in_(1)
 
-    assert biz.is_last_fiscal_year == biz.fyear.in_(-1)
-    assert biz.is_this_fiscal_year == biz.fyear.in_(0)
-    assert biz.is_next_fiscal_year == biz.fyear.in_(1)
+    assert biz.is_last_fiscal_year == biz.fis_year.in_(-1)
+    assert biz.is_this_fiscal_year == biz.fis_year.in_(0)
+    assert biz.is_next_fiscal_year == biz.fis_year.in_(1)
 
 
 @pytest.mark.hypothesis
