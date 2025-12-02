@@ -148,3 +148,43 @@ class DayNamespace(UnitNamespace):
         end_date = (self._cal.ref_dt + _dt.timedelta(days=end)).date()
 
         return in_half_open_date(start_date, target_date, end_date)
+
+
+class WeekNamespace(UnitNamespace):
+    """Week-specific namespace that implements _in_impl with week logic."""
+
+    def __init__(self, cal: object) -> None:
+        super().__init__(cal)  # no fn needed
+
+    def in_(self, start: int = 0, end: Optional[int] = None) -> bool:
+        """Override to use _in_impl instead of _fn."""
+        if end is None:
+            end = start + 1
+        if start >= end:
+            raise ValueError(f"in_: start ({start}) must not be greater than end ({end})")
+        return self._in_impl(start, end)
+
+    def _in_impl(self, start: int, end: int) -> bool:
+        """Week-specific logic (moved from cal.in_weeks)."""
+        import datetime as _dt
+        from ._util import in_half_open_date
+        from ._cal import normalize_weekday
+
+        week_start_day = normalize_weekday("monday")  # default week start
+
+        target_date = self._cal.target_dt.date()
+        base_date = self._cal.ref_dt.date()
+
+        # Calculate the start of the current week based on week_start_day
+        days_since_week_start = (base_date.weekday() - week_start_day) % 7
+        current_week_start = base_date - _dt.timedelta(days=days_since_week_start)
+
+        # Calculate week boundaries
+        start_week_start = current_week_start + _dt.timedelta(weeks=start)
+        end_week_start = current_week_start + _dt.timedelta(weeks=end)
+        # Half-open semantics for weeks: `end_week_start` is already the
+        # exclusive start-of-week produced by the normalized `end` value;
+        # do not add an extra week here.
+        end_week_exclusive = end_week_start
+
+        return in_half_open_date(start_week_start, target_date, end_week_exclusive)
