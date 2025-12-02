@@ -50,13 +50,13 @@ def test_cal_in_minutes_consistency(target_ref: Tuple[dt.datetime, dt.datetime])
     # Test single minute window
     for offset in range(-10, 11):
         expected = offset <= time_diff_minutes < offset + 1
-        assert cal.in_minutes(offset) == expected
+        assert cal.minute.in_(offset) == expected
 
     # Test range windows (ensure start < end)
     for start in range(-5, 6):
         for end in range(start + 1, start + 6):
             expected = start <= time_diff_minutes < end
-            assert cal.in_minutes(start, end) == expected
+            assert cal.minute.in_(start, end) == expected
 
 
 @pytest.mark.hypothesis
@@ -71,13 +71,13 @@ def test_cal_in_hours_consistency(target_ref: Tuple[dt.datetime, dt.datetime]):
     # Test single hour window
     for offset in range(-10, 11):
         expected = offset <= time_diff_hours < offset + 1
-        assert cal.in_hours(offset) == expected
+        assert cal.hour.in_(offset) == expected
 
     # Test range windows (ensure start < end)
     for start in range(-5, 6):
         for end in range(start + 1, start + 6):
             expected = start <= time_diff_hours < end
-            assert cal.in_hours(start, end) == expected
+            assert cal.hour.in_(start, end) == expected
 
 
 @pytest.mark.hypothesis
@@ -92,13 +92,13 @@ def test_cal_in_days_consistency(target_ref: Tuple[dt.datetime, dt.datetime]):
     # Test single day window
     for offset in range(-5, 6):
         expected = offset <= time_diff_days < offset + 1
-        assert cal.in_days(offset) == expected
+        assert cal.day.in_(offset) == expected
 
     # Test range windows (ensure start < end)
     for start in range(-3, 4):
         for end in range(start + 1, start + 4):
             expected = start <= time_diff_days < end
-            assert cal.in_days(start, end) == expected
+            assert cal.day.in_(start, end) == expected
 
 
 @pytest.mark.hypothesis
@@ -113,34 +113,30 @@ def test_cal_in_weeks_consistency(target_ref: Tuple[dt.datetime, dt.datetime]):
     # Test single week window
     for offset in range(-3, 4):
         expected = offset <= time_diff_weeks < offset + 1
-        assert cal.in_weeks(offset) == expected
+        assert cal.week.in_(offset) == expected
 
     # Test range windows (ensure start < end)
     for start in range(-2, 3):
         for end in range(start + 1, start + 3):
             expected = start <= time_diff_weeks < end
-            assert cal.in_weeks(start, end) == expected
+            assert cal.week.in_(start, end) == expected
 
 
 @pytest.mark.hypothesis
 @given(target_ref=datetime_pair_strategy)
 def test_cal_unit_namespace_consistency(target_ref: Tuple[dt.datetime, dt.datetime]):
-    """Test that UnitNamespace properties delegate correctly to in_* methods."""
+    """Test that UnitNamespace call syntax and thru syntax work correctly."""
     target_dt, ref_dt = target_ref
     cal = Cal(target_dt, ref_dt)
 
-    # Test that cached properties delegate to the correct methods
-    assert cal.minute.in_(5, 10) == cal.in_minutes(5, 10)
-    assert cal.hour.in_(1, 3) == cal.in_hours(1, 3)
-    assert cal.day.in_(-1, 1) == cal.in_days(-1, 1)
-    assert cal.week.in_(0, 2) == cal.in_weeks(0, 2)
-
-    # Test call syntax
-    assert cal.minute(5, 10) == cal.in_minutes(5, 10)
-    assert cal.day(-1, 1) == cal.in_days(-1, 1)
+    # Test call syntax (should delegate to in_)
+    assert cal.minute(5, 10) == cal.minute.in_(5, 10)
+    assert cal.hour(1, 3) == cal.hour.in_(1, 3)
+    assert cal.day(-1, 1) == cal.day.in_(-1, 1)
+    assert cal.week(0, 2) == cal.week.in_(0, 2)
 
     # Test thru syntax (inclusive end)
-    assert cal.day.thru(-1, 0) == cal.in_days(-1, 1)  # -1 through 0 = -1 to 1 (half-open)
+    assert cal.day.thru(-1, 0) == cal.day.in_(-1, 1)  # -1 through 0 = -1 to 1 (half-open)
 
 
 @pytest.mark.hypothesis
@@ -246,4 +242,4 @@ def test_cal_quarter_calculations(target_ref: Tuple[dt.datetime, dt.datetime]):
     # Test quarter windows
     for offset in range(-4, 5):
         expected = offset <= quarter_diff < offset + 1
-        assert cal.in_quarters(offset) == expected
+        assert cal.qtr.in_(offset) == expected

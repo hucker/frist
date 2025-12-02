@@ -1,7 +1,7 @@
 """Smoke tests for the compact unit namespace API.
 
 These tests verify the ergonomic `cal.<unit>` namespace (compact form)
-delegates to the canonical `Cal.in_*` methods and supports call and inclusive `thru` sugar.
+supports call and inclusive `thru` sugar.
 
 Style: follow Arrange / Act / Assert (AA) comments per project `CODEGUIDE.md`.
 """
@@ -12,30 +12,29 @@ import pytest
 from frist._cal import Cal
 
 
-UNIT_MAP = [
-    ("minute", "in_minutes"),
-    ("hour", "in_hours"),
-    ("day", "in_days"),
-    ("week", "in_weeks"),
-    ("month", "in_months"),
-    ("qtr", "in_quarters"),
-    ("year", "in_years"),
+UNITS = [
+    "minute",
+    "hour", 
+    "day",
+    "week",
+    "month",
+    "qtr",
+    "year",
 ]
 
 @pytest.mark.smoke
 def test_unit_namespace_smoke():
     """Smoke test for compact unit namespaces.
 
-    Verifies that each compact namespace delegates to the canonical
-    `in_*` behavior and supports call/slice/thru sugar.
+    Verifies that each compact namespace supports call/slice/thru sugar.
     """
     # Arrange
     ref = dt.datetime(2025, 3, 15, 12, 34, 56)
     cal = Cal(target_dt=ref, ref_dt=ref)
 
     # Act / Assert: iterate units and verify golden boolean expectations
-    for prop, method in UNIT_MAP:
-        ns = getattr(cal, prop)
+    for unit in UNITS:
+        ns = getattr(cal, unit)
 
         # Golden checks: when ref==target, current unit should be True, previous should be False
         assert ns.in_(0) is True

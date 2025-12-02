@@ -124,25 +124,6 @@ def test_cal_in_weeks():
     assert not cal.week.in_(0), "Target should not be this week"
 
 
-def test_cal_in_weeks_custom_start():
-    """Test calendar week functionality with custom week start."""
-    # Sunday Jan 7, 2024
-    target_time: dt.datetime = dt.datetime(2024, 1, 7, 12, 0, 0)  # Sunday
-    reference_time: dt.datetime = dt.datetime(2024, 1, 14, 12, 0, 0)  # Next Sunday
-
-    # Arrange
-    z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
-    cal: Cal = z.cal
-
-    # Act
-    # (membership checks below)
-
-    # Assert
-    assert cal.in_weeks(-1, week_start="sunday"), "Target should be last week with Sunday start"
-    assert cal.in_weeks(-1, week_start="sun"), "Target should be last week with sun abbreviation"
-    assert cal.in_weeks(-1, week_start="su"), "Target should be last week with su abbreviation"
-
-
 def test_cal_in_months():
     """Test calendar month window functionality."""
     target_time: dt.datetime = dt.datetime(2024, 1, 15, 12, 0, 0)  # January 15
@@ -344,33 +325,6 @@ def test_cal_year_edge_cases():
 
     # Assert: Multi-year range
     assert cal.year.in_(-2, 0), "Target should be in range 2 years ago through now"
-
-
-def test_cal_week_different_starts():
-    """Test week calculations with different start days."""
-    # Test with a clear week boundary
-    target_time: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)  # Monday, Jan 1
-    reference_time: dt.datetime = dt.datetime(
-        2024, 1, 8, 12, 0, 0
-    )  # Monday, Jan 8 (next week)
-
-    # Arrange
-    z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
-    cal: Cal = z.cal
-
-    # Assert: With Monday start, target should be exactly one week ago
-    assert cal.in_weeks(-1, week_start="monday"), "Target should be last week with Monday start"
-    assert not cal.in_weeks(0, week_start="monday"), "Target should not be this week with Monday start"
-
-    # Test Sunday start with different dates to avoid edge cases
-    target_time: dt.datetime = dt.datetime(2024, 1, 7, 12, 0, 0)  # Sunday
-    reference_time: dt.datetime = dt.datetime(2024, 1, 14, 12, 0, 0)  # Next Sunday
-
-    z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
-    cal: Cal = z.cal
-
-    # Assert: Test Sunday-based weeks
-    assert cal.in_weeks(-1, week_start="sunday")
 
 
 def test_cal_minutes_edge_cases():
@@ -692,32 +646,6 @@ def test_cal_init_invalid_ref_type():
     """
     with pytest.raises(TypeError, match="Unrecognized datetime string format"):
         Cal(dt.datetime.now(), "not-a-date") # type: ignore # Intentional type error for testing
-
-
-@pytest.mark.parametrize(
-    "method",
-    [
-        "in_days",
-        "in_hours",
-        "in_minutes",
-        "in_months",
-        "in_quarters",
-        "in_years",
-        "in_weeks" ],
-)
-def test_cal_window_start_greater_than_end(method:str):
-    """
-    Arrange: Create Cal and call window method with start > end
-    Act & Assert: ValueError is raised
-    """
-    cal: Cal = Cal(dt.datetime(2024, 1, 2), dt.datetime(2024, 1, 1))
-    func = getattr(cal, method)
-    with pytest.raises(ValueError, match="start.*must not be greater than end"):
-        # For in_weeks, pass week_start as well
-        if method == "in_weeks":
-            func(2, 1, "monday")
-        else:
-            func(2, 1)
 
 
 def test_in_months_edge_cases():

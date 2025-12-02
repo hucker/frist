@@ -1,7 +1,8 @@
 from __future__ import annotations
 from typing import Callable, Optional
 import datetime as dt
-
+from ._util import in_half_open_date
+from ._cal import Cal
 __all__ = ["UnitNamespace"]
 
 
@@ -67,22 +68,21 @@ class UnitNamespace:
 class MinuteNamespace(UnitNamespace):
     """Minute-specific namespace that implements _in_impl with minute logic."""
 
-    def __init__(self, cal: object) -> None:
+    def __init__(self, cal: Cal) -> None:
         super().__init__(cal)  # no fn needed
 
     def _in_impl(self, start: int, end: int) -> bool:
         """Minute-specific logic (moved from cal.in_minutes)."""
-        import datetime as _dt
         from ._util import in_half_open_dt
 
-        ref = self._cal.ref_dt
-        target = self._cal.target_dt
+        ref: dt.datetime = self._cal.ref_dt
+        target: dt.datetime = self._cal.target_dt
 
         # compute minute-aligned boundaries
-        start_time = ref + _dt.timedelta(minutes=start)
-        start_minute = start_time.replace(second=0, microsecond=0)
+        start_time: dt.datetime = ref + dt.timedelta(minutes=start)
+        start_minute:dt.datetime = start_time.replace(second=0, microsecond=0)
 
-        end_time = ref + _dt.timedelta(minutes=end)
+        end_time = ref + dt.timedelta(minutes=end)
         end_minute = end_time.replace(second=0, microsecond=0)
 
         return in_half_open_dt(start_minute, target, end_minute)
@@ -91,22 +91,21 @@ class MinuteNamespace(UnitNamespace):
 class HourNamespace(UnitNamespace):
     """Hour-specific namespace that implements _in_impl with hour logic."""
 
-    def __init__(self, cal: object) -> None:
+    def __init__(self, cal: Cal) -> None:
         super().__init__(cal)  # no fn needed
 
     def _in_impl(self, start: int, end: int) -> bool:
         """Hour-specific logic (moved from cal.in_hours)."""
-        import datetime as _dt
         from ._util import in_half_open_dt
 
-        ref = self._cal.ref_dt
+        ref:dt.datetime = self._cal.ref_dt
         target = self._cal.target_dt
 
         # compute hour-aligned boundaries
-        start_time = ref + _dt.timedelta(hours=start)
+        start_time = ref + dt.timedelta(hours=start)
         start_hour = start_time.replace(minute=0, second=0, microsecond=0)
 
-        end_time = ref + _dt.timedelta(hours=end)
+        end_time = ref + dt.timedelta(hours=end)
         end_hour = end_time.replace(minute=0, second=0, microsecond=0)
 
         return in_half_open_dt(start_hour, target, end_hour)
@@ -120,14 +119,12 @@ class DayNamespace(UnitNamespace):
 
     def _in_impl(self, start: int, end: int) -> bool:
         """Day-specific logic (moved from cal.in_days)."""
-        import datetime as _dt
-        from ._util import in_half_open_date
 
         target_date = self._cal.target_dt.date()
 
         # Calculate the date range boundaries
-        start_date = (self._cal.ref_dt + _dt.timedelta(days=start)).date()
-        end_date = (self._cal.ref_dt + _dt.timedelta(days=end)).date()
+        start_date = (self._cal.ref_dt + dt.timedelta(days=start)).date()
+        end_date = (self._cal.ref_dt + dt.timedelta(days=end)).date()
 
         return in_half_open_date(start_date, target_date, end_date)
 
@@ -140,7 +137,6 @@ class WeekNamespace(UnitNamespace):
 
     def _in_impl(self, start: int, end: int) -> bool:
         """Week-specific logic (moved from cal.in_weeks)."""
-        import datetime as _dt
         from ._util import in_half_open_date
         from ._cal import normalize_weekday
 
@@ -151,11 +147,11 @@ class WeekNamespace(UnitNamespace):
 
         # Calculate the start of the current week based on week_start_day
         days_since_week_start = (base_date.weekday() - week_start_day) % 7
-        current_week_start = base_date - _dt.timedelta(days=days_since_week_start)
+        current_week_start = base_date - dt.timedelta(days=days_since_week_start)
 
         # Calculate week boundaries
-        start_week_start = current_week_start + _dt.timedelta(weeks=start)
-        end_week_start = current_week_start + _dt.timedelta(weeks=end)
+        start_week_start = current_week_start + dt.timedelta(weeks=start)
+        end_week_start = current_week_start + dt.timedelta(weeks=end)
         # Half-open semantics for weeks: `end_week_start` is already the
         # exclusive start-of-week produced by the normalized `end` value;
         # do not add an extra week here.
