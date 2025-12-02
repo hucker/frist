@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from ._constants import WEEKDAY_INDEX
 from ._util import verify_start_end, in_half_open,in_half_open_date,in_half_open_dt
 from functools import cached_property
-from ._ranges import UnitNamespace
+from ._ranges import UnitNamespace, MinuteNamespace, HourNamespace, DayNamespace
 from ._types import TimeLike, to_datetime
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -465,16 +465,16 @@ class Cal:
     # the canonical API surface which remains the `in_*` methods.
 
     @cached_property
-    def minute(self) -> UnitNamespace:
-        return UnitNamespace(self, self.in_minutes)
+    def minute(self) -> MinuteNamespace:
+        return MinuteNamespace(self)
 
     @cached_property
-    def hour(self) -> UnitNamespace:
-        return UnitNamespace(self, self.in_hours)
+    def hour(self) -> HourNamespace:
+        return HourNamespace(self)
 
     @cached_property
-    def day(self) -> UnitNamespace:
-        return UnitNamespace(self, self.in_days)
+    def day(self) -> DayNamespace:
+        return DayNamespace(self)
 
     @cached_property
     def week(self) -> UnitNamespace:
