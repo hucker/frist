@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from ._constants import WEEKDAY_INDEX
 from ._util import verify_start_end, in_half_open,in_half_open_date,in_half_open_dt
 from functools import cached_property
-from ._ranges import UnitNamespace, MinuteNamespace, HourNamespace, DayNamespace, WeekNamespace
+from ._ranges import UnitNamespace, MinuteNamespace, HourNamespace, DayNamespace, WeekNamespace, MonthNamespace, QuarterNamespace, YearNamespace
 from ._types import TimeLike, to_datetime
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -481,13 +481,13 @@ class Cal:
         return WeekNamespace(self)
 
     @cached_property
-    def month(self) -> UnitNamespace:
-        return UnitNamespace(self, self.in_months)
+    def month(self) -> MonthNamespace:
+        return MonthNamespace(self)
 
     @cached_property
-    def qtr(self) -> UnitNamespace:
-        return UnitNamespace(self, self.in_quarters)
+    def qtr(self) -> QuarterNamespace:
+        return QuarterNamespace(self)
 
     @cached_property
-    def year(self) -> UnitNamespace:
-        return UnitNamespace(self, self.in_years)
+    def year(self) -> YearNamespace:
+        return YearNamespace(self)
