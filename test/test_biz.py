@@ -357,7 +357,7 @@ def test_biz_default_ref_time():
     
     # Assert
     now = dt.datetime.now()
-    assert (now - biz.ref_time).total_seconds() < 1.0, "Reference time should be close to current time"
+    assert (now - biz.ref_dt).total_seconds() < 1.0, "Reference time should be close to current time"
 
 
 def test_biz_with_timestamps():

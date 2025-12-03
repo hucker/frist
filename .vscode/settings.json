@@ -19,5 +19,10 @@
         "Pytest",
         "timedelta",
         "usecases"
-    ]
+    ],
+    "python.sortImports.provider": "ruff",
+    "python.sortImports.args": ["--fix"],
+    "python.formatting.provider": "ruff",
+    "ruff.fixOnSave": true,
+    "ruff.config": "${workspaceFolder}/pyproject.toml"
 }

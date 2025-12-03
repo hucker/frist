@@ -39,8 +39,8 @@ def test_biz_construction_properties(target_ref: Tuple[dt.datetime, dt.datetime]
     target_dt, ref_dt = target_ref
     biz = Biz(target_dt, ref_dt, policy)
 
-    assert biz.target_time == target_dt
-    assert biz.ref_time == ref_dt
+    assert biz.target_dt == target_dt
+    assert biz.ref_dt == ref_dt
     assert biz.cal_policy == policy
 
 

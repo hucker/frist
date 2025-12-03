@@ -16,13 +16,17 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
-
+# Add runtime dependencies
+dependencies = [
+    "python-dateutil",
+]
 
 # frist has no runtime dependencies
 [project.optional-dependencies]
 dev = [
     "pytest",
     "pytest-cov",
+    "pytest-xdist",
     "mypy",
     "hypothesis"
 ]
@@ -56,3 +60,7 @@ usedevelop = True
 commands =
     pytest --cov=frist --cov-report=term-missing
 """
+
+[tool.ruff]
+select = ["E", "F", "I", "UP", "Q"]  # Enable these rule categories
+fix = true  # Allow auto-fixing

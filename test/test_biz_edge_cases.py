@@ -18,10 +18,10 @@ def test_workday_fraction_before_and_after():
     policy = BizPolicy(start_of_business=dt.time(9, 0), end_of_business=dt.time(17, 0))
     # before start
     biz_before = Biz(target_time=dt.datetime(2025, 1, 2, 8, 0), ref_time=dt.datetime(2025, 1, 2, 12, 0), policy=policy)
-    assert biz_before._workday_fraction_at(biz_before.target_time) == 0.0
+    assert biz_before._workday_fraction_at(biz_before.target_dt) == 0.0
     # after end
     biz_after = Biz(target_time=dt.datetime(2025, 1, 2, 18, 0), ref_time=dt.datetime(2025, 1, 2, 12, 0), policy=policy)
-    assert biz_after._workday_fraction_at(biz_after.target_time) == 1.0
+    assert biz_after._workday_fraction_at(biz_after.target_dt) == 1.0
 
 
 def test_age_days_helper_raises_when_target_after_ref():

@@ -10,8 +10,12 @@ from typing import Callable
 from functools import cached_property
 
 from ._biz_policy import BizPolicy
+
+
+
+
 from ._util import verify_start_end, in_half_open,in_half_open_date
-from ._ranges import UnitNamespace
+from ._ranges import UnitNamespace, BizDayNamespace, WorkingDayNamespace, FiscalQuarterNamespace, FiscalYearNamespace
 from ._types import TimeLike, to_datetime
 
 class Biz:
@@ -36,28 +40,38 @@ class Biz:
         """
         self.cal_policy: BizPolicy = policy or BizPolicy()
         
-        self.target_time = to_datetime(target_time, formats)
-        self.ref_time = to_datetime(ref_time, formats) if ref_time is not None else dt.datetime.now()
+        self._target_dt = to_datetime(target_time, formats)
+        self._ref_dt = to_datetime(ref_time, formats) if ref_time is not None else dt.datetime.now()
+
+    @property
+    def target_dt(self) -> dt.datetime:
+        """Get the target datetime."""
+        return self._target_dt
+    
+    @property
+    def ref_dt(self) -> dt.datetime:
+        """Get the reference datetime."""
+        return self._ref_dt
 
     def __repr__(self) -> str:
         """Return a concise representation useful for debugging."""
-        return f"<Biz target_time={self.target_time!r} ref_time={self.ref_time!r} policy={self.cal_policy!r}>"
+        return f"<Biz target_time={self.target_dt!r} ref_time={self.ref_dt!r} policy={self.cal_policy!r}>"
 
     # ---------- Properties ----------
     @property
     def holiday(self) -> bool:
         """Return True if `target_time` falls on a holiday defined by the policy."""
-        return self.cal_policy.is_holiday(self.target_time)
+        return self.cal_policy.is_holiday(self.target_dt)
 
     @property
     def is_workday(self) -> bool:
         """Return True if `target_time` is a workday according to the policy."""
-        return self.cal_policy.is_workday(self.target_time)
+        return self.cal_policy.is_workday(self.target_dt)
 
     @property
     def is_business_day(self) -> bool:
         """Return True if `target_time` is a business day (workday and not holiday)."""
-        return self.cal_policy.is_business_day(self.target_time)
+        return self.cal_policy.is_business_day(self.target_dt)
 
     # ---------- Shortcut properties (policy-aware) ----------
     @property
@@ -164,11 +178,11 @@ class Biz:
 
     @property
     def fiscal_year(self) -> int:
-        return self.get_fiscal_year(self.target_time, self.cal_policy.fiscal_year_start_month)
+        return self.get_fiscal_year(self.target_dt, self.cal_policy.fiscal_year_start_month)
     
     @property
     def fiscal_quarter(self) -> int:
-        return self.get_fiscal_quarter(self.target_time, self.cal_policy.fiscal_year_start_month)
+        return self.get_fiscal_quarter(self.target_dt, self.cal_policy.fiscal_year_start_month)
 
 
     def _workday_fraction_at(self, dt_obj: dt.datetime) -> float:
@@ -202,21 +216,21 @@ class Biz:
         given datetime; otherwise the policy's `business_day_fraction` is used
         (which returns 0.0 for holidays).
         """
-        if self.target_time > self.ref_time:
-            raise ValueError(f"{self.target_time=} must not be after {self.ref_time=}")
+        if self.target_dt > self.ref_dt:
+            raise ValueError(f"{self.target_dt=} must not be after {self.ref_dt=}")
 
         if frac_fn is None:
             frac_fn = self.cal_policy.business_day_fraction
 
-        current: dt.datetime = self.target_time
-        end: dt.datetime = self.ref_time
+        current: dt.datetime = self.target_dt
+        end: dt.datetime = self.ref_dt
         total: float = 0.0
 
         while current.date() <= end.date():
             if check_fn(current):
                 # Determine window for this day
-                if current.date() == self.target_time.date():
-                    start_dt: dt.datetime = self.target_time
+                if current.date() == self.target_dt.date():
+                    start_dt: dt.datetime = self.target_dt
                     end_dt: dt.datetime = min(end, dt.datetime.combine(current.date(), self.cal_policy.end_of_business))
                 elif current.date() == end.date():
                     start_dt = dt.datetime.combine(current.date(), self.cal_policy.start_of_business)
@@ -290,8 +304,8 @@ class Biz:
         The target must itself be a business day to be considered "in" the business-day window.
         """
         
-        ref: dt.date = self.ref_time.date()
-        tgt: dt.date = self.target_time.date()
+        ref: dt.date = self.ref_dt.date()
+        tgt: dt.date = self.target_dt.date()
         start_date: dt.date = self._move_n_days(ref, start, count_business=True)
         end_date: dt.date = self._move_n_days(ref, end, count_business=True)
 
@@ -311,8 +325,8 @@ class Biz:
         Working days ignore holidays (only policy.workdays matter).
         """
         
-        ref: dt.date = self.ref_time.date()
-        tgt: dt.date = self.target_time.date()
+        ref: dt.date = self.ref_dt.date()
+        tgt: dt.date = self.target_dt.date()
         start_date: dt.date = self._move_n_days(ref, start, count_business=False)
         end_date: dt.date = self._move_n_days(ref, end, count_business=False)
 
@@ -343,7 +357,7 @@ class Biz:
         """
         
         fy_start_month: int = self.cal_policy.fiscal_year_start_month
-        base_time: dt.datetime = self.ref_time
+        base_time: dt.datetime = self.ref_dt
         fy: int = Biz.get_fiscal_year(base_time, fy_start_month)
         fq: int = Biz.get_fiscal_quarter(base_time, fy_start_month)
 
@@ -358,8 +372,8 @@ class Biz:
         start_idx = fiscal_quarter_index_for_offset(start)
         end_idx = fiscal_quarter_index_for_offset(end)
 
-        target_fy: int = Biz.get_fiscal_year(self.target_time, fy_start_month)
-        target_fq: int = Biz.get_fiscal_quarter(self.target_time, fy_start_month)
+        target_fy: int = Biz.get_fiscal_year(self.target_dt, fy_start_month)
+        target_fq: int = Biz.get_fiscal_quarter(self.target_dt, fy_start_month)
         target_idx = target_fy * 4 + (target_fq - 1)
 
         # Use in_half_open on integer quarter indices. The decorator
@@ -386,12 +400,12 @@ class Biz:
         """
         
         fy_start_month: int = self.cal_policy.fiscal_year_start_month
-        base_time: dt.datetime = self.ref_time
+        base_time: dt.datetime = self.ref_dt
         fy: int = Biz.get_fiscal_year(base_time, fy_start_month)
         start_year: int = fy + start
         end_year: int = fy + end
 
-        target_fy: int = Biz.get_fiscal_year(self.target_time, fy_start_month)
+        target_fy: int = Biz.get_fiscal_year(self.target_dt, fy_start_month)
 
         # Use in_half_open for numeric years; the decorator normalization
         # already makes single-arg calls represent a single-year half-open
@@ -420,19 +434,19 @@ class Biz:
 
     @cached_property
     def biz_day(self) -> UnitNamespace:
-        return UnitNamespace(self, self.in_business_days)
+        return BizDayNamespace(self)
 
     @cached_property
     def work_day(self) -> UnitNamespace:
-        return UnitNamespace(self, self.in_working_days)
+        return WorkingDayNamespace(self)
 
     @cached_property
     def fis_qtr(self) -> UnitNamespace:
-        return UnitNamespace(self, self.in_fiscal_quarters)
+        return FiscalQuarterNamespace(self)
 
     @cached_property
     def fis_year(self) -> UnitNamespace:
-        return UnitNamespace(self, self.in_fiscal_years)
+        return FiscalYearNamespace(self)
 
 
 __all__ = ["Biz"]

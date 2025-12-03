@@ -108,17 +108,26 @@ def test_cal_in_weeks_consistency(target_ref: Tuple[dt.datetime, dt.datetime]):
     target_dt, ref_dt = target_ref
     cal = Cal(target_dt, ref_dt)
 
-    time_diff_weeks = (target_dt - ref_dt).total_seconds() / (86400 * 7)
+    # Use the same week-bucket logic as WeekNamespace
+    from frist._cal import normalize_weekday
+    week_start_day = normalize_weekday("monday")
+    target_date = target_dt.date()
+    base_date = ref_dt.date()
+    days_since_week_start = (base_date.weekday() - week_start_day) % 7
+    current_week_start = base_date - dt.timedelta(days=days_since_week_start)
+
+    # Compute the week offset for the target relative to the reference week
+    week_offset = (target_date - current_week_start).days // 7
 
     # Test single week window
     for offset in range(-3, 4):
-        expected = offset <= time_diff_weeks < offset + 1
+        expected = (week_offset == offset)
         assert cal.week.in_(offset) == expected
 
     # Test range windows (ensure start < end)
     for start in range(-2, 3):
         for end in range(start + 1, start + 3):
-            expected = start <= time_diff_weeks < end
+            expected = (start <= week_offset < end)
             assert cal.week.in_(start, end) == expected
 
 
