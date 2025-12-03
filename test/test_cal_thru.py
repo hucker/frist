@@ -1,4 +1,5 @@
-"""Tests verifying inclusive `thru` behavior for compact namespaces.
+"""
+Tests verifying inclusive `thru` behavior for Cal namespaces.
 
 These ensure `ns.thru(start, end)` produces the correct half-open semantics
 by advancing the end by 1 compared to `in_`.
@@ -7,13 +8,9 @@ Style: Arrange / Act / Assert (AA) per project `codeguide.md`.
 """
 
 import datetime as dt
-
 from frist._cal import Cal
-from frist._biz import Biz
-
 
 CAL_UNITS = ["minute", "hour", "day", "week", "month", "qtr", "year"]
-BIZ_UNITS = ["biz_day", "work_day", "fis_qtr", "fis_year"]
 
 
 def test_cal_thru_behavior():
@@ -26,22 +23,6 @@ def test_cal_thru_behavior():
         ns = getattr(cal, prop)
 
         # Golden check: when ref==target, current unit is True, previous is False
-        assert ns.in_(0) is True
-        assert ns.in_(-1) is False
-
-        # inclusive slice syntax removed; verify call form only
-
-
-def test_biz_thru_behavior():
-    # Arrange: choose a weekday so business/working-day checks are True
-    ref = dt.datetime(2025, 3, 14, 12, 34, 56)
-    biz = Biz(target_dt=ref, ref_dt=ref)
-
-    # Act / Assert
-    for prop in BIZ_UNITS:
-        ns = getattr(biz, prop)
-
-        # Golden check: when ref==target on a weekday, current unit True, previous False
         assert ns.in_(0) is True
         assert ns.in_(-1) is False
 

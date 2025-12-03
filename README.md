@@ -4,49 +4,47 @@
 
 `Frist` is not a [replacement](https://imgs.xkcd.com/comics/standards_2x.png) for `datetime` or `timedelta`. If the standard library meets your needs, keep using it.
 
-Frist does more than shorten expressions: it reduces many common calendar and business-date queries to a single, expressive property (for example, `Cal(...).is_this_quarter`, `Age(...).days`, or `Biz(...).biz_day.in_(0)`). That one-property approach makes intent explicit, avoids repeating low-level date math across projects, and centralizes tricky edge cases such as half-open intervals, fiscal boundaries, and business-hour fractions.
+`Frist` does more than shorten expressions: it reduces many common calendar and business-date queries to a single, expressive property (for example, `Cal(...).is_this_quarter`, `Age(...).days`, or `Biz(...).biz_day.in_(0)`). That one-property approach makes intent explicit, avoids repeating low-level date math across projects, and centralizes tricky edge cases such as half-open intervals, fiscal boundaries, and business-hour fractions.
 
 Here are some examples of a dataset with a bunch of datetimes.
 
-``` python
+```python
 from frist import Age, Cal, Biz, BizPolicy
 
-# In these examples a second datetime is not provided; when omitted the constructors use the reference time (now).
-#
-# If you omit the reference time, Frist uses the current time (`now`) as the reference. This makes
-# one-property expressions (for example, `Age(date).days` or `Cal(date).is_today`) convenient for
-# interactive use; pass an explicit reference when you need deterministic, reproducible comparisons
-# (for tests or batch processing against a fixed point in time).
+# If you omit the reference time, Frist uses the current time (`now`) as the reference.
+# This makes one-property expressions (e.g., Age(date).days or Cal(date).is_today) convenient for
+# interactive use. Pass an explicit reference for deterministic, reproducible comparisons (e.g., tests)
 
 dates = large_list_of_date_times()
 
 # Policy only required if you want business date info
 policy = BizPolicy(fiscal_year_start_month=4, holidays={"2026-01-01"})
 
-# If no second date provided then now() assumed.
+# If no second date provided then now() is assumed.
 
 last_four_and_half_minutes = [date for date in dates if Age(date).minutes <= 4.5]
-
 last_three_years = [date for date in dates if Age(date).years < 3.0]
 
-dates_today = [date for date in dates if Cal(date).day.in_(0)]
+# Window membership queries:
+# Each Cal or Biz object is created with a target date and, unless you provide a reference time,
+# it implicitly uses the current time ("now") as the reference. The .in_() method then checks
+# if the target date falls within a calendar or business window (e.g., day, month, year, business day)
+# relative to that reference. This lets you write expressive queries like "is this date in the last
+# two months?" or "is this a business day in the current fiscal year?" without manually handling
+# date math or reference points.
 
-last_two_months = [date for date in dates if Cal(date).month.in_(-2, 0)]
+dates_today = [date for date in dates if Cal(target_dt=date).day.in_(0)]
+last_two_months = [date for date in dates if Cal(target_dt=date).month.in_(-2, 0)]
+last_three_cal_years = [date for date in dates if Cal(target_dt=date).year.in_(-3, 0)]
+last_five_business_days = [date for date in dates if Biz(target_dt=date).biz_day.in_(-5, 0)]
+this_fiscal_year = [date for date in dates if Biz(target_dt=date, policy).fiscal_year.in_(0)]
+next_2_fiscal_years = [date for date in dates if Biz(target_dt=date, policy).fiscal_year.in_(0, 2)]
+ignore_holidays = [date for date in dates if not Biz(target_dt=date, policy).is_holiday]
 
-last_three_cal_years = [date for date in dates if Cal(date).year.in_(-3, 0)]
-
-last_five_business_days = [date for date in dates if Biz(date).biz_day.in_(-5, 0)]
-
-this_fiscal_year = [date for date in dates if Biz(date, policy).fis_year.in_(0)]
-
-last_3_fiscal_years = [date for date in dates if Biz(date, policy).fis_year.in_(-2, 0)]
-
-ignore_holidays = [date for date in dates if not Biz(date, policy).is_holiday]
-
-# Shortcut examples where intent is very clear
-dates_today_shortcut = [date for date in dates if Cal(date).is_today]
-dates_this_quarter = [date for date in dates if Cal(date).is_this_quarter]
-dates_last_year = [date for date in dates if Cal(date).is_last_year]
+# Shortcut boolean properties for common calendar queries:
+dates_today_shortcut = [date for date in dates if Cal(target_dt=date).is_today]
+dates_this_quarter = [date for date in dates if Cal(target_dt=date).is_this_quarter]
+dates_last_year = [date for date in dates if Cal(target_dt=date).is_last_year]
 ```
 
 ## Caveats
@@ -60,7 +58,7 @@ dates_last_year = [date for date in dates if Cal(date).is_last_year]
   month. Each fiscal year has four quarters, each 3 months long, with Q1 starting on the
   first day of the chosen month.
 
-- **Precomputed Holidays** The business holiday set is a precomputed list of holidays provided by the business.  It is assumed this list will take care of ALL "movable" holiday calculations and provide a list of days (that should land on working days) that are considered days off.  THere is NO calculation involved.  If New Years on a Sunday and you are closed Monday then you need to add the 2nd as a holiday.  These calendars are usually provided by HR or accounting.
+- **Precomputed Holidays** The business holiday set is a precomputed list of holidays provided by the business.  It is assumed this list will take care of ALL "movable" holiday calculations and provide a list of days (that should land on working days) that are considered days off.  There is NO calculation involved.  If New Years on a Sunday and you are closed Monday then you need to add the 2nd as a holiday.  These calendars are usually provided by HR or accounting.
 
 - **Limits to Flexibility** `Frist` attempts to have a fairly wide input surface for `datetime` representations, including datetime, date, int/float (timestamps) and strings.   Strings, generally can be reconfigured to parse a custom format, but by default expect YYYY-MM-DD HH:MM:SS YYYY-MM-DDTHH:MM:SS (ISO 8601) or YYYY-MM-DD values.
 
@@ -123,11 +121,11 @@ False   # not in the 7..1 days before ref
 
 ### Inclusive `thru` helper
 
-Frist also provides a  helper available on the compact `UnitNamespace` properties (for example `cal.mon`, `cal.day`, `biz.biz_day`) named `thru`. The `thru` method uses inclusive end semantics which is convenient for human-readable ranges such as "Mon thru Fri" where the end is part of the range.
+Frist also provides a helper available on the compact `UnitNamespace` properties (for example `cal.mon`, `cal.day`, `biz.biz_day`) named `thru`. The `thru` method uses inclusive end semantics which is convenient for human-readable ranges such as "Mon thru Fri" where the end unit is part of the range.
 
 - `*.in_` methods and the main API use half-open intervals: `start <= value < end`. - `*.thru(start, end)` is inclusive on the end: it returns True when `start <= value <= end`.
 
-Implementation note: `thru` is implemented as a thin ergonomic adapter that forwards to the canonical half-open `in_*` methods by advancing the exclusive end by one unit. For example `cal.month.thru(-2, 0)` is equivalent to `cal.month.in_(-2, 1)` (the inclusive end `0` becomes exclusive `1`). This keeps the core API canonical while offering a more natural English-style `thru` surface for consumers.
+Implementation note: `thru` is implemented as a thin ergonomic adapter that forwards to the canonical half-open `in_*` methods by advancing the exclusive end by one unit. For example `cal.month.thru(-2, 0)` is equivalent to `cal.month.in_(-2, 1)` (the inclusive end `0` becomes exclusive `1`). This keeps the core API canonical while offering a more natural English-style `thru` surface for users.
 
 Examples:
 
@@ -468,27 +466,27 @@ False
 
 ### Status
 
-[![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13%20|%203.14-blue?logo=python&logoColor=white)](https://www.python.org/) [![Coverage](https://img.shields.io/badge/coverage-100%25-green)](https://github.com/hucker/frist/actions) [![Pytest](https://img.shields.io/badge/pytest-100%25%20pass%20%7C%20479%20tests-green?logo=pytest&logoColor=white)](https://docs.pytest.org/en/stable/) [![Ruff](https://img.shields.io/badge/ruff-100%25-green?logo=ruff&logoColor=white)](https://github.com/charliermarsh/ruff) [![Tox](https://img.shields.io/static/v1?label=tox&message=3.10-3.14&color=green&logo=tox&logoColor=white)](https://tox.readthedocs.io/) [![Mypy](https://img.shields.io/static/v1?label=mypy&message=0%20issues&color=green&logo=mypy&logoColor=white)](https://mypy-lang.org/)
+[![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13%20|%203.14-blue?logo=python&logoColor=white)](https://www.python.org/) [![Coverage](https://img.shields.io/badge/coverage-100%25-green)](https://github.com/hucker/frist/actions) [![Pytest](https://img.shields.io/badge/pytest-100%25%20pass%20%7C%20512%20tests-green?logo=pytest&logoColor=white)](https://docs.pytest.org/en/stable/) [![Ruff](https://img.shields.io/badge/ruff-100%25-green?logo=ruff&logoColor=white)](https://github.com/charliermarsh/ruff) [![Tox](https://img.shields.io/static/v1?label=tox&message=3.10-3.14&color=green&logo=tox&logoColor=white)](https://tox.readthedocs.io/) [![Mypy](https://img.shields.io/static/v1?label=mypy&message=0%20issues&color=green&logo=mypy&logoColor=white)](https://mypy-lang.org/)
 
 ### Pytest (100% pass/100% coverage)
 
 ```text
 Name                       Stmts   Miss Branch BrPart  Cover   Missing
 -------------------------------------------------------------------------------------
-src\frist\__init__.py          8      0      0      0   100%
-src\frist\_age.py            114      0     34      0   100%
-src\frist\_biz.py            187      0     28      0   100%
-src\frist\_biz_policy.py      79      0     38      0   100%
-src\frist\_cal.py             90      0     12      0   100%
-src\frist\_constants.py       15      0      0      0   100%
-src\frist\_frist.py           48      0     18      0   100%
-src\frist\_ranges.py         120      1      4      0    99%   247
-src\frist\_types.py           31      0      0      0   100%
-src\frist\_util.py            18      2      2      0    89%   22-26
+src\frist\__init__.py                          8      0      0      0   100%
+src\frist\_age.py                            114      0     24      0   100%
+src\frist\_biz.py                            193      0     28      0   100%
+src\frist\_biz_policy.py                      80      0     38      0   100%
+src\frist\_cal.py                             81      0      0      0   100%
+src\frist\_constants.py                       15      0      0      0   100%
+src\frist\_frist.py                           47      0      4      0   100%
+src\frist\_ranges.py                         155      0      6      0   100%
+src\frist\_types.py                           31      0     16      0   100%
+src\frist\_util.py                            28      0      6      0   100%
 ```
 
-> Note: running `pytest -m smoke` on the current branch produced ~62% coverage and completed in ~0.46s
-> (test run: `2 passed, 486 deselected`).
+> Note: running `pytest -m smoke` on the current branch produced ~63% coverage and completed in ~0.46s
+> (test run: `512 passed`).
 
 ### Tox
 
@@ -506,7 +504,7 @@ main> tox
 
 ```text
 main> mypy src/frist
-Success: no issues found in 8 source files
+Success: no issues found in 10 source files
 ```
 
 ### Notes

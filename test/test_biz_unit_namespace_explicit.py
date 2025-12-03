@@ -14,7 +14,7 @@ def test_biz_unit_namespace_explicit_checks():
     # Arrange
     # Use a weekday (Friday) so business/working-day checks are True
     ref = dt.datetime(2025, 3, 14, 12, 34, 56)
-    biz = Biz(target_time=ref, ref_time=ref)
+    biz = Biz(target_dt=ref, ref_dt=ref)
 
     # Act / Assert: business days
     assert biz.biz_day.in_(0) is True

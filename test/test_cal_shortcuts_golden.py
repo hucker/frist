@@ -68,7 +68,7 @@ def test_biz_shortcuts_golden(shortcut: str, target_dt: dt.datetime, expected: b
     Test Biz shortcuts with explicit golden datetimes. Uses default BizPolicy.
     """
     policy = BizPolicy()  # default policy; golden dates chosen to be unambiguous
-    b = Biz(target_time=target_dt, ref_time=REF, policy=policy)
+    b = Biz(target_dt=target_dt, ref_dt=REF, policy=policy)
     assert getattr(b, shortcut) is expected
 
 
@@ -94,7 +94,7 @@ def test_unitnamespace_call_and_thru() -> None:
 
     # Also exercise a Biz UnitNamespace (work_day)
     policy = BizPolicy()
-    b = Biz(target_time=REF, ref_time=REF, policy=policy)
+    b = Biz(target_dt=REF, ref_dt=REF, policy=policy)
     w_ns = b.work_day
     assert w_ns.in_(0) is True
     assert w_ns(0) is True

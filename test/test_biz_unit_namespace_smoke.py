@@ -23,7 +23,7 @@ UNITS = [
 def test_biz_unit_namespace_smoke():
     # Arrange
     ref = dt.datetime(2025, 3, 15, 12, 34, 56)
-    biz = Biz(target_time=ref, ref_time=ref)
+    biz = Biz(target_dt=ref, ref_dt=ref)
 
     # Act / Assert: iterate units and verify golden boolean expectations
     for unit in UNITS:
@@ -31,7 +31,7 @@ def test_biz_unit_namespace_smoke():
 
         # Use a weekday ref for stable expectations
         weekday_ref = dt.datetime(2025, 3, 14, 12, 0, 0)  # Friday
-        biz_wd = Biz(target_time=weekday_ref, ref_time=weekday_ref)
+        biz_wd = Biz(target_dt=weekday_ref, ref_dt=weekday_ref)
         ns_wd = getattr(biz_wd, unit)
         assert ns_wd.in_(0) is True
         assert ns_wd.in_(-1) is False

@@ -7,7 +7,8 @@ Provides robust tools for:
     - Fiscal year/quarter logic and holiday detection
     - Flexible datetime parsing and normalization
 
-Designed for use in any Python project requiring advanced datetime analysis, not limited to file operations.
+Designed for use in any Python project requiring advanced datetime analysis, 
+not limited to file operations.
 
 Exports:
     Chrono   -- Main datetime utility class
@@ -17,9 +18,9 @@ Exports:
     BizPolicy -- Configurable calendar policies (fiscal year start, holidays)
 """
 from ._age import Age
-from ._cal import Cal
 from ._biz import Biz
 from ._biz_policy import BizPolicy
+from ._cal import Cal
 from ._frist import Chrono
 
 __version__ = "0.17.0"

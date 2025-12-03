@@ -8,8 +8,8 @@ These include:
 import datetime as dt
 import pytest
 
-from frist._cal import normalize_weekday, Cal
-
+from frist._cal import Cal
+from frist._util import normalize_weekday
 
 def test_normalize_weekday_invalid_raises() -> None:
     """Test that normalize_weekday raises ValueError for invalid day specifications."""

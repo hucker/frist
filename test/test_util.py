@@ -15,7 +15,7 @@ def test_verify_start_end_raises_valueerror():
         pass
 
     d = Dummy()
-    with pytest.raises(ValueError, match="must not be greater than end"):
+    with pytest.raises(ValueError, match="must not be > than end"):
         dummy(d, 2, 1)
-    with pytest.raises(ValueError, match="must not be greater than end"):
+    with pytest.raises(ValueError, match="must not be > than end"):
         dummy(d, 0, 0)

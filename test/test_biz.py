@@ -261,7 +261,7 @@ def test_working_days_weekend() -> None:
     """Biz.working_days returns 0.0 for a weekend day."""
     start = dt.datetime(2024, 1, 6, 0, 0, 0)  # Saturday
     end = dt.datetime(2024, 1, 6, 23, 59, 59)
-    biz:Biz = Biz(target_time=start,ref_time= end)
+    biz:Biz = Biz(target_dt=start,ref_dt= end)
     assert biz.working_days == 0.0, "Should be 0.0 for weekend"
 
 

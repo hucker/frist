@@ -3,7 +3,7 @@
 Constants used throughout the frist package.
 """
 
-from typing import Dict, Final
+from typing import Final
 
 # Time conversion constants
 SECONDS_PER_MINUTE: Final[int] = 60
@@ -25,7 +25,7 @@ DAYS_PER_WEEK: Final[int] = 7
 MONTHS_PER_YEAR: Final[int] = 12
 
 # Unified weekday mapping: all supported names/abbreviations to weekday index
-WEEKDAY_INDEX: Final[Dict[str, int]] = {
+WEEKDAY_INDEX: Final[dict[str, int]] = {
     "monday": 0, "mon": 0, "mo": 0,
     "tuesday": 1, "tue": 1, "tu": 1,
     "wednesday": 2, "wed": 2, "we": 2,

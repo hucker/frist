@@ -1,7 +1,5 @@
 """
 Shared types and conversion utilities for frist package.
-
-Contains type aliases and functions used across multiple modules to avoid circular imports.
 """
 
 import datetime as dt
@@ -9,7 +7,7 @@ from typing import TypeAlias
 
 from ._constants import CHRONO_DATETIME_FORMATS
 
-# Alias for inputs accepted by Frist time utilities (datetime, date, POSIX ts, or string)
+# Alias for inputs accepted by Frist time utilities (datetime, date, POSIX ts, or str)
 # Note: explicit optionality (`| None`) should be expressed at the call site.
 TimeLike: TypeAlias = dt.datetime | dt.date | float | int | str
 
@@ -62,16 +60,16 @@ def time_pair(
     Accepts start_time and end_time as keyword arguments, which may be datetime objects,
     POSIX timestamps (float or int), strings in allowed formats, or None.
     Converts timestamps and strings to datetime objects.
-    If end_time is None, defaults to the current time. If start_time is None, raises TypeError.
+    If end_time is None, defaults to cur time. If start_time is None, raises TypeError.
     The allowed string formats are defined in _constants.py and can be overridden.
 
     Args:
-        start_time (datetime | float | int | str | None): The start time. Must not be None.
-        end_time (datetime | float | int | str | None): The end time. If None, defaults to now.
-        formats__ (list[str], optional): List of datetime formats to use for string parsing.
+        start_time (datetime | date | float | int | str): 
+        end_time (datetime | float | int | str | None):  If None, defaults to now.
+        formats__ (list[str], optional): List of datetime formats for string parsing.
 
     Returns:
-        tuple[datetime, datetime]: Normalized (start_time, end_time) as datetime objects.
+        tuple[datetime, datetime]: Normalized (start_time, end_time) as datetime objs.
 
     Raises:
         TypeError: If start_time is None or either value is not a supported type.

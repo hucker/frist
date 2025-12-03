@@ -5,7 +5,7 @@ Core calendar window tests for Cal and Chrono.
 import datetime as dt
 import pytest
 from frist import Cal, Chrono
-from frist._cal import normalize_weekday
+from frist._util import normalize_weekday
 
 
 def test_simple_cal_day_windows() -> None:

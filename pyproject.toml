@@ -28,7 +28,8 @@ dev = [
     "pytest-cov",
     "pytest-xdist",
     "mypy",
-    "hypothesis"
+    "hypothesis",
+    "types-python-dateutil"
 ]
 
 [tool.setuptools.packages.find]
@@ -64,3 +65,4 @@ commands =
 [tool.ruff]
 select = ["E", "F", "I", "UP", "Q"]  # Enable these rule categories
 fix = true  # Allow auto-fixing
+line-length=100

@@ -1,16 +1,15 @@
 """
 Age property implementation for frist package.
 
-Handles age calculations in various time units, supporting both file-based and standalone usage.
+Handles age calcs in various time units, supports both file-based and standalone usage.
 """
 
 import datetime as dt
-
 import re
 
 from ._constants import (
-    DAYS_PER_WEEK,
     DAYS_PER_MONTH,
+    DAYS_PER_WEEK,
     DAYS_PER_YEAR,
     SECONDS_PER_DAY,
     SECONDS_PER_HOUR,
@@ -27,11 +26,15 @@ class Age:
     Property class for handling age calculations in various time units.
 
     Features:
-        - Computes age and duration between two datetimes, timestamps, or numeric values.
-        - Supports flexible initialization: accepts dt.datetime, dt.date, float, or int for start and end times.
-        - Uses a configurable BizPolicy for business calendar logic (workdays, holidays, business hours).
-        - Provides properties for age in seconds, minutes, hours, days, weeks, months, years, and fractional working days.
-        - Allows updating start and end times via the `set_times` method (kwargs-only, preserves previous values if None).
+        - Computes age and duration between two datetimes, timestamps, or number values.
+        - Supports flexible initialization: accepts dt.datetime, dt.date, float, or int 
+          for start and end times.
+        - Uses a configurable BizPolicy for business calendar logic (workdays, holidays,
+          business hours).
+        - Provides properties for age in seconds, minutes, hours, days, weeks, months,
+          years, and fractional working days.
+        - Allows updating start and end times via the `set_times` method (kwargs-only,
+          preserves previous values if None).
 
     Initialization:
         Age(start_time, end_time=None, formats=None)
@@ -51,9 +54,11 @@ class Age:
         print(age.years)  # 4.0
 
     Note:
-        - All calculations use full datetimes (date and time); dates are converted to datetimes at midnight.
+        - All calculations use full datetimes (date and time); dates are converted to
+          datetimes at midnight.
         - Timezones are not supported.
-        - The class is designed for correctness and flexibility, supporting arbitrary calendar policies and update patterns.
+        - The class is designed for correctness and flexibility, supporting arbitrary
+          calendar policies and update patterns.
     """
 
     def __init__(
@@ -64,7 +69,9 @@ class Age:
     ):
         self._start_time: dt.datetime
         self._end_time: dt.datetime
-        self._start_time, self._end_time = time_pair(start_time=start_time, end_time=end_time, formats__=formats)
+        self._start_time, self._end_time = time_pair(start_time=start_time, 
+                                                                         end_time=end_time, 
+                                                                         formats__=formats)
 
 
     @staticmethod
@@ -90,13 +97,14 @@ class Age:
         formats: list[str] | None = None,
     ) -> None:
         """
-        WARNING: This method mutates the Age instance in place, beware of side effects during threaded operation.
+        WARNING: This method mutates the Age instance in place, beware of side effects 
+                 during threaded operation.
 
 
         Update the start and/or end time for this Age instance.
 
-        This method is kwargs-only: you must specify start_time and/or end_time as keyword arguments.
-        If a value is None, the previous value is retained.
+        This method is kwargs-only: you must specify start_time and/or end_time as 
+        keyword arguments. If a value is None, the previous value is retained.
 
         Parameters:
             start_time (TimeLike | None): New start time. If None, keeps previous value.
@@ -125,7 +133,8 @@ class Age:
         if end_time is not None:
             self._end_time = to_datetime(end_time, formats)
 
-    # Suggestion: You can use set_times inside __init__ to centralize type handling and validation for start/end times. This makes future updates easier and keeps logic DRY.
+    # Suggestion: You can use set_times inside __init__ to centralize type handling and 
+    # validation for start/end times. Makes future updates easier and keeps logic DRY.
 
 
     @property
@@ -162,7 +171,8 @@ class Age:
     def months_precise(self) -> float:
         """
         Get age in months (precise calculation based on calendar months).
-        Partial months at start and end are calculated using the actual number of seconds in those months (including time portion).
+        Partial months at start and end are calculated using the actual number of seconds
+        in those months (including time portion).
         Full months in between are simply counted as 1.0 each.
         """
         start = self.start_time
@@ -207,7 +217,8 @@ class Age:
         Get age in years (approximate - 365.25 days, can be negative).
 
         Note:
-            This calculation uses 365.25 days per year for approximation, which averages leap and non-leap years.
+            This calculation uses 365.25 days per year for approximation, which 
+            averages leap and non-leap years.
         """
         # Allow negative ages if base_time is before timestamp
         # Uses 365.25 days/year for approximation; does not distinguish leap/non-leap years.
@@ -236,9 +247,9 @@ class Age:
             return scale * (_fractional_days(start, end) / days_in_year)
         
         # First year fraction
-        end_of_first_year = dt.datetime(start.year, 12, 31, 23, 59, 59)
-        days_in_first_year = (dt.datetime(start.year + 1, 1, 1) - dt.datetime(start.year, 1, 1)).days
-        first_year_fraction = _fractional_days(start, end_of_first_year) / days_in_first_year
+        end_of_first_yr = dt.datetime(start.year, 12, 31, 23, 59, 59)
+        days_in_first_yr = (dt.datetime(start.year + 1, 1, 1) - dt.datetime(start.year, 1, 1)).days
+        first_year_fraction = _fractional_days(start, end_of_first_yr) / days_in_first_yr
         
         # Last year fraction
         start_of_last_year = dt.datetime(end.year, 1, 1)

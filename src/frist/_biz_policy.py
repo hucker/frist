@@ -1,7 +1,8 @@
 """
 Business calendar policy module for frist.
 
-Defines the CalendarPolicy dataclass, which centralizes fiscal year, workdays, business hours, and holiday logic for business calendar calculations.
+Defines the CalendarPolicy dataclass, which centralizes fiscal year, workdays, business 
+ours, and holiday logic for business calendar calculations.
 All date and time logic is property-based and configurable for flexible business rules.
 """
 
@@ -12,7 +13,8 @@ from dataclasses import dataclass, field
 @dataclass
 class BizPolicy:
     """
-        Centralized business calendar policy for fiscal years, workdays, business hours, and holidays.
+        Centralized business calendar policy for fiscal years, workdays, 
+        business hours, and holidays.
 
         This dataclass holds the business rules used across the library. It is
         intentionally lightweight and designed to be easy to customize for different
@@ -34,14 +36,15 @@ class BizPolicy:
     """
 
     fiscal_year_start_month: int = 1
-    workdays: list[int] = field(default_factory=lambda: [0, 1, 2, 3, 4])  # Monday=0 ... Friday=4
+    workdays: list[int] = field(default_factory=lambda: [0, 1, 2, 3, 4]) # Mon=0...Fri=4
     start_of_business: dt.time = dt.time(9, 0)
     end_of_business: dt.time = dt.time(17, 0)
     holidays: set[str] = field(default_factory=set) # type: ignore[assignment]
     
     def __post_init__(self):
         if not (1 <= self.fiscal_year_start_month <= 12):
-            raise ValueError(f"fiscal_year_start_month must be in 1..12, got {self.fiscal_year_start_month}")
+            fysm = self.fiscal_year_start_month
+            raise ValueError(f"fiscal_year_start_month must be in 1..12, got {fysm}")
         if not isinstance(self.workdays, list): # type: ignore # Run time type checker
             raise TypeError("workdays must be a list")
         if not (0 <= len(self.workdays) <= 7):
@@ -60,7 +63,7 @@ class BizPolicy:
         """
         if isinstance(value, int):
             weekday = value
-        elif hasattr(value, 'weekday'):
+        elif hasattr(value, "weekday"):
             weekday = value.weekday()
         else:
             raise TypeError("is_weekend expects int, date, or datetime")
@@ -74,7 +77,7 @@ class BizPolicy:
         """
         if isinstance(value, int):
             weekday = value
-        elif hasattr(value, 'weekday'):
+        elif hasattr(value, "weekday"):
             weekday = value.weekday()
         else:
             raise TypeError("is_workday expects int, date, or datetime")
@@ -133,12 +136,14 @@ class BizPolicy:
                 f"is_holiday expects str (YYYY-MM-DD) in range 1900-2099, got '{value}'"
             )
         elif isinstance(value, dt.datetime):
-            date_str = value.strftime('%Y-%m-%d')
+            date_str = value.strftime("%Y-%m-%d")
         elif isinstance(value, dt.date): # type:ignore # Run time type checker
-            date_str = value.strftime('%Y-%m-%d')
+            date_str = value.strftime("%Y-%m-%d")
         else:
             raise TypeError(
-                f"is_holiday expects str (YYYY-MM-DD), datetime.date, or datetime.datetime, got {type(value).__name__}"
+                "is_holiday expects str (YYYY-MM-DD), datetime.date, or "
+                "datetime.datetime, got "
+                f"{type(value).__name__}"
             )
         return date_str in self.holidays
     
@@ -158,7 +163,7 @@ class BizPolicy:
         """
         
         weekday = dt_obj.weekday()
-        date_str = dt_obj.strftime('%Y-%m-%d')
+        date_str = dt_obj.strftime("%Y-%m-%d")
         
         if self.is_holiday(date_str) or not self.is_workday(weekday):
             return 0.0

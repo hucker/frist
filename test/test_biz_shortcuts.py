@@ -24,37 +24,63 @@ def _check_five_biz(prop: str, ref: dt.datetime, policy: BizPolicy,
 
     Uses `getattr(Biz(t, ref, policy), prop)` to evaluate the boolean.
     """
-    def call(t: dt.datetime) -> bool:
+    # Arrange & Act
+    def actual(t: dt.datetime) -> bool:
         return getattr(Biz(t, ref, policy), prop)
 
-    assert call(dt_below) is False, f"{prop}: below-lower should be False ({dt_below})"
-    assert call(dt_on_lower) is True, f"{prop}: on-lower should be True ({dt_on_lower})"
-    assert call(dt_above_lower) is True, f"{prop}: above-lower (interior) should be True ({dt_above_lower})"
-    assert call(dt_on_upper) is False, f"{prop}: on-upper should be False (exclusive) ({dt_on_upper})"
-    assert call(dt_above_upper) is False, f"{prop}: above-upper should be False ({dt_above_upper})"
+    # Assert
+    expected = [False, True, True, False, False]
+    actuals = [
+        actual(dt_below),
+        actual(dt_on_lower),
+        actual(dt_above_lower),
+        actual(dt_on_upper),
+        actual(dt_above_upper)
+    ]
+    assert actuals[0] is expected[0], (
+        f"{prop}: below-lower should be False ({dt_below})"
+    )
+    assert actuals[1] is expected[1], (
+        f"{prop}: on-lower should be True ({dt_on_lower})"
+    )
+    assert actuals[2] is expected[2], (
+        f"{prop}: above-lower (interior) should be True ({dt_above_lower})"
+    )
+    assert actuals[3] is expected[3], (
+        f"{prop}: on-upper should be False (exclusive) ({dt_on_upper})"
+    )
+    assert actuals[4] is expected[4], (
+        f"{prop}: above-upper should be False ({dt_above_upper})"
+    )
 
 
 def test_day_shortcuts_five_cases() -> None:
     """Day-level business/workday shortcuts five-case coverage."""
-    # Reference mid-week so business/workdays are contiguous
+    """
+    Day-level business/workday shortcuts five-case coverage.
+    """
+    # Arrange
     ref = dt.datetime(2025, 1, 15, 12, 0)  # Wednesday
     policy = BizPolicy()  # default Mon-Fri workdays, no holidays
-
-    # For the 'this' day shortcuts, the window should be the reference date
     lower_date = ref.date()
     upper_date = ref.date() + dt.timedelta(days=1)
-
     dt_below = dt.datetime.combine(lower_date - dt.timedelta(days=1), dt.time(12, 0))
     dt_on_lower = dt.datetime.combine(lower_date, dt.time(12, 0))
     dt_above_lower = dt.datetime.combine(lower_date, dt.time(18, 0))
     dt_on_upper = dt.datetime.combine(upper_date, dt.time(12, 0))
-    dt_above_upper = dt.datetime.combine(upper_date + dt.timedelta(days=1), dt.time(12, 0))
-
-    # Business-day shortcuts (holiday-aware)
-    _check_five_biz("is_business_this_day", ref, policy, dt_below, dt_on_lower, dt_above_lower, dt_on_upper, dt_above_upper)
-
-    # Workday shortcuts (ignore holidays)
-    _check_five_biz("is_workday_this_day", ref, policy, dt_below, dt_on_lower, dt_above_lower, dt_on_upper, dt_above_upper)
+    dt_above_upper = dt.datetime.combine(
+        upper_date + dt.timedelta(days=1), dt.time(12, 0)
+    )
+    # Act & Assert
+    # Act & Assert
+    _check_five_biz(
+        "is_business_this_day", ref, policy,
+        dt_below, dt_on_lower, dt_above_lower, dt_on_upper, dt_above_upper
+    )
+    _check_five_biz(
+        "is_workday_this_day", ref, policy,
+        dt_below, dt_on_lower, dt_above_lower, dt_on_upper, dt_above_upper
+    )
 
 
 def test_business_vs_workday_holiday_shortcuts() -> None:
@@ -64,38 +90,45 @@ def test_business_vs_workday_holiday_shortcuts() -> None:
     reference 2025-07-07 will be Thursday 2025-07-03 (the holiday is skipped),
     but the workday shortcut will still consider the holiday a workday.
     """
+    """
+    Show difference between business and workday shortcuts when a holiday is present.
+    """
+    # Arrange
     ref = dt.datetime(2025, 7, 7, 12, 0)  # Monday
     policy = BizPolicy(holidays={"2025-07-04"})
-
     dt_thu = dt.datetime(2025, 7, 3, 12, 0)
     dt_fri_hol = dt.datetime(2025, 7, 4, 12, 0)
-
-    # Business: last day should be Thursday (03) because Friday (04) is holiday
-    assert Biz(dt_thu, ref, policy).is_business_last_day is True
-    assert Biz(dt_fri_hol, ref, policy).is_business_last_day is False
-
-    # Workday: Friday still counts as a workday
-    assert Biz(dt_fri_hol, ref, policy).is_workday_last_day is True
+    # Act & Assert
+    expected_business_last_day_thu = True
+    expected_business_last_day_fri = False
+    expected_workday_last_day_fri = True
+    actual_business_last_day_thu = Biz(dt_thu, ref, policy).is_business_last_day
+    actual_business_last_day_fri = Biz(dt_fri_hol, ref, policy).is_business_last_day
+    actual_workday_last_day_fri = Biz(dt_fri_hol, ref, policy).is_workday_last_day
+    assert actual_business_last_day_thu is expected_business_last_day_thu
+    assert actual_business_last_day_fri is expected_business_last_day_fri
+    assert actual_workday_last_day_fri is expected_workday_last_day_fri
 
 
 def test_fiscal_quarter_shortcuts_five_cases() -> None:
     """Fiscal-quarter shortcuts five-case coverage (fiscal year start = April)."""
+    """
+    Fiscal-quarter shortcuts five-case coverage (fiscal year start = April).
+    """
+    # Arrange
     policy = BizPolicy(fiscal_year_start_month=4)
-    # Choose a reference in FY2025 Q2 (July 15, 2025) for clarity
     ref = dt.datetime(2025, 7, 15, 12, 0)
-
-    # last fiscal quarter = Q1 (FY2025 Q1 -> months starting in Apr shifted by fiscal start)
+    # Act & Assert
     _check_five_biz(
         "is_last_fiscal_quarter",
         ref,
         policy,
-        dt.datetime(2025, 1, 15, 12, 0),   # below lower (earlier than quarter)
-        dt.datetime(2025, 4, 1, 12, 0),    # on lower: start of fiscal quarter window
-        dt.datetime(2025, 5, 15, 12, 0),   # interior
-        dt.datetime(2025, 7, 1, 0, 0),     # on upper: start of next fiscal quarter (excluded)
-        dt.datetime(2025, 8, 1, 12, 0),    # above upper
+        dt.datetime(2025, 1, 15, 12, 0),
+        dt.datetime(2025, 4, 1, 12, 0),
+        dt.datetime(2025, 5, 15, 12, 0),
+        dt.datetime(2025, 7, 1, 0, 0),
+        dt.datetime(2025, 8, 1, 12, 0),
     )
-
     _check_five_biz(
         "is_this_fiscal_quarter",
         ref,
@@ -110,10 +143,13 @@ def test_fiscal_quarter_shortcuts_five_cases() -> None:
 
 def test_fiscal_year_shortcuts_five_cases() -> None:
     """Fiscal-year shortcuts five-case coverage (fiscal year start = April)."""
+    """
+    Fiscal-year shortcuts five-case coverage (fiscal year start = April).
+    """
+    # Arrange
     policy = BizPolicy(fiscal_year_start_month=4)
-    ref = dt.datetime(2025, 7, 15, 12, 0)  # FY2025
-
-    # last fiscal year = FY2024
+    ref = dt.datetime(2025, 7, 15, 12, 0)
+    # Act & Assert
     _check_five_biz(
         "is_last_fiscal_year",
         ref,
@@ -124,8 +160,6 @@ def test_fiscal_year_shortcuts_five_cases() -> None:
         dt.datetime(2025, 4, 1, 0, 0),
         dt.datetime(2026, 6, 1, 12, 0),
     )
-
-    # this fiscal year = FY2025
     _check_five_biz(
         "is_this_fiscal_year",
         ref,

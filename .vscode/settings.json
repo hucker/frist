@@ -11,14 +11,19 @@
         "titleBar.activeForeground": "#FBFAF5"
     },
     "cSpell.words": [
+        "addopts",
         "agentic",
         "Chrono",
         "datetimes",
         "frist",
         "pycon",
         "Pytest",
+        "qtrs",
+        "setuptools",
+        "testpaths",
         "timedelta",
-        "usecases"
+        "usecases",
+        "xdist"
     ],
     "python.sortImports.provider": "ruff",
     "python.sortImports.args": ["--fix"],

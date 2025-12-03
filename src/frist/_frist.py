@@ -6,12 +6,11 @@ Designed to be reusable beyond file operations.
 """
 
 import datetime as dt
-from typing import TypeAlias
 
 from ._age import Age
-from ._cal import Cal
 from ._biz import Biz
 from ._biz_policy import BizPolicy
+from ._cal import Cal
 from ._types import TimeLike, time_pair
 
 
@@ -66,7 +65,9 @@ class Chrono:
         """
         
         # Normalize target and reference so we get clean  datetime objects
-        target,ref = time_pair(start_time=target_time, end_time=reference_time, formats__=formats) 
+        target,ref = time_pair(start_time=target_time, 
+                                                   end_time=reference_time, 
+                                                   formats__=formats) 
 
         # This keeps the typechecker happy
         self.target_time:dt.datetime = target
@@ -75,15 +76,18 @@ class Chrono:
         # Forward the policy to both objects
         self.policy: BizPolicy = policy or BizPolicy()
 
-        # Now we have synchronized reference times with no possibility of the reference time being different
-        # in the case that now() is used in both cases.  If you didn't do this it would be up to you
-        # to ensure the same reference time.  This could make VERY hard to find bugs if the reference time
-        # for the two objects occurred across a hour/day/month/quarter/year boundary.
+        # Now we have synchronized reference times with no possibility of the reference time being 
+        # different in the case that now() is used in both cases.  If you didn't do this it would 
+        # be up to you to ensure the same reference time.  This could make VERY hard to find bugs 
+        # if the reference time for the two objects occurred across a hour/day/month/quarter/year 
+        # boundary.
         self._age: Age = Age(self.target_time, self.reference_time)
         self._cal: Cal = Cal(self.target_time, self.reference_time)
 
         # Biz gets the policy since that is how it figures things out.
-        self._biz: Biz = Biz(self.target_time, self.reference_time, self.policy)
+        self._biz: Biz = Biz(target_dt=self.target_time, 
+                             ref_dt=self.reference_time, 
+                             policy=self.policy)
         
 
     @property

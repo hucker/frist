@@ -26,7 +26,7 @@ from typing import Protocol
 
 from dateutil.rrule import FR, MO, MONTHLY, SA, SU, TH, TU, WE, rrule
 
-from ._util import in_half_open_date
+from ._util import in_half_open, in_half_open_date, in_half_open_dt, normalize_weekday
 
 
 class CalProtocol(Protocol):
@@ -132,7 +132,6 @@ class MinuteNamespace(UnitNamespace):
 
     def _in_impl(self, start: int, end: int) -> bool:
         """Minute-specific logic (moved from cal.in_minutes)."""
-        from ._util import in_half_open_dt
 
         ref: dt.datetime = self._cal.ref_dt  # type: ignore
         target: dt.datetime = self._cal.target_dt  # type: ignore
@@ -155,7 +154,6 @@ class HourNamespace(UnitNamespace):
 
     def _in_impl(self, start: int, end: int) -> bool:
         """Hour-specific logic (moved from cal.in_hours)."""
-        from ._util import in_half_open_dt
 
         ref: dt.datetime = self._cal.ref_dt  # type: ignore
         target: dt.datetime = self._cal.target_dt  # type: ignore
@@ -196,8 +194,6 @@ class WeekNamespace(UnitNamespace):
 
     def _in_impl(self, start: int, end: int) -> bool:
         """Week-specific logic (moved from cal.in_weeks)."""
-        from ._cal import normalize_weekday
-        from ._util import in_half_open_date
 
         week_start_day = normalize_weekday("monday")  # default week start
 
@@ -227,7 +223,6 @@ class MonthNamespace(UnitNamespace):
 
     def _in_impl(self, start: int, end: int) -> bool:
         """Month-specific logic (moved from cal.in_months)."""
-        from ._util import in_half_open
 
         target_idx: int = self._month_index(self._cal.target_dt)  # type: ignore
         start_idx = self._month_index(self._cal.ref_dt) + start  # type: ignore
@@ -258,7 +253,6 @@ class MonthNamespace(UnitNamespace):
         Raises:
             ValueError: If the nth occurrence doesn't exist
         """
-        from ._cal import normalize_weekday
 
         ref_date:dt.date = self._cal.ref_dt.date()  # type: ignore
         weekday_num = normalize_weekday(weekday)
@@ -309,7 +303,6 @@ class QuarterNamespace(UnitNamespace):
 
     def _in_impl(self, start: int, end: int) -> bool:
         """Quarter-specific logic (moved from cal.in_quarters)."""
-        from ._util import in_half_open
 
         target_time = self._cal.target_dt  # type: ignore
         base_time = self._cal.ref_dt  # type: ignore
@@ -345,7 +338,6 @@ class YearNamespace(UnitNamespace):
 
     def _in_impl(self, start: int, end: int) -> bool:
         """Year-specific logic (moved from cal.in_years)."""
-        from ._util import in_half_open
 
         target_year:int = self._cal.target_dt.year  # type: ignore
         base_year:int = self._cal.ref_dt.year  # type: ignore

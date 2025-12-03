@@ -22,7 +22,7 @@ def test_cal_public_none_normalization():
 def test_biz_public_none_normalization():
     # use a weekday ref so business checks true
     ref = dt.datetime(2025, 3, 14, 12, 34, 56)
-    biz = Biz(target_time=ref, ref_time=ref)
+    biz = Biz(target_dt=ref, ref_dt=ref)
 
     # Golden checks: with ref==target on a weekday, these should be True
     assert biz.biz_day.in_(0) is True

@@ -10,17 +10,17 @@ def test_workday_fraction_zero_length_business_day():
     policy = BizPolicy(start_of_business=dt.time(9, 0), end_of_business=dt.time(9, 0))
     ref = dt.datetime(2025, 1, 2, 12, 0)
     target = dt.datetime(2025, 1, 2, 9, 0)
-    biz = Biz(target_time=target, ref_time=ref, policy=policy)
+    biz = Biz(target_dt=target, ref_dt=ref, policy=policy)
     assert biz._workday_fraction_at(target) == 0.0
 
 
 def test_workday_fraction_before_and_after():
     policy = BizPolicy(start_of_business=dt.time(9, 0), end_of_business=dt.time(17, 0))
     # before start
-    biz_before = Biz(target_time=dt.datetime(2025, 1, 2, 8, 0), ref_time=dt.datetime(2025, 1, 2, 12, 0), policy=policy)
+    biz_before = Biz(target_dt=dt.datetime(2025, 1, 2, 8, 0), ref_dt=dt.datetime(2025, 1, 2, 12, 0), policy=policy)
     assert biz_before._workday_fraction_at(biz_before.target_dt) == 0.0
     # after end
-    biz_after = Biz(target_time=dt.datetime(2025, 1, 2, 18, 0), ref_time=dt.datetime(2025, 1, 2, 12, 0), policy=policy)
+    biz_after = Biz(target_dt=dt.datetime(2025, 1, 2, 18, 0), ref_dt=dt.datetime(2025, 1, 2, 12, 0), policy=policy)
     assert biz_after._workday_fraction_at(biz_after.target_dt) == 1.0
 
 
@@ -28,14 +28,14 @@ def test_age_days_helper_raises_when_target_after_ref():
     # target after ref should cause _age_days_helper to raise via public property
     ref = dt.datetime(2025, 1, 1, 0, 0)
     target = dt.datetime(2025, 1, 2, 0, 0)  # target > ref
-    biz = Biz(target_time=target, ref_time=ref)
+    biz = Biz(target_dt=target, ref_dt=ref)
     with pytest.raises(ValueError):
         _ = biz.business_days
 
 
 def test_move_n_days_zero_returns_same_date():
     policy = BizPolicy()
-    biz = Biz(target_time=dt.datetime(2025, 1, 1), ref_time=dt.datetime(2025, 1, 1), policy=policy)
+    biz = Biz(target_dt=dt.datetime(2025, 1, 1), ref_dt=dt.datetime(2025, 1, 1), policy=policy)
     d = dt.date(2025, 1, 10)
     assert biz._move_n_days(d, 0, count_business=True) == d
     assert biz._move_n_days(d, 0, count_business=False) == d
