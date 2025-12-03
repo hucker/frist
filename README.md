@@ -270,11 +270,11 @@ The Cal object provides a family of `in_*` methods (e.g., `in_days`, `in_months`
 
 | Property         | Description                   | Return |
 | ---------------- | ----------------------------- | ------ |
-| `dt_val`         | Target datetime               | `datetime` |
-| `base_time`      | Reference datetime            | `datetime` |
-| `fiscal_year`    | Fiscal year for `dt_val`      | `int` |
-| `fiscal_quarter` | Fiscal quarter for `dt_val`   | `int` |
-| `holiday`        | True if `dt_val` is a holiday | `bool` |
+| `target_dt`      | Target datetime               | `datetime` |
+| `ref_dt`         | Reference datetime            | `datetime` |
+| `fiscal_year`    | Fiscal year for `target_dt`   | `int` |
+| `fiscal_quarter` | Fiscal quarter for `target_dt`| `int` |
+| `holiday`        | True if `target_dt` is a holiday | `bool` |
 
 | Unit accessor                                      | Description                 | Return |
 | -------------------------------------------------- | --------------------------- | ------ |
@@ -283,8 +283,77 @@ The Cal object provides a family of `in_*` methods (e.g., `in_days`, `in_months`
 | `cal.day.in_(start=0, end=None)`                   | Is target in day window     | `bool` |
 | `cal.week.in_(start=0, end=None, week_start="monday")` | Is target in week window    | `bool` |
 | `cal.month.in_(start=0, end=None)`                 | Is target in month window   | `bool` |
+| `cal.month.nth_weekday(weekday, n)`                | Nth weekday of month (date) | `datetime` |
+| `cal.month.is_nth_weekday(weekday, n)`             | Is target nth weekday of month | `bool` |
 | `cal.qtr.in_(start=0, end=None)`                   | Is target in quarter window | `bool` |
 | `cal.year.in_(start=0, end=None)`                  | Is target in year window    | `bool` |
+| `cal.year.day_of_year()`                           | Day of year for target      | `int` |
+| `cal.year.is_day_of_year(n)`                       | Is target nth day of year   | `bool` |
+
+
+---
+
+### Month Namespace: nth_weekday and is_nth_weekday
+
+#### Get the Nth Weekday of a Month
+
+```python
+from frist import Cal
+
+cal = Cal(target_dt, ref_dt)
+
+# Get the 2nd Friday of the reference month
+second_friday = cal.month.nth_weekday("friday", 2)
+
+# Get the last Monday of the reference month
+last_monday = cal.month.nth_weekday("monday", -1)
+```
+
+- `n` can be positive (1 = first, 2 = second, ...) or negative (-1 = last, -2 = second-to-last, ...).
+- Raises `ValueError` if the nth weekday does not exist in the month.
+
+#### Check if Target Date is the Nth Weekday
+
+```python
+# Returns True if target_dt is the last Monday of its month
+is_last_monday = cal.month.is_nth_weekday("monday", -1)
+```
+
+---
+
+### Year Namespace: day_of_year and is_day_of_year
+
+#### Get the Day of Year
+
+```python
+# Returns the day of the year for target_dt (1-based, Jan 1 = 1)
+day_num = cal.year.day_of_year()
+```
+
+#### Check if Target Date is the Nth Day of the Year
+
+```python
+# Returns True if target_dt is the 100th day of its year
+is_100th = cal.year.is_day_of_year(100)
+```
+
+---
+
+### Edge Cases
+
+- For `nth_weekday`, if the requested occurrence does not exist (e.g., 5th Friday in a 4-Friday month), a `ValueError` is raised.
+- For `is_nth_weekday`, returns `False` if the nth occurrence does not exist.
+
+---
+
+### API Reference Additions
+
+- `MonthNamespace.nth_weekday(weekday: str, n: int) -> datetime`
+- `MonthNamespace.is_nth_weekday(weekday: str, n: int) -> bool`
+- `YearNamespace.day_of_year() -> int`
+- `YearNamespace.is_day_of_year(n: int) -> bool`
+
+---
 
 Shortcuts (convenience boolean properties):
 
@@ -320,9 +389,9 @@ It also computes fractional day contributions using the policy's business hours.
 
 | Property / Attribute | Description                                                         | Return |
 | -------------------- | ------------------------------------------------------------------- | ------ |
-| `cal_policy`         | `BizPolicy` instance used by this Biz                          | `BizPolicy` |
-| `target_time`        | Target datetime                                                     | `datetime` |
-| `ref_time`           | Reference datetime                                                  | `datetime` |
+| `biz_policy`         | `BizPolicy` instance used by this Biz                          | `BizPolicy` |
+| `target_dt`        | Target datetime                                                     | `datetime` |
+| `ref_dt`           | Reference datetime                                                  | `datetime` |
 | `holiday`            | True if `target_time` is a holiday                                  | `bool` |
 | `is_workday`         | True if `target_time` falls on a workday                            | `bool` |
 | `is_business_day`    | True if `target_time` is a business day (workday and not holiday)   | `bool` |
@@ -393,9 +462,9 @@ False
 
 | Property | Description                                           |
 | -------- | ----------------------------------------------------- |
-| `age`    | Age object for span calculations (see Age above)      |
-| `cal`    | Cal object for calendar window logic (see Cal above)  |
-| `biz`    | Biz  object for calendar window logic (see Cal above) |
+| `age`    | `Age` object for span calculations (see `Age` above)      |
+| `cal`    | `Cal` object for calendar window logic (see `Cal` above)  |
+| `biz`    | `Biz`  object for calendar window logic (see `Cal` above) |
 
 ### Status
 

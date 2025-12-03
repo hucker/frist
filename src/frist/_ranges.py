@@ -128,7 +128,7 @@ class MinuteNamespace(UnitNamespace):
     """Minute-specific namespace that implements _in_impl with minute logic."""
 
     def __init__(self, cal: CalProtocol) -> None:
-        super().__init__(cal)  # no fn needed
+        super().__init__(cal) 
 
     def _in_impl(self, start: int, end: int) -> bool:
         """Minute-specific logic (moved from cal.in_minutes)."""
