@@ -7,10 +7,10 @@ Style: follow Arrange / Act / Assert (AA) comments per project `CODEGUIDE.md`.
 """
 
 import datetime as dt
+
 import pytest
 
 from frist._cal import Cal
-
 
 UNITS = [
     "minute",

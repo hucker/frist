@@ -5,19 +5,19 @@ import datetime as dt
 
 import pytest
 
-from frist import Chrono,BizPolicy
+from frist import BizPolicy, Chrono
 
 
 @pytest.mark.parametrize(
     "holidays,target_time,expected",
     [
-        ({'2025-12-25', '2025-01-01', '2025-07-04'}, dt.datetime(2025, 12, 25), True),
-        ({'2025-12-25', '2025-01-01', '2025-07-04'}, dt.datetime(2025, 1, 1), True),
-        ({'2025-12-25', '2025-01-01', '2025-07-04'}, dt.datetime(2025, 7, 4), True),
-        ({'2025-12-25', '2025-01-01', '2025-07-04'}, dt.datetime(2024, 12, 25), False),
-        ({'2025-12-25', '2025-01-01', '2025-07-04'}, dt.datetime(2026, 12, 25), False),
-        ({'2025-12-25', '2025-01-01', '2025-07-04'}, dt.datetime(2025, 12, 24), False),
-        ({'2025-12-25', '2025-01-01', '2025-07-04'}, dt.datetime(2025, 7, 5), False),
+        ({"2025-12-25", "2025-01-01", "2025-07-04"}, dt.datetime(2025, 12, 25), True),
+        ({"2025-12-25", "2025-01-01", "2025-07-04"}, dt.datetime(2025, 1, 1), True),
+        ({"2025-12-25", "2025-01-01", "2025-07-04"}, dt.datetime(2025, 7, 4), True),
+        ({"2025-12-25", "2025-01-01", "2025-07-04"}, dt.datetime(2024, 12, 25), False),
+        ({"2025-12-25", "2025-01-01", "2025-07-04"}, dt.datetime(2026, 12, 25), False),
+        ({"2025-12-25", "2025-01-01", "2025-07-04"}, dt.datetime(2025, 12, 24), False),
+        ({"2025-12-25", "2025-01-01", "2025-07-04"}, dt.datetime(2025, 7, 5), False),
     ]
 )
 def test_holiday_detection_param(

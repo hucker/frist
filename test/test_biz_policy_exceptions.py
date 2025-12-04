@@ -4,7 +4,9 @@ Unit tests for BizPolicy exception handling.
 Verifies that BizPolicy methods raise TypeError for invalid input types.
 """
 import pytest
+
 from frist._biz_policy import BizPolicy
+
 
 def make_policy():
     return BizPolicy(holidays={"2025-11-13"})

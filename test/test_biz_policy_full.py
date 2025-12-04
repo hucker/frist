@@ -1,6 +1,15 @@
+"""
+Comprehensive tests for `BizPolicy` configuration and behavior.
+
+Follows CODESTYLE with clear Arrange/Act/Assert and explicit messages.
+"""
+
 import datetime as dt
+
 import pytest
+
 from frist._biz_policy import BizPolicy
+
 
 def make_policy():
     return BizPolicy(

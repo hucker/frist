@@ -6,6 +6,7 @@ Handles age calcs in various time units, supports both file-based and standalone
 
 import datetime as dt
 import re
+from typing import Callable
 
 from ._constants import (
     DAYS_PER_MONTH,
@@ -174,13 +175,26 @@ class Age:
         Partial months at start and end are calculated using the actual number of seconds
         in those months (including time portion).
         Full months in between are simply counted as 1.0 each.
+        Returns a negative value if start_time > end_time, so that
+        Age(start, end).months_precise == -Age(end, start).months_precise.
         """
-        start = self.start_time
-        end = self.end_time
-        if start > end:
-            raise ValueError("start_time must be before end_time")
-        if start >= end:
+        # Ensure symmetric negative/positive results for swapped start/end.
+        start: dt.datetime
+        end: dt.datetime
+        scale: float
+
+        if self.start_time <= self.end_time:
+            start = self.start_time
+            end = self.end_time
+            scale = 1.0
+        else:
+            start = self.end_time
+            end = self.start_time
+            scale = -1.0
+
+        if start == end:
             return 0.0
+
         # If start and end are in the same month
         if start.year == end.year and start.month == end.month:
             month_start = dt.datetime(start.year, start.month, 1)
@@ -188,13 +202,15 @@ class Age:
             month_end = dt.datetime(next_year, next_month, 1)
             total_seconds = (month_end - month_start).total_seconds()
             interval_seconds = (end - start).total_seconds()
-            return interval_seconds / total_seconds
+            return scale * (interval_seconds / total_seconds)
+
         # First month fraction
         next_year, next_month = self._next_month_year(start.year, start.month)
         start_month_end = dt.datetime(next_year, next_month, 1)
         first_month_seconds = (start_month_end - start).total_seconds()
         total_start_month_seconds = (start_month_end - dt.datetime(start.year, start.month, 1)).total_seconds()
         first_month_fraction = first_month_seconds / total_start_month_seconds
+
         # Last month fraction
         last_month_start = dt.datetime(end.year, end.month, 1)
         next_year, next_month = self._next_month_year(end.year, end.month)
@@ -202,14 +218,15 @@ class Age:
         last_month_seconds = (end - last_month_start).total_seconds()
         total_last_month_seconds = (last_month_end - last_month_start).total_seconds()
         last_month_fraction = last_month_seconds / total_last_month_seconds if last_month_seconds > 0 else 0.0
+
         # Count full months in between
-        # Move start to first of next month
         full_months = 0
         current_year, current_month = self._next_month_year(start.year, start.month)
         while (current_year, current_month) != (end.year, end.month):
             full_months += 1
             current_year, current_month = self._next_month_year(current_year, current_month)
-        return first_month_fraction + full_months + last_month_fraction
+
+        return scale * (first_month_fraction + full_months + last_month_fraction)
 
     @property
     def years(self) -> float:
@@ -261,6 +278,51 @@ class Age:
         
         return scale * (first_year_fraction + full_years + last_year_fraction)
 
+    def format(
+        self,
+        units: list[tuple[float, str, Callable[["Age"], float]]] | None = None,
+        fmt: str = "{value:.2f} {unit}",
+    ) -> str:
+        """
+        Return age in the most appropriate units, with customizable unit names and formatting.
+
+        Args:
+            units: List of tuples (threshold, unit_name, getter) to control units and thresholds.
+                If None, uses default table.
+                You can override formatting by passing a single tuple with a very large threshold.
+            fmt: Format string for output. Default is "{value:.2f} {unit}".
+
+        Example:
+            age.format()  # "3.25 hours"
+            age.format(fmt="{value:.0f}{unit}", units=[...])  # "3h"
+            # Override all formatting:
+            age.format(units=[(1e20, "my custom format", lambda self: self.seconds)], fmt="Custom: {value} {unit}")
+
+        Note:
+            Unit transition thresholds are inspired by the `humanize` Python library:
+            https://github.com/jmoiron/humanize/blob/main/src/humanize/time.py
+            - Seconds → Minutes: 45 seconds
+            - Minutes → Hours: 45 minutes
+            - Hours → Days: 22 hours
+            - Days → Months: 26 days
+            - Months → Years: 11 months
+        """
+        # Thresholds and transitions inspired by humanize (see note above)
+        default_units: list[tuple[float, str, Callable[[Age], float]]] = [
+            (45, "seconds", lambda self: self.seconds),
+            (45, "minutes", lambda self: self.minutes),
+            (22, "hours", lambda self: self.hours),
+            (26, "days", lambda self: self.days),
+            (11, "months", lambda self: self.months_precise),
+        ]
+        units = units or default_units
+
+        for threshold, unit, getter in units:
+            value = getter(self)
+            if abs(value) < threshold:
+                return fmt.format(value=value, unit=unit)
+        value = self.years_precise
+        return fmt.format(value=value, unit="years")
 
     @staticmethod
     def parse(age_str: str) -> float:

@@ -1,3 +1,9 @@
+"""
+Explicit membership checks for compact unit namespaces using `Cal`.
+
+Follows CODESTYLE with AAA comments and direct Act/Assert for simple cases.
+"""
+
 import datetime as dt
 
 from frist._cal import Cal

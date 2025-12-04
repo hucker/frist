@@ -3,13 +3,13 @@
 Covers holidays, weekends, and weekdays over a 3-week span.
 """
 import datetime as dt
+
 import pytest
-from typing import List, Tuple, Set
 
 from frist import Biz, BizPolicy
 
 # Custom calendar: 3 weeks, holidays on Wed each week
-HOLIDAYS: Set[str] = {
+HOLIDAYS: set[str] = {
     "2024-01-03",  # Week 1 Wednesday
     "2024-01-10",  # Week 2 Wednesday
     "2024-01-17",  # Week 3 Wednesday
@@ -25,7 +25,7 @@ def make_dt(y: int, m: int, d: int, h: int = 0, mi: int = 0) -> dt.datetime:
     return dt.datetime(y, m, d, h, mi)
 
 # Parameterized cases: (start, end, expected_working, expected_business, description)
-CASES: List[Tuple[dt.datetime, dt.datetime, float, float, str]] = [
+CASES: list[tuple[dt.datetime, dt.datetime, float, float, str]] = [
     (make_dt(2024, 1, 2, 9),  make_dt(2024, 1, 2, 17), 1.0, 1.0, "Full weekday (Tue)"),
     (make_dt(2024, 1, 3, 9),  make_dt(2024, 1, 3, 17), 1.0, 0.0, "Full holiday (Wed)"),
     (make_dt(2024, 1, 6, 9),  make_dt(2024, 1, 6, 17), 0.0, 0.0, "Full weekend (Sat)"),

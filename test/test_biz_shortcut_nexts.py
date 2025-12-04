@@ -1,8 +1,5 @@
 """Tests for Biz shortcut properties.
 
-Follow CODESTYLE: module docstring, AAA structure, and explicit assert
-messages. These tests exercise the thin shortcut properties that delegate
-to `in_*` helpers.
 """
 
 import datetime as dt

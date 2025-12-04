@@ -38,13 +38,19 @@ class CalProtocol(Protocol):
     def target_dt(self) -> dt.datetime: ...
 
 
-class BizProtocol(Protocol):
+class BizProtocol(CalProtocol, Protocol):
     """Protocol for objects that can create Biz-style namespaces."""
 
     def in_business_days(self, start: int, end: int) -> bool: ...
     def in_working_days(self, start: int, end: int) -> bool: ...
     def in_fiscal_quarters(self, start: int, end: int) -> bool: ...
     def in_fiscal_years(self, start: int, end: int) -> bool: ...
+
+    @property
+    def fiscal_year(self) -> int: ...
+
+    @property
+    def fiscal_quarter(self) -> int: ...
 
 
 __all__ = [
@@ -85,19 +91,54 @@ class UnitNamespace:
         if end is None:
             end = start + 1
         if start >= end:
-            raise ValueError(
-                f"{self.__class__.__name__}.in_: {start=} must not be > than {end=}"
-            )
+            raise ValueError(f"{self.__class__.__name__}.in_: {start=} must not be > than {end=}")
         return self._in_impl(start, end)
 
     def _in_impl(self, start: int, end: int) -> bool:
         """Implemented by subclasses — contains the unit-specific logic."""
-        raise NotImplementedError("implement _in_impl in subclass") # pragma: no cover
+        raise NotImplementedError("implement _in_impl in subclass")  # pragma: no cover
 
-    @property
-    def between(self):
-        """Alias for in_ method."""
-        return self.in_
+    def between(self, start: int = 0, end: int | None = None, inclusive: str = "both") -> bool:
+        """
+        Range membership check, similar to pandas.Series.between.
+
+        This method translates the `inclusive` argument into the correct start/end
+        values for the underlying `in_` method, which uses half-open intervals
+        (start <= target < end).
+
+        Args:
+            start: Start offset.
+            end: End offset (if None, uses start+1 after inclusive adjustment).
+            inclusive: Controls inclusivity of the interval boundaries:
+                - "both": start <= target <= end (converted to in_(start, end+1))
+                - "left": start <= target < end (converted to in_(start, end))
+                - "right": start < target <= end (converted to in_(start+1, end+1))
+                - "neither": start < target < end (converted to in_(start+1, end))
+
+        Returns:
+            True if target is in the specified range.
+        """
+        # Offset adjustments for each inclusive mode
+        start_offsets = {
+            "both": 0,
+            "left": 0,
+            "right": 1,
+            "neither": 1,
+        }
+        end_offsets = {
+            "both": 1,
+            "left": 0,
+            "right": 1,
+            "neither": 0,
+        }
+
+        if inclusive not in start_offsets or inclusive not in end_offsets:
+            raise ValueError(f"Invalid inclusive value: {inclusive!r}")
+
+        adj_start = start + start_offsets[inclusive]
+        adj_end = (end if end is not None else start) + end_offsets[inclusive]
+
+        return self.in_(adj_start, adj_end)
 
     def __call__(self, start: int = 0, end: int | None = None) -> bool:
         return self.in_(start, end)
@@ -128,7 +169,7 @@ class MinuteNamespace(UnitNamespace):
     """Minute-specific namespace that implements _in_impl with minute logic."""
 
     def __init__(self, cal: CalProtocol) -> None:
-        super().__init__(cal) 
+        super().__init__(cal)
 
     def _in_impl(self, start: int, end: int) -> bool:
         """Minute-specific logic (moved from cal.in_minutes)."""
@@ -144,6 +185,13 @@ class MinuteNamespace(UnitNamespace):
         end_minute: dt.datetime = end_time.replace(second=0, microsecond=0)
 
         return in_half_open_dt(start_minute, target, end_minute)
+
+    @property
+    def val(self) -> int:
+        """
+        Returns the minute value (0-59) for the target time.
+        """
+        return self._cal.target_dt.minute  # type: ignore
 
 
 class HourNamespace(UnitNamespace):
@@ -167,6 +215,13 @@ class HourNamespace(UnitNamespace):
 
         return in_half_open_dt(start_hour, target, end_hour)
 
+    @property
+    def val(self) -> int:
+        """
+        Returns the hour value (0-23) for the target time.
+        """
+        return self._cal.target_dt.hour  # type: ignore
+
 
 class DayNamespace(UnitNamespace):
     """Day-specific namespace that implements _in_impl with day logic."""
@@ -180,10 +235,24 @@ class DayNamespace(UnitNamespace):
         target_date = self._cal.target_dt.date()  # type: ignore
 
         # Calculate the date range boundaries
-        start_date = (self._cal.ref_dt + dt.timedelta(days=start)).date()  # type: ignore
-        end_date = (self._cal.ref_dt + dt.timedelta(days=end)).date()  # type: ignore
+        start_date: dt.datetime = (self._cal.ref_dt + dt.timedelta(days=start)).date()  # type: ignore
+        end_date: dt.datetime = (self._cal.ref_dt + dt.timedelta(days=end)).date()  # type: ignore
 
         return in_half_open_date(start_date, target_date, end_date)
+
+    @property
+    def val(self) -> int:
+        """
+        Returns the day of the week value (1=Mon .. 7=Sun) for the target time.
+        """
+        return self._cal.target_dt.isoweekday()  # type: ignore
+
+    @property
+    def name(self) -> str:
+        """
+        Returns the day name for the target time.
+        """
+        return self._cal.target_dt.strftime("%A")  # type: ignore
 
 
 class WeekNamespace(UnitNamespace):
@@ -195,14 +264,14 @@ class WeekNamespace(UnitNamespace):
     def _in_impl(self, start: int, end: int) -> bool:
         """Week-specific logic (moved from cal.in_weeks)."""
 
-        week_start_day = normalize_weekday("monday")  # default week start
+        week_start_day: int = normalize_weekday("monday")  # default week start
 
-        target_date = self._cal.target_dt.date()  # type: ignore
-        base_date = self._cal.ref_dt.date()  # type: ignore
+        target_date: dt.date = self._cal.target_dt.date()
+        base_date: dt.date = self._cal.ref_dt.date()
 
         # Calculate the start of the current week based on week_start_day
-        days_since_week_start = (base_date.weekday() - week_start_day) % 7
-        current_week_start = base_date - dt.timedelta(days=days_since_week_start)
+        days_since_week_start: int = (base_date.weekday() - week_start_day) % 7
+        current_week_start: int = base_date - dt.timedelta(days=days_since_week_start)
 
         # Calculate week boundaries
         start_week_start = current_week_start + dt.timedelta(weeks=start)
@@ -213,6 +282,20 @@ class WeekNamespace(UnitNamespace):
         end_week_exclusive = end_week_start
 
         return in_half_open_date(start_week_start, target_date, end_week_exclusive)
+
+    @property
+    def val(self) -> int:
+        """
+        Returns the week value (1-53) for the target time.
+        """
+        return self._cal.target_dt.isocalendar().week  ## type: ignore
+
+    @property
+    def day(self) -> int:
+        """
+        Returns the day of week value (1=Mon .. 7=Sun) for the target time.
+        """
+        return self._cal.target_dt.isoweekday()  # type: ignore
 
 
 class MonthNamespace(UnitNamespace):
@@ -228,9 +311,6 @@ class MonthNamespace(UnitNamespace):
         start_idx = self._month_index(self._cal.ref_dt) + start  # type: ignore
         end_idx = self._month_index(self._cal.ref_dt) + end  # type: ignore
 
-        # Half-open semantics for months: `end_idx` is the exclusive month
-        # index (decorator normalization ensures single-arg calls behave as
-        # a single unit window). Compare numeric month indices directly.
         return in_half_open(start_idx, target_idx, end_idx)
 
     def _month_index(self, d: dt.datetime) -> int:
@@ -254,7 +334,7 @@ class MonthNamespace(UnitNamespace):
             ValueError: If the nth occurrence doesn't exist
         """
 
-        ref_date:dt.date = self._cal.ref_dt.date()  # type: ignore
+        ref_date: dt.date = self._cal.ref_dt.date()  # type: ignore
         weekday_num = normalize_weekday(weekday)
 
         # Map weekday number to rrule weekday
@@ -262,8 +342,8 @@ class MonthNamespace(UnitNamespace):
         rrule_weekday = weekday_map[weekday_num]
 
         # Create rrule for nth occurrence in the month
-        month_start:dt.datetime = dt.datetime(ref_date.year, ref_date.month, 1)
-        month_end:dt.datetime = dt.datetime(ref_date.year, ref_date.month + 1, 1) - dt.timedelta(
+        month_start: dt.datetime = dt.datetime(ref_date.year, ref_date.month, 1)
+        month_end: dt.datetime = dt.datetime(ref_date.year, ref_date.month + 1, 1) - dt.timedelta(
             days=1
         )
 
@@ -280,9 +360,7 @@ class MonthNamespace(UnitNamespace):
             occurrence = list(rule)[0]
             return occurrence.replace(hour=0, minute=0, second=0, microsecond=0)
         except IndexError:
-            raise ValueError(
-                f"No {n}th {weekday} in {ref_date.year}-{ref_date.month:02d}"
-            )
+            raise ValueError(f"No {n}th {weekday} in {ref_date.year}-{ref_date.month:02d}")
 
     def is_nth_weekday(self, weekday: str, n: int) -> bool:
         """
@@ -293,6 +371,27 @@ class MonthNamespace(UnitNamespace):
             return self._cal.target_dt.date() == nth_datetime.date()  # type: ignore
         except ValueError:
             return False
+
+    @property
+    def val(self) -> int:
+        """
+        Returns the month value (1-12) for the target time.
+        """
+        return self._cal.target_dt.month  # type: ignore
+
+    @property
+    def name(self) -> str:
+        """
+        Returns the month name for the target time.
+        """
+        return self._cal.target_dt.strftime("%B")  # type: ignore
+
+    @property
+    def day(self) -> int:
+        """
+        Returns the day value (1-31) for the target time.
+        """
+        return self._cal.target_dt.day  # type: ignore
 
 
 class QuarterNamespace(UnitNamespace):
@@ -329,6 +428,21 @@ class QuarterNamespace(UnitNamespace):
         # Check if target falls within the quarter range using half-open semantics
         return in_half_open(start_idx, target_idx, end_idx)
 
+    @property
+    def val(self) -> int:
+        """
+        Returns the quarter value (1-4) for the target time.
+        """
+        target_time: dt.datetime = self._cal.target_dt  # type: ignore
+        return ((target_time.month - 1) // 3) + 1
+
+    @property
+    def name(self) -> str:
+        """
+        Returns the quarter name for the target time.
+        """
+        return f"Q{self.val}"
+
 
 class YearNamespace(UnitNamespace):
     """Year-specific namespace that implements _in_impl with year logic."""
@@ -339,12 +453,12 @@ class YearNamespace(UnitNamespace):
     def _in_impl(self, start: int, end: int) -> bool:
         """Year-specific logic (moved from cal.in_years)."""
 
-        target_year:int = self._cal.target_dt.year  # type: ignore
-        base_year:int = self._cal.ref_dt.year  # type: ignore
+        target_year: int = self._cal.target_dt.year  # type: ignore
+        base_year: int = self._cal.ref_dt.year  # type: ignore
 
         # Calculate year range boundaries
-        start_year:int = base_year + start
-        end_year:int = base_year + end
+        start_year: int = base_year + start
+        end_year: int = base_year + end
 
         # Use half-open semantics for years: `end_year` is exclusive. The
         # decorator already makes single-arg calls represent a single-year
@@ -363,7 +477,22 @@ class YearNamespace(UnitNamespace):
         Returns True if target_dt is the nth day of its year (1-based).
         """
         return self.day_of_year() == n
-    
+
+    @property
+    def val(self) -> int:
+        """
+        Returns the year value for the target time.
+        """
+        return self._cal.target_dt.year  # type: ignore
+
+    @property
+    def day(self) -> int:
+        """
+        Returns the day of year value (1-366) for the target time.
+        """
+        return self._cal.target_dt.timetuple().tm_yday  # type: ignore
+
+
 class BizDayNamespace(UnitNamespace):
     """Business day-specific namespace that implements _in_impl with business day logic."""
 
@@ -396,6 +525,20 @@ class FiscalQuarterNamespace(UnitNamespace):
         """Fiscal quarter-specific logic (moved from biz.in_fiscal_quarters)."""
         return self._cal.in_fiscal_quarters(start, end)  # type: ignore
 
+    @property
+    def val(self) -> int:
+        """
+        Returns the fiscal quarter value (1-4) for the target time.
+        """
+        return self._cal.fiscal_quarter  # type: ignore
+
+    @property
+    def name(self) -> str:
+        """
+        Returns the fiscal quarter name for the target time.
+        """
+        return f"Q{self.val}"
+
 
 class FiscalYearNamespace(UnitNamespace):
     """Fiscal year-specific namespace that implements _in_impl with fiscal year logic."""
@@ -406,3 +549,10 @@ class FiscalYearNamespace(UnitNamespace):
     def _in_impl(self, start: int, end: int) -> bool:
         """Fiscal year-specific logic (moved from biz.in_fiscal_years)."""
         return self._cal.in_fiscal_years(start, end)  # type: ignore
+
+    @property
+    def val(self) -> int:
+        """
+        Returns the fiscal quarter value (1-4) for the target time.
+        """
+        return self._cal.fiscal_year  # type: ignore

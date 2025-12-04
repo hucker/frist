@@ -3,14 +3,14 @@
 Verifies that `biz.biz_day`, `biz.work_day`, `biz.fis_qtr`, and `biz.fis_year`
 support call and thru sugar.
 
-Style: Arrange / Act / Assert (AA) per project `codeguide.md`.
+Style: Arrange / Act / Assert (AA) per project `CODESTYLE.md`.
 """
 
 import datetime as dt
+
 import pytest
 
 from frist._biz import Biz
-
 
 UNITS = [
     "biz_day",

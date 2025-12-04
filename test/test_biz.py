@@ -6,8 +6,8 @@ use explicit dates and follow the Arrange/Act/Assert (AAA) pattern.
 """
 
 import datetime as dt
+
 import pytest
-from typing import Set
 
 from frist import Biz, BizPolicy
 
@@ -196,7 +196,7 @@ def test_multi_day_with_middle_holiday():
     # Same span but mark Jan 3 as a holiday  business_days should exclude it
     start: dt.datetime = dt.datetime(2024, 1, 1, 12, 0)
     end: dt.datetime = dt.datetime(2024, 1, 4, 15, 0)
-    holidays: Set[str] = {"2024-01-03"}
+    holidays: set[str] = {"2024-01-03"}
     policy: BizPolicy = BizPolicy(holidays=holidays)
     biz: Biz = Biz(start, end, policy)
 

@@ -1,7 +1,11 @@
+"""
+Golden (expected) results for Cal shortcut behaviors.
+"""
 import datetime as dt
+
 import pytest
 
-from frist import Cal, Biz, BizPolicy
+from frist import Biz, BizPolicy, Cal
 
 # Use a reference datetime that yields stable week/month/quarter/year boundaries:
 REF = dt.datetime(2025, 1, 13, 12, 0)  # Monday, Jan 13 2025 (week starts Monday)
@@ -100,3 +104,32 @@ def test_unitnamespace_call_and_thru() -> None:
     assert w_ns(0) is True
     assert w_ns.between(0) is True
     assert w_ns.thru(0) is True
+
+
+
+
+
+@pytest.mark.parametrize("inclusive, expected", [
+    # For offset -2, -1, 0, 1, 2 with window (-1, 1)
+    # "both": [-1, 0, 1] are inside
+    ("both", [False, True, True, True, False]),
+    # "left": [-1, 0] are inside
+    ("left", [False, True, True, False, False]),
+    # "right": [0, 1] are inside
+    ("right", [False, False, True, True, False]),
+    # "neither": [0] is inside
+    ("neither", [False, False, True, False, False]),
+])
+def test_between_edges_and_inside(inclusive: str, expected: list[bool]) -> None:
+    """
+    Test Cal.day.between for all inclusivity options, with offsets:
+    outside_low (-2), edge (-1), inside (0), edge (1), outside_high (2)
+    Window is (-1, 1)
+    """
+    ref_dt = dt.datetime(2025, 1, 13, 12, 0)
+    results: list[bool] = []
+    for offset in [-2, -1, 0, 1, 2]:
+        target = ref_dt + dt.timedelta(days=offset)
+        c = Cal(target_dt=target, ref_dt=ref_dt)
+        results.append(c.day.between(-1, 1, inclusive=inclusive))
+    assert results == expected

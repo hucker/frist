@@ -32,6 +32,9 @@ dev = [
     "types-python-dateutil"
 ]
 
+[project.scripts]
+frist = "frist.__main__:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
@@ -66,3 +69,8 @@ commands =
 select = ["E", "F", "I", "UP", "Q"]  # Enable these rule categories
 fix = true  # Allow auto-fixing
 line-length=100
+
+[tool.coverage.run]
+omit = [
+    "src/frist/__main__.py"
+]

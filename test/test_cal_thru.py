@@ -8,6 +8,7 @@ Style: Arrange / Act / Assert (AA) per project `codeguide.md`.
 """
 
 import datetime as dt
+
 from frist._cal import Cal
 
 CAL_UNITS = ["minute", "hour", "day", "week", "month", "qtr", "year"]

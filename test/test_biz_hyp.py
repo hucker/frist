@@ -6,14 +6,13 @@ for Biz business calendar calculations, regardless of input dates and policies.
 """
 
 import datetime as dt
-from typing import Tuple
 
 import pytest
-from hypothesis import given, strategies as st, settings
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from frist import Biz
 from frist._biz_policy import BizPolicy
-
 
 # Custom strategies for datetime generation with smaller ranges for performance
 datetime_strategy = st.datetimes(
@@ -34,7 +33,7 @@ biz_policy_strategy = st.builds(
 
 @pytest.mark.hypothesis
 @given(target_ref=st.tuples(datetime_strategy, datetime_strategy), policy=biz_policy_strategy)
-def test_biz_construction_properties(target_ref: Tuple[dt.datetime, dt.datetime], policy: BizPolicy):
+def test_biz_construction_properties(target_ref: tuple[dt.datetime, dt.datetime], policy: BizPolicy):
     """Test that Biz objects are constructed correctly."""
     target_dt, ref_dt = target_ref
     biz = Biz(target_dt, ref_dt, policy)
@@ -47,7 +46,7 @@ def test_biz_construction_properties(target_ref: Tuple[dt.datetime, dt.datetime]
 @pytest.mark.hypothesis
 @given(target_ref=datetime_pair_strategy, policy=biz_policy_strategy)
 @settings(deadline=1000)  # Allow up to 1 second for these calculations
-def test_biz_business_days_calculation(target_ref: Tuple[dt.datetime, dt.datetime], policy: BizPolicy):
+def test_biz_business_days_calculation(target_ref: tuple[dt.datetime, dt.datetime], policy: BizPolicy):
     """Test business_days property calculation."""
     target_dt, ref_dt = target_ref
 
@@ -74,7 +73,7 @@ def test_biz_business_days_calculation(target_ref: Tuple[dt.datetime, dt.datetim
 @pytest.mark.hypothesis
 @given(target_ref=datetime_pair_strategy, policy=biz_policy_strategy)
 @settings(deadline=1000)  # Allow up to 1 second for these calculations
-def test_biz_working_days_calculation(target_ref: Tuple[dt.datetime, dt.datetime], policy: BizPolicy):
+def test_biz_working_days_calculation(target_ref: tuple[dt.datetime, dt.datetime], policy: BizPolicy):
     """Test working_days property calculation."""
     target_dt, ref_dt = target_ref
 
@@ -96,7 +95,7 @@ def test_biz_working_days_calculation(target_ref: Tuple[dt.datetime, dt.datetime
 
 @pytest.mark.hypothesis
 @given(target_ref=datetime_pair_strategy, policy=biz_policy_strategy)
-def test_biz_in_business_days_consistency(target_ref: Tuple[dt.datetime, dt.datetime], policy: BizPolicy):
+def test_biz_in_business_days_consistency(target_ref: tuple[dt.datetime, dt.datetime], policy: BizPolicy):
     """Test in_business_days method consistency."""
     target_dt, ref_dt = target_ref
     biz = Biz(target_dt, ref_dt, policy)
@@ -116,7 +115,7 @@ def test_biz_in_business_days_consistency(target_ref: Tuple[dt.datetime, dt.date
 
 @pytest.mark.hypothesis
 @given(target_ref=datetime_pair_strategy, policy=biz_policy_strategy)
-def test_biz_in_working_days_consistency(target_ref: Tuple[dt.datetime, dt.datetime], policy: BizPolicy):
+def test_biz_in_working_days_consistency(target_ref: tuple[dt.datetime, dt.datetime], policy: BizPolicy):
     """Test in_working_days method consistency."""
     target_dt, ref_dt = target_ref
     biz = Biz(target_dt, ref_dt, policy)
@@ -135,7 +134,7 @@ def test_biz_in_working_days_consistency(target_ref: Tuple[dt.datetime, dt.datet
 
 @pytest.mark.hypothesis
 @given(target_ref=datetime_pair_strategy, policy=biz_policy_strategy)
-def test_biz_in_fiscal_quarters_consistency(target_ref: Tuple[dt.datetime, dt.datetime], policy: BizPolicy):
+def test_biz_in_fiscal_quarters_consistency(target_ref: tuple[dt.datetime, dt.datetime], policy: BizPolicy):
     """Test in_fiscal_quarters method consistency."""
     target_dt, ref_dt = target_ref
     biz = Biz(target_dt, ref_dt, policy)
@@ -160,7 +159,7 @@ def test_biz_in_fiscal_quarters_consistency(target_ref: Tuple[dt.datetime, dt.da
 
 @pytest.mark.hypothesis
 @given(target_ref=datetime_pair_strategy, policy=biz_policy_strategy)
-def test_biz_in_fiscal_years_consistency(target_ref: Tuple[dt.datetime, dt.datetime], policy: BizPolicy):
+def test_biz_in_fiscal_years_consistency(target_ref: tuple[dt.datetime, dt.datetime], policy: BizPolicy):
     """Test in_fiscal_years method consistency."""
     target_dt, ref_dt = target_ref
     biz = Biz(target_dt, ref_dt, policy)
@@ -179,7 +178,7 @@ def test_biz_in_fiscal_years_consistency(target_ref: Tuple[dt.datetime, dt.datet
 
 @pytest.mark.hypothesis
 @given(target_ref=datetime_pair_strategy, policy=biz_policy_strategy)
-def test_biz_unit_namespace_consistency(target_ref: Tuple[dt.datetime, dt.datetime], policy: BizPolicy):
+def test_biz_unit_namespace_consistency(target_ref: tuple[dt.datetime, dt.datetime], policy: BizPolicy):
     """Test that UnitNamespace call syntax works correctly."""
     target_dt, ref_dt = target_ref
     biz = Biz(target_dt, ref_dt, policy)
@@ -193,7 +192,7 @@ def test_biz_unit_namespace_consistency(target_ref: Tuple[dt.datetime, dt.dateti
 
 @pytest.mark.hypothesis
 @given(target_ref=datetime_pair_strategy, policy=biz_policy_strategy)
-def test_biz_convenience_properties(target_ref: Tuple[dt.datetime, dt.datetime], policy: BizPolicy):
+def test_biz_convenience_properties(target_ref: tuple[dt.datetime, dt.datetime], policy: BizPolicy):
     """Test convenience properties like is_business_this_day, etc."""
     target_dt, ref_dt = target_ref
     biz = Biz(target_dt, ref_dt, policy)
@@ -255,7 +254,7 @@ def test_biz_get_fiscal_quarter(dt_obj: dt.datetime, fy_start_month: int):
 
 @pytest.mark.hypothesis
 @given(target_ref=datetime_pair_strategy, policy=biz_policy_strategy)
-def test_biz_properties_consistency(target_ref: Tuple[dt.datetime, dt.datetime], policy: BizPolicy):
+def test_biz_properties_consistency(target_ref: tuple[dt.datetime, dt.datetime], policy: BizPolicy):
     """Test consistency between various Biz properties."""
     target_dt, ref_dt = target_ref
     biz = Biz(target_dt, ref_dt, policy)

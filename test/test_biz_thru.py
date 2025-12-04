@@ -8,6 +8,7 @@ Style: Arrange / Act / Assert (AA) per project `codeguide.md`.
 """
 
 import datetime as dt
+
 from frist._biz import Biz
 
 BIZ_UNITS = ["biz_day", "work_day", "fis_qtr", "fis_year"]

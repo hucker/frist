@@ -431,21 +431,18 @@ class Biz:
         # interval, so `end_year` is the exclusive end.
         return in_half_open(start_year, target_fy, end_year)
 
-    # (Removed duplicate private `_in_*_impl` helper functions; the public
-    # decorated `in_*` methods above are the single canonical implementation.)
-
     @staticmethod
-    def get_fiscal_year(dt: dt.datetime, fy_start_month: int) -> int:
+    def get_fiscal_year(dt_: dt.datetime, fy_start_month: int) -> int:
         """Return the fiscal year for a given datetime and fiscal year start month."""
-        return dt.year if dt.month >= fy_start_month else dt.year - 1
+        return dt_.year if dt_.month >= fy_start_month else dt_.year - 1
 
     @staticmethod
-    def get_fiscal_quarter(dt: dt.datetime, fy_start_month: int) -> int:
+    def get_fiscal_quarter(dt_: dt.datetime, fy_start_month: int) -> int:
         """Return the fiscal quarter for a given datetime and fiscal year start month."""
         offset: int = (
-            (dt.month - fy_start_month) % 12
-            if dt.month >= fy_start_month
-            else (dt.month + 12 - fy_start_month) % 12
+            (dt_.month - fy_start_month) % 12
+            if dt_.month >= fy_start_month
+            else (dt_.month + 12 - fy_start_month) % 12
         )
         return (offset // 3) + 1
 
@@ -457,18 +454,22 @@ class Biz:
 
     @cached_property
     def biz_day(self) -> UnitNamespace:
+        """Returns a BizDayNamespace for business day range checks and utilities."""
         return BizDayNamespace(self)
 
     @cached_property
     def work_day(self) -> UnitNamespace:
+        """Returns a WorkingDayNamespace for working day range checks and utilities."""
         return WorkingDayNamespace(self)
 
     @cached_property
     def fis_qtr(self) -> UnitNamespace:
+        """Returns a FiscalQuarterNamespace for fiscal quarter range checks and utilities."""
         return FiscalQuarterNamespace(self)
 
     @cached_property
     def fis_year(self) -> UnitNamespace:
+        """Returns a FiscalYearNamespace for fiscal year range checks and utilities."""
         return FiscalYearNamespace(self)
 
 

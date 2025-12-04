@@ -1,8 +1,16 @@
+"""
+Half-open interval utility tests for deterministic boundary behavior.
+
+Follows CODESTYLE: AAA comments and explicit expected/actual assertions.
+"""
+
 import datetime as dt
 from typing import Any
+
 import pytest
 
 from frist._util import in_half_open
+
 
 @pytest.mark.parametrize(
     ("start", "value", "end", "expected"),

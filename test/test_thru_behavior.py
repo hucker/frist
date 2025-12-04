@@ -8,9 +8,8 @@ Style: Arrange / Act / Assert (AA) per project `codeguide.md`.
 
 import datetime as dt
 
-from frist._cal import Cal
 from frist._biz import Biz
-
+from frist._cal import Cal
 
 CAL_UNITS = ["minute", "hour", "day", "week", "month", "qtr", "year"]
 BIZ_UNITS = ["biz_day", "work_day", "fis_qtr", "fis_year"]

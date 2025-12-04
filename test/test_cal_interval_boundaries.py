@@ -8,8 +8,7 @@ import datetime as dt
 
 import pytest
 
-from frist import Chrono, Cal, BizPolicy
-
+from frist import BizPolicy, Cal, Chrono
 
 # Local fixture for Cal instance
 

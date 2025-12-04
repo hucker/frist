@@ -6,8 +6,9 @@ Covers:
 """
 
 import datetime as dt
-import pytest
-from frist import Chrono, BizPolicy
+
+from frist import BizPolicy, Chrono
+
 
 def test_fiscal_boundary_crossing() -> None:
     """Test fiscal year/quarter boundaries using BizPolicy."""

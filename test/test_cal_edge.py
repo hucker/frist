@@ -1,10 +1,12 @@
 """
-Edge case and parameterized tests for Cal and related calendar logic.
+Edge-case tests for Cal, focusing on boundaries and inclusive semantics.
 
-This module contains tests for edge cases, parameterized weekday normalization,
-error handling, and type checking for the frist calendar utilities.
+Follows CODESTYLE: AAA comments and explicit expected/actual assertions.
 """
+
+ 
 import datetime as dt
+
 import pytest
 
 from frist._cal import Cal
@@ -230,7 +232,9 @@ def test_normalize_weekday_error_with_detailed_message():
         normalize_weekday("invalid_day")
     error_msg = str(excinfo.value)
     # Assert
-    assert "Invalid day specification" in error_msg, "Error message should mention 'Invalid day specification'"
+    assert "Invalid day specification" in error_msg, (
+        "Error message should mention 'Invalid day specification'"
+    )
     assert "Full:" in error_msg, "Error message should mention 'Full:'"
     assert "3-letter:" in error_msg, "Error message should mention '3-letter:'"
     assert "2-letter:" in error_msg, "Error message should mention '2-letter:'"

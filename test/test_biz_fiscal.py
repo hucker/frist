@@ -195,3 +195,24 @@ def test_fiscal_year_and_quarter_all_days(fy_start_month: int):
             f"Expected fiscal quarter {expected_fq}, got {biz.fiscal_quarter}"
         )
         current_date += dt.timedelta(days=1)
+
+def test_fiscal_quarter_namespace_val_and_name():
+    """Test FiscalQuarterNamespace .val and .name properties."""
+    policy = BizPolicy()
+    # Fiscal year starts January by default
+    # Q1: Jan-Mar, Q2: Apr-Jun, Q3: Jul-Sep, Q4: Oct-Dec
+    for month, expected_quarter in [(1, 1), (4, 2), (7, 3), (10, 4)]:
+        target = dt.datetime(2025, month, 1)
+        b = Biz(target_dt=target, ref_dt=target, policy=policy)
+        fq = b.fis_qtr
+        assert fq.val == expected_quarter
+        assert fq.name == f"Q{expected_quarter}"
+
+def test_fiscal_year_namespace_val():
+    """Test FiscalYearNamespace .val property."""
+    policy = BizPolicy()
+    for year in [2023, 2024, 2025]:
+        target = dt.datetime(year, 6, 1)
+        b = Biz(target_dt=target, ref_dt=target, policy=policy)
+        fy = b.fis_year
+        assert fy.val == year

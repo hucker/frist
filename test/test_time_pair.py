@@ -7,8 +7,11 @@ Covers:
 """
 
 import datetime as dt
+
 import pytest
+
 from frist._frist import time_pair
+
 
 def test_time_pair_datetime() -> None:
     """Test time_pair with datetime objects."""

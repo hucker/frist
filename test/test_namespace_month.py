@@ -5,7 +5,9 @@ All tests use AAA (Arrange, Act, Assert) comments and docstrings.
 """
 
 import datetime as dt
+
 import pytest
+
 from frist import Cal
 from frist._ranges import MonthNamespace
 

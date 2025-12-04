@@ -186,18 +186,6 @@ def test_years_precise_same_year() -> None:
     )  
 
 
-def test_months_precise_start_greater_than_end_raises() -> None:
-    """
-    Test months_precise raises ValueError when start > end.
-    """
-    start: dt.datetime = dt.datetime(2023, 6, 1)
-    end: dt.datetime = dt.datetime(2023, 5, 1)
-    age: Age = Age(start, end)
-    with pytest.raises(ValueError, match="start_time must be before end_time"):
-        _ = age.months_precise
-
-
-
 def test_next_month_year_rollover() -> None:
     """
     Arrange: Set year=2025, month=12

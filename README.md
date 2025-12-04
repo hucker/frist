@@ -1,50 +1,130 @@
 # `Frist`: Unified Age and Calendar Logic
 
-`Frist` is a modern Python library designed to make working with time, dates, intervals and business calendars easy using a simple, expressive property-based API. `Frist` provides property-based APIs for `Age`, `Cal` and `Biz`. The `Age` object answers “How old is this?” for two datetimes (often defaulting the second datetime to “now”), making it useful for file aging, log analysis, or event tracking. The `Cal` object lets you ask “Is this date in a specific window?”—such as today, yesterday, this month, this quarter, or this fiscal year—using intuitive properties for calendar logic. Calendar ranges are aligned to calendar units (minute, hour, day, business day, week, month, quarter, year). Finally, the `Biz` class lets you establish a business policy for workdays, business hours, holidays and fiscal years so you can perform business-calendar-aware queries.
+`Frist` is a modern Python library designed to make working with time, dates, intervals and business calendars easy using a simple, expressive property-based API. `Frist` provides property-based APIs for `Age`, `Cal` and `Biz`. The `Age` object answers “How old is this?” for two datetimes (often defaulting the second datetime to “now”), making it useful for file aging, log analysis, or event tracking. The `Cal` object lets you ask “Is this date in a specific window?”—such as today, yesterday, this month, this quarter, or this fiscal year—using "intuitive" (if you can call half-open intervals intuitive) properties for calendar logic. Calendar ranges are aligned to calendar units (minute, hour, day, week, month, quarter, year). Finally, the `Biz` class lets you establish a business policy for workdays, business hours, holidays and fiscal years so you can perform business-calendar-aware windowing for working days and business days.
 
-`Frist` is not a [replacement](https://imgs.xkcd.com/comics/standards_2x.png) for `datetime` or `timedelta`. If the standard library meets your needs, keep using it.
+`Frist` is not a [replacement](https://imgs.xkcd.com/comics/standards_2x.png) for `datetime` or `timedelta` or `dateutil`. If the standard library or popular tools meets your needs, keep using them.
 
-`Frist` does more than shorten expressions: it reduces many common calendar and business-date queries to a single, expressive property (for example, `Cal(...).is_this_quarter`, `Age(...).days`, or `Biz(...).biz_day.in_(0)`). That one-property approach makes intent explicit, avoids repeating low-level date math across projects, and centralizes tricky edge cases such as half-open intervals, fiscal boundaries, and business-hour fractions.
+`Frist` does more than shorten expressions: it reduces many common calendar and business-date queries to a single, expressive property (for example, `Cal(...).is_this_quarter`, `Age(...).days`. That one-property approach makes intent explicit, avoids repeating low-level date math across projects, and centralizes tricky edge cases such as half-open intervals, fiscal boundaries, and business-hour fractions. For most usecases there is no date math, no conversion factors, no time stamps, only properties.
 
-Here are some examples of a dataset with a bunch of datetimes.
+If you have pip installed `frist`  you can call frist directly from the command line as shown below.  Every one of the examples below are a single property accesses, and in the case of the window checks a start and end offset are required, in the given units.
+
+```pycon
+(.venv) frist [example/cli]> frist 2024-12-31T01:02:03
+
+=== frist CLI demo ===
+target_time:       2024-12-31 01:02:03
+reference_time:    2025-12-03 20:22:08.233500
+
+=== Age Properties ===
+seconds:           29186405.23
+minutes:           486440.09
+hours:             8107.33
+days:              337.81
+months:            11.10
+years:             0.92
+months_precise:    11.12
+years_precise:     0.93
+
+=== Calendar Aligned Window Checks (Cal) ===
+Minute in_(-5,0):    0       # Is target 5 min ago to ref_time?
+Hour in_(-1,0):      0       # Is target 1 hr ago to ref_time?
+Day in_(-1,1):       0       # Is target day before to day after ref_time?
+Week in_(-2,0):      0       # Is target 2 weeks ago to ref_time?
+Month in_(-6,0):     0       # Is target 6 months ago to ref_time?
+Quarter in_(-1,1):   0       # Is target 1 qtr ago to qtr after ref_time?
+Year in_(-3,0):      1       # Is target 3 yrs ago to ref_time?
+
+=== Calendar Shortcuts (Cal) ===
+is_today:          False
+is_yesterday:      False
+is_tomorrow:       False
+is_this_week:      False
+is_this_month:     False
+is_this_quarter:   False
+is_this_year:      False
+is_last_month:     False
+is_last_year:      True
+
+=== Calendar Info ===
+Minute:            2
+Hour:              1
+Day:               2 (Tuesday)
+Week:              1 (Day: 2)
+Month:             12 (Day: 31)
+Quarter:           4 (Q4)
+Year:              2024 (Day: 366)
+
+=== Biz Info ===
+Is Business Day:   True
+Is Working Day:    True
+Work days:         242.00
+Business days:     241.00
+Fiscal Quarter:    3 (Q3)
+Fiscal Year:       2024
+```
+
+Here is an example of using the properties in a typical function.  This example doesn't really show much gain over using `datetime` though those methods will have you doing a lot of dividing by 60, 3600, 86400 to perform date conversions.
 
 ```python
-from frist import Age, Cal, Biz, BizPolicy
+import pathlib
+import shutil
+from frist import Age
 
-# If you omit the reference time, Frist uses the current time (`now`) as the reference.
-# This makes one-property expressions (e.g., Age(date).days or Cal(date).is_today) convenient for
-# interactive use. Pass an explicit reference for deterministic, reproducible comparisons (e.g., tests)
+def move_old_files_to_backup(src: pathlib.Path, backup: pathlib.Path, days: int = 3) -> None:
+    """
+    Move all files older than `days` from src to backup using frist for age calculation.
 
-dates = large_list_of_date_times()
+    Args:
+        src: Pathlib Path to the folder to scan.
+        backup: Pathlib Path to the backup folder.
+        days: Number of days; files older than this will be moved.
+    """
+    for file in src.iterdir():
+        if file.is_file():
+            age = Age(file.stat().st_mtime)  # Only one argument; end_time defaults to now
+            if age.days > days:
+                shutil.move(str(file), str(backup / file.name))
+```
 
-# Policy only required if you want business date info
-policy = BizPolicy(fiscal_year_start_month=4, holidays={"2026-01-01"})
+Here is a similar case of copy all files that were created last month to the backup folder.  This isn't an age question it is a window question.  Using `frist` the implimentation of dates at the operating system (as timestamps, or seconds) is hidden, you just give it a time like value and you use the `month` property of the `Cal` object to make a window.  Again it is one line of code to create the object and one method call to check the window.
 
-# If no second date provided then now() is assumed.
+```python
+import pathlib
+import shutil
+from frist import Cal
 
-last_four_and_half_minutes = [date for date in dates if Age(date).minutes <= 4.5]
-last_three_years = [date for date in dates if Age(date).years < 3.0]
+def copy_last_month_files_to_backup(src: pathlib.Path, backup: pathlib.Path) -> None:
+    """
+    Copy all files from last month (relative to now) to the backup folder using frist Cal window logic.
+    """
+    for file in src.iterdir():
+        if file.is_file():
+            cal = Cal(target_dt=file.stat().st_mtime)  #end time omitted defaults to 'now'
+            if cal.month.in_(-1, 0):  # last month to the current month window
+                shutil.move(str(file), str(backup / file.name))
+```
 
-# Window membership queries:
-# Each Cal or Biz object is created with a target date and, unless you provide a reference time,
-# it implicitly uses the current time ("now") as the reference. The .in_() method then checks
-# if the target date falls within a calendar or business window (e.g., day, month, year, business day)
-# relative to that reference. This lets you write expressive queries like "is this date in the last
-# two months?" or "is this a business day in the current fiscal year?" without manually handling
-# date math or reference points.
+Below is the `datetime` version where you need to manually manipulate fields in datetime objects and perform tricky boundary checks.  Not terribly difficult, but something you will need to write every time you write such code.  Presumably you might put this in a function that you would find yourself writing over and over again with lots of tricky edge cases.
 
-dates_today = [date for date in dates if Cal(target_dt=date).day.in_(0)]
-last_two_months = [date for date in dates if Cal(target_dt=date).month.in_(-2, 0)]
-last_three_cal_years = [date for date in dates if Cal(target_dt=date).year.in_(-3, 0)]
-last_five_business_days = [date for date in dates if Biz(target_dt=date).biz_day.in_(-5, 0)]
-this_fiscal_year = [date for date in dates if Biz(target_dt=date, policy).fiscal_year.in_(0)]
-next_2_fiscal_years = [date for date in dates if Biz(target_dt=date, policy).fiscal_year.in_(0, 2)]
-ignore_holidays = [date for date in dates if not Biz(target_dt=date, policy).is_holiday]
+```python
+import pathlib
+import shutil
+import datetime as dt
 
-# Shortcut boolean properties for common calendar queries:
-dates_today_shortcut = [date for date in dates if Cal(target_dt=date).is_today]
-dates_this_quarter = [date for date in dates if Cal(target_dt=date).is_this_quarter]
-dates_last_year = [date for date in dates if Cal(target_dt=date).is_last_year]
+def copy_last_month_files_to_backup(src: pathlib.Path, backup: pathlib.Path) -> None:
+    """
+    Copy all files from last month (relative to now) to the backup folder using standard library only.
+    Uses half-open interval for consistency: [first_of_last_month, first_of_this_month)
+    """
+    now = dt.datetime.now()
+    first_of_this_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    last_month = first_of_this_month - dt.timedelta(days=1)
+    first_of_last_month = last_month.replace(day=1)
+
+    for file in src.iterdir():
+        if file.is_file():
+            mtime = dt.datetime.fromtimestamp(file.stat().st_mtime)
+            if first_of_last_month <= mtime < first_of_this_month
 ```
 
 ## Caveats
@@ -89,7 +169,12 @@ Example:
 80.0
 ```
 
-Note: the precise times are somewhat academic, but solve important problems.  If you have the days from February 1 to Feb 28, inclusive what does that mean?  When using precise months that means 1.0 months.  If you have the days from April 1 to April 28 inclusive, you have 28/31 months.  If you use "normal" months which divide by the average days/month you can NEVER get 1.0 months.  Also worth nothing, when time periods span months the math is performed on each fractional month so  Feb 22 thru May 1 (inclusive) is 7/28 + 31/31 + 1/30 months
+**Note:** The precise times are somewhat academic, but solve important problems.  If you have the days from February 1 to Feb 28, inclusive what does that mean?  When using precise months that means 1.0 months.  If you have the days from April 1 to April 28 inclusive, you have 28/31 months.  If you use "normal" months which divide by the average days/month you can NEVER get 1.0 months.  Also worth noting, when time periods span months the math is performed on each fractional month so  Feb 22 thru May 1 (inclusive) is 7/28 + 31/31 + 1/30 months
+
+> **Note:**
+> If the start is less than the end
+> `Age(start, end).months_precise == -Age(end, start).months_precise`
+
 
 ---
 
@@ -466,7 +551,7 @@ False
 
 ### Status
 
-[![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13%20|%203.14-blue?logo=python&logoColor=white)](https://www.python.org/) [![Coverage](https://img.shields.io/badge/coverage-100%25-green)](https://github.com/hucker/frist/actions) [![Pytest](https://img.shields.io/badge/pytest-100%25%20pass%20%7C%20512%20tests-green?logo=pytest&logoColor=white)](https://docs.pytest.org/en/stable/) [![Ruff](https://img.shields.io/badge/ruff-100%25-green?logo=ruff&logoColor=white)](https://github.com/charliermarsh/ruff) [![Tox](https://img.shields.io/static/v1?label=tox&message=3.10-3.14&color=green&logo=tox&logoColor=white)](https://tox.readthedocs.io/) [![Mypy](https://img.shields.io/static/v1?label=mypy&message=0%20issues&color=green&logo=mypy&logoColor=white)](https://mypy-lang.org/)
+[![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13%20|%203.14-blue?logo=python&logoColor=white)](https://www.python.org/) [![Coverage](https://img.shields.io/badge/coverage-100%25-green)](https://github.com/hucker/frist/actions) [![Pytest](https://img.shields.io/badge/pytest-100%25%20pass%20%7C%20530%20tests-green?logo=pytest&logoColor=white)](https://docs.pytest.org/en/stable/) [![Ruff](https://img.shields.io/badge/ruff-100%25-green?logo=ruff&logoColor=white)](https://github.com/charliermarsh/ruff) [![Tox](https://img.shields.io/static/v1?label=tox&message=3.10-3.14&color=green&logo=tox&logoColor=white)](https://tox.readthedocs.io/) [![Mypy](https://img.shields.io/static/v1?label=mypy&message=0%20issues&color=green&logo=mypy&logoColor=white)](https://mypy-lang.org/)
 
 ### Pytest (100% pass/100% coverage)
 

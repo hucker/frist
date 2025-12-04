@@ -2,7 +2,9 @@
 Unit tests for BizPolicy exception handling in __post_init__ and methods.
 """
 import pytest
+
 from frist._biz_policy import BizPolicy
+
 
 def test_invalid_fiscal_year_start_month_exception() -> None:
     """

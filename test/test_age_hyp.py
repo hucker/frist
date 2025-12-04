@@ -29,20 +29,31 @@ datetime_pair_strategy = st.tuples(datetime_strategy, datetime_strategy).map(
 
 @pytest.mark.hypothesis
 @given(start_end=datetime_pair_strategy)
-def test_age_always_non_negative(start_end: Tuple[dt.datetime, dt.datetime]):
-    """Age calculations should always be non-negative."""
+def test_age_sign_consistency(start_end: Tuple[dt.datetime, dt.datetime]):
+    """Age calculations should be non-negative if start <= end, non-positive if start > end."""
     start, end = start_end
     age = Age(start, end)
-    
-    assert age.days >= 0
-    assert age.seconds >= 0
-    assert age.minutes >= 0
-    assert age.hours >= 0
-    assert age.weeks >= 0
-    assert age.months >= 0
-    assert age.years >= 0
-    assert age.years_precise >= 0
-    assert age.months_precise >= 0
+
+    if start <= end:
+        assert age.days >= 0
+        assert age.seconds >= 0
+        assert age.minutes >= 0
+        assert age.hours >= 0
+        assert age.weeks >= 0
+        assert age.months >= 0
+        assert age.years >= 0
+        assert age.years_precise >= 0
+        assert age.months_precise >= 0
+    else:
+        assert age.days <= 0
+        assert age.seconds <= 0
+        assert age.minutes <= 0
+        assert age.hours <= 0
+        assert age.weeks <= 0
+        assert age.months <= 0
+        assert age.years <= 0
+        assert age.years_precise <= 0
+        assert age.months_precise <= 0
 
 
 @pytest.mark.hypothesis

@@ -3,9 +3,12 @@ Tests for YearNamespace in frist._ranges.py
 """
 
 import datetime as dt
+
 import pytest
+
 from frist import Cal
 from frist._ranges import YearNamespace
+
 
 @pytest.mark.parametrize(
     "target_date, expected_day_of_year",

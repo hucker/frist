@@ -5,12 +5,11 @@ Tests Chrono and time_pair as standalone dt.datetime utilities without file depe
 """
 
 import datetime as dt
+
 import pytest
 
-from frist._frist import Age, Cal, Chrono, time_pair
 from frist._biz_policy import BizPolicy
-
-
+from frist._frist import Age, Cal, Chrono
 
 
 def test_chrono_creation():
@@ -162,7 +161,7 @@ def test_chrono_fiscal_properties():
 
 def test_chrono_holiday_property():
     """Test holiday detection property."""
-    policy: BizPolicy = BizPolicy(holidays={'2024-01-01', '2024-12-25'})
+    policy: BizPolicy = BizPolicy(holidays={"2024-01-01", "2024-12-25"})
 
     target_tim: dt.datetime = dt.datetime(2024, 1, 1)
     chrono: Chrono = Chrono(target_time=target_tim, policy=policy)
@@ -491,3 +490,72 @@ def test_chrono_business_day_shortcuts():
     assert chrono_weekend.biz.is_business_this_day is False
     assert chrono_weekend.biz.is_business_last_day is False
     assert chrono_weekend.biz.is_business_next_day is False
+
+
+
+@pytest.mark.parametrize(
+    "dt_obj, expected_minute, expected_hour, expected_day_val, expected_day_name, expected_month_val, expected_month_name, expected_month_day, expected_qtr_val, expected_qtr_name, expected_year_val, expected_year_day",
+    [
+        (
+            dt.datetime(2025, 1, 5, 14, 30),  # Jan 5, 2025, Sunday
+            30,  # minute
+            14,  # hour
+            7, "Sunday",  # day of week
+            1, "January", 5,  # month, name, day of month
+            1, "Q1", 2025, 5  # quarter, name, year, day of year
+        ),
+        (
+            dt.datetime(2024, 7, 4, 0, 0),  # July 4, 2024, Thursday
+            0,
+            0,
+            4, "Thursday",
+            7, "July", 4,
+            3, "Q3", 2024, 186
+        ),
+        (
+            dt.datetime(2023, 12, 31, 23, 59),  # Dec 31, 2023, Sunday
+            59,
+            23,
+            7, "Sunday",
+            12, "December", 31,
+            4, "Q4", 2023, 365
+        ),
+    ]
+)
+def test_val_and_name_properties(
+    dt_obj: dt.datetime,
+    expected_minute: int,
+    expected_hour: int,
+    expected_day_val: int,
+    expected_day_name: str,
+    expected_month_val: int,
+    expected_month_name: str,
+    expected_month_day: int,
+    expected_qtr_val: int,
+    expected_qtr_name: str,
+    expected_year_val: int,
+    expected_year_day: int,
+):
+    """
+    Test val and name properties for all time scales.
+
+    AAA Pattern:
+    - Arrange: Create Chrono object for test datetime.
+    - Act: Query val and name properties.
+    - Assert: Check results against expected values.
+    """
+    # Arrange
+    chrono = Chrono(target_time=dt_obj)
+
+    # Act & Assert
+    assert chrono.cal.minute.val == expected_minute
+    assert chrono.cal.hour.val == expected_hour
+    assert chrono.cal.day.val == expected_day_val
+    assert chrono.cal.day.name == expected_day_name
+    assert chrono.cal.month.val == expected_month_val
+    assert chrono.cal.month.name == expected_month_name
+    assert chrono.cal.month.day == expected_month_day
+    assert chrono.cal.qtr.val == expected_qtr_val
+    assert chrono.cal.qtr.name == expected_qtr_name
+    assert chrono.cal.year.val == expected_year_val
+    assert chrono.cal.year.day == expected_year_day

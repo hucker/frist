@@ -7,7 +7,7 @@ This module verifies that `Biz.in_business_days` and
 """
 
 import datetime as dt
-from typing import Callable
+from collections.abc import Callable
 
 from frist import Biz, BizPolicy
 

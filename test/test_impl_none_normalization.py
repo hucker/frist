@@ -7,11 +7,12 @@ ensure the decorator normalization is applied consistently.
 
 import datetime as dt
 
-from frist._cal import Cal
 from frist._biz import Biz
+from frist._cal import Cal
 
 
-def test_cal_public_none_normalization():
+def test_cal_public_none_normalization() -> None:
+    """Cal.in_ one-arg form normalizes end=None to start+1; returns True."""
     ref = dt.datetime(2025, 3, 14, 12, 34, 56)
     cal = Cal(target_dt=ref, ref_dt=ref)
 
@@ -19,7 +20,8 @@ def test_cal_public_none_normalization():
     assert cal.day.in_(0) is True
 
 
-def test_biz_public_none_normalization():
+def test_biz_public_none_normalization() -> None:
+    """Biz.in_ one-arg form normalizes end=None to start+1 for biz/work day."""
     # use a weekday ref so business checks true
     ref = dt.datetime(2025, 3, 14, 12, 34, 56)
     biz = Biz(target_dt=ref, ref_dt=ref)

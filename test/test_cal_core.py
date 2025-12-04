@@ -3,9 +3,10 @@ Core calendar window tests for Cal and Chrono.
 """
 
 import datetime as dt
+
 import pytest
+
 from frist import Cal, Chrono
-from frist._util import normalize_weekday
 
 
 def test_simple_cal_day_windows() -> None:
@@ -211,3 +212,11 @@ def test_cal_single_vs_range() -> None:
 
 	# Assert (range)
 	assert cal.day.in_(-1, 0), "Target should be in range yesterday through today"
+
+
+def test_between_invalid_inclusive_raises():
+    """between should raise ValueError for invalid inclusive argument."""
+    ref_dt = dt.datetime(2025, 1, 13, 12, 0)
+    c = Cal(target_dt=ref_dt, ref_dt=ref_dt)
+    with pytest.raises(ValueError, match="Invalid inclusive value: 'bad'"):
+        c.day.between(0, 1, inclusive="bad")

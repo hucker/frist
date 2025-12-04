@@ -1,7 +1,11 @@
+"""
+Utility tests for helpers and normalization in frist.
+"""
 
 import pytest
 
 from frist._util import verify_start_end  # type: Callable[[Any], Callable[..., Any]]
+
 
 def test_verify_start_end_raises_valueerror():
     """
