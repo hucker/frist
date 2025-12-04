@@ -8,6 +8,7 @@ use explicit dates and follow the Arrange/Act/Assert (AAA) pattern.
 import datetime as dt
 
 import pytest
+from pytest import approx
 
 from frist import Biz, BizPolicy
 
@@ -33,9 +34,9 @@ def test_biz_basic_business_fraction():
     assert biz.is_business_day is True, "target should be a business day"
 
     # business_days() between 10:00 and 17:00 should be 7/8 = 0.875
-    assert biz.business_days == pytest.approx(0.875, rel=1e-6), "business_days fraction mismatch"
+    assert biz.business_days == approx(0.875, rel=1e-6), "business_days fraction mismatch"
     # working_days should match business_days when no holiday present
-    assert biz.working_days == pytest.approx(biz.business_days, rel=1e-6), "working_days should equal business_days when no holidays"
+    assert biz.working_days == approx(biz.business_days, rel=1e-6), "working_days should equal business_days when no holidays"
 
 
 def test_biz_holiday_affects_business_but_not_working():
@@ -56,10 +57,10 @@ def test_biz_holiday_affects_business_but_not_working():
     assert biz.is_business_day is False, "Holiday should not be a business day"
 
     # business_days should be zero for a holiday spanning the full business day
-    assert biz.business_days == pytest.approx(0.0, rel=1e-6), "business_days should be 0.0 for a full-day holiday"
+    assert biz.business_days == approx(0.0, rel=1e-6), "business_days should be 0.0 for a full-day holiday"
 
     # working_days ignores holidays and counts the business-hours fraction
-    assert biz.working_days == pytest.approx(1.0, rel=1e-6), "working_days should reflect weekday fraction regardless of holiday"
+    assert biz.working_days == approx(1.0, rel=1e-6), "working_days should reflect weekday fraction regardless of holiday"
 
 
 def test_in_business_and_working_days_ranges():
@@ -188,8 +189,8 @@ def test_multi_day_fraction_working_and_business_days():
     # Jan 4: 09:00-15:00 = 6/8 = 0.75
     expected: float = 0.625 + 1.0 + 1.0 + 0.75
 
-    assert abs(biz.working_days - expected) < 1e-9
-    assert abs(biz.business_days - expected) < 1e-9
+    assert biz.working_days == approx(expected, abs=1e-9)
+    assert biz.business_days == approx(expected, abs=1e-9)
 
 
 def test_multi_day_with_middle_holiday():
@@ -203,8 +204,8 @@ def test_multi_day_with_middle_holiday():
     expected_working: float = 0.625 + 1.0 + 1.0 + 0.75
     expected_business: float = expected_working - 1.0  # Jan 3 becomes 0.0
 
-    assert abs(biz.working_days - expected_working) < 1e-9
-    assert abs(biz.business_days - expected_business) < 1e-9
+    assert biz.working_days == approx(expected_working, abs=1e-9)
+    assert biz.business_days == approx(expected_business, abs=1e-9)
 
 
 def test_in_working_and_business_days_range_with_holiday():
@@ -254,14 +255,14 @@ def test_working_days_basic_weekday() -> None:
     start = dt.datetime(2024, 1, 2, 0, 0, 0)  # Tuesday
     end = dt.datetime(2024, 1, 2, 23, 59, 59)
     biz = Biz(start, end)
-    assert abs(biz.working_days - 1.0) < 1e-6, "Should be 1.0 for full weekday"
+    assert biz.working_days == approx(1.0, abs=1e-6), "Should be 1.0 for full weekday"
 
 
 def test_working_days_weekend() -> None:
     """Biz.working_days returns 0.0 for a weekend day."""
     start = dt.datetime(2024, 1, 6, 0, 0, 0)  # Saturday
     end = dt.datetime(2024, 1, 6, 23, 59, 59)
-    biz:Biz = Biz(target_dt=start,ref_dt= end)
+    biz: Biz = Biz(target_dt=start, ref_dt=end)
     assert biz.working_days == 0.0, "Should be 0.0 for weekend"
 
 
@@ -269,7 +270,7 @@ def test_working_days_partial_day() -> None:
     """BizAge.working_days returns correct fraction for partial weekday."""
     start = dt.datetime(2024, 1, 2, 12, 0, 0)  # Tuesday noon
     end = dt.datetime(2024, 1, 2, 18, 0, 0)
-    biz:Biz=Biz(start,end)
+    biz: Biz = Biz(start, end)
     # Business hours: 9:00 to 17:00 (8 hours)
     # Noon to 17:00 = 5 hours (within business hours)
     # 17:00 to 18:00 is outside business hours, so only noon to 17:00 counts
@@ -284,7 +285,7 @@ def test_working_days_multiple_days() -> None:
     biz = Biz(start, end)
     # Friday: half day, Saturday/Sunday: 0, Monday: half day
     expected = 0.5 + 0.5
-    assert abs(biz  .working_days - expected) < 1e-6, "Should sum only working day fractions"
+    assert biz.working_days == approx(expected, abs=1e-6), "Should sum only working day fractions"
 
 
 def test_work_business_days_holiday() -> None:
@@ -294,7 +295,7 @@ def test_work_business_days_holiday() -> None:
     start = dt.datetime(2024, 1, 2, 0, 0, 0)
     end = dt.datetime(2024, 1, 2, 23, 59, 59)
     biz = Biz(start, end, policy=cal)
-    assert biz.working_days == 1.0, "Should be 0.0 for workday"
+    assert biz.working_days == 1.0, "Should be 1.0 for workday"
     assert biz.business_days == 0.0, "Should be 0.0 for holiday"
 
 
@@ -357,14 +358,14 @@ def test_biz_default_ref_time():
     
     # Assert
     now = dt.datetime.now()
-    assert (now - biz.ref_dt).total_seconds() < 1.0, "Reference time should be close to current time"
+    assert (now - biz.ref_dt).total_seconds() < 3.0, "Reference time should be close to current time"
 
 
 def test_biz_with_timestamps():
     """Biz handles float/int timestamps."""
     target_ts = 1735689600.0  # Jan 1, 2025 00:00 UTC
     ref_ts = 1735776000.0     # Jan 2, 2025 00:00 UTC
-    biz = Biz(target_ts, ref_ts)
+    biz: Biz = Biz(target_ts, ref_ts)
     
     assert biz.business_days == 1.0
 

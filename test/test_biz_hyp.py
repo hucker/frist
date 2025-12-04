@@ -65,9 +65,19 @@ def test_biz_business_days_calculation(target_ref: tuple[dt.datetime, dt.datetim
     if target_dt == ref_dt:
         assert business_days == 0
 
-    # Business days should be less than or equal to calendar days
-    calendar_days = (ref_dt - target_dt).total_seconds() / (24 * 3600)
-    assert business_days <= abs(calendar_days)
+    # Upper bound: business days should not exceed elapsed seconds divided
+    # by policy working-day seconds (business hours per day). This can be
+    # greater than calendar-day fraction when business hours < 24.
+    workday_seconds = (
+        dt.datetime.combine(dt.date.today(), policy.end_of_business)
+        - dt.datetime.combine(dt.date.today(), policy.start_of_business)
+    ).total_seconds()
+    if workday_seconds <= 0:
+        workday_seconds = 24 * 3600  # fallback to full-day if misconfigured
+    elapsed_seconds = (ref_dt - target_dt).total_seconds()
+    upper_bound = abs(elapsed_seconds) / workday_seconds
+    # Allow tiny tolerance for microsecond-edge cases
+    assert business_days <= upper_bound + 2e-6
 
 
 @pytest.mark.hypothesis
@@ -174,20 +184,6 @@ def test_biz_in_fiscal_years_consistency(target_ref: tuple[dt.datetime, dt.datet
     for offset in range(-5, 6):
         expected = offset <= year_diff < offset + 1
         assert biz.in_fiscal_years(offset) == expected
-
-
-@pytest.mark.hypothesis
-@given(target_ref=datetime_pair_strategy, policy=biz_policy_strategy)
-def test_biz_unit_namespace_consistency(target_ref: tuple[dt.datetime, dt.datetime], policy: BizPolicy):
-    """Test that UnitNamespace call syntax works correctly."""
-    target_dt, ref_dt = target_ref
-    biz = Biz(target_dt, ref_dt, policy)
-
-    # Test call syntax (should delegate to in_)
-    assert biz.biz_day(-1, 1) == biz.biz_day.in_(-1, 1)
-    assert biz.work_day(0, 2) == biz.work_day.in_(0, 2)
-    assert biz.fis_qtr(-1, 0) == biz.fis_qtr.in_(-1, 0)
-    assert biz.fis_year(-1, 1) == biz.fis_year.in_(-1, 1)
 
 
 @pytest.mark.hypothesis

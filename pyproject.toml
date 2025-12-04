@@ -1,3 +1,11 @@
+#[tool.pytest.ini_options]
+# Enforce consistent branch coverage across all test runs
+# NOTE: This section already exists elsewhere in pyproject; to avoid
+# duplicate table declaration errors, keep a single definition.
+# If not present, uncomment the block below.
+#addopts = "--cov=src --cov-branch"
+
+# Coverage configuration is defined elsewhere; avoid duplicate tables.
 
 [project]
 name = "frist"
@@ -23,7 +31,7 @@ dependencies = [
     "pytest-cov",
     "pytest-xdist",
     "mypy",
-    "hypothesis",
+    "hypothesis==6.100.*",
     "types-python-dateutil"
 ]
 
@@ -31,12 +39,12 @@ dependencies = [
 # frist has no runtime dependencies
 [project.optional-dependencies]
 dev = [
-        "pytest",
-        "pytest-cov",
-        "pytest-xdist",
-        "mypy",
-        "hypothesis",
-        "types-python-dateutil"
+    "pytest",
+    "pytest-cov",
+    "pytest-xdist",
+    "mypy",
+    "hypothesis==6.100.*",
+    "types-python-dateutil"
 ]
 
 [project.scripts]

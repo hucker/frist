@@ -87,8 +87,6 @@ def test_unitnamespace_call_and_thru() -> None:
 
     # in_(0) should be True for ref==target
     assert day_ns.in_(0) is True
-    # __call__ maps to in_
-    assert day_ns(0) is True
     # between is an alias
     assert day_ns.between(0) is True
     # thru single-arg (inclusive) should also be True
@@ -101,13 +99,8 @@ def test_unitnamespace_call_and_thru() -> None:
     b = Biz(target_dt=REF, ref_dt=REF, policy=policy)
     w_ns = b.work_day
     assert w_ns.in_(0) is True
-    assert w_ns(0) is True
     assert w_ns.between(0) is True
     assert w_ns.thru(0) is True
-
-
-
-
 
 @pytest.mark.parametrize("inclusive, expected", [
     # For offset -2, -1, 0, 1, 2 with window (-1, 1)

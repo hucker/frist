@@ -1,0 +1,17 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "pytest biz+cal quick",
+			"type": "shell",
+			"command": "pytest -k \"biz or cal\" -q",
+			"group": "build"
+		},
+		{
+			"label": "pytest biz cal quick",
+			"type": "shell",
+			"command": "pytest -k biz -k cal -q",
+			"group": "build"
+		}
+	]
+}

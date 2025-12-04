@@ -21,6 +21,7 @@
         "pathlib",
         "pycon",
         "Pytest",
+        "pytestmark",
         "qtrs",
         "setuptools",
         "shutil",
