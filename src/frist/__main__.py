@@ -40,11 +40,11 @@ def main() -> None:
 
     date1 = sys.argv[1]
     date2 = sys.argv[2] if len(sys.argv) == 3 else None
-    chrono = Chrono(target_time=date1, reference_time=date2, policy=biz_policy)
+    chrono = Chrono(target_dt=date1, ref_dt=date2, policy=biz_policy)
 
     print("\n=== frist CLI demo ===")
-    print(f"{'target_time:':<18} {chrono.target_time}")
-    print(f"{'reference_time:':<18} {chrono.reference_time}\n")
+    print(f"{'target_time:':<18} {chrono.target_dt}")
+    print(f"{'reference_time:':<18} {chrono.ref_dt}\n")
 
     print("=== Age Properties ===")
     print(f"{'seconds:':<18} {chrono.age.seconds:.2f}")

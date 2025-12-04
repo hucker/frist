@@ -17,7 +17,7 @@ def test_fiscal_boundary_crossing() -> None:
 
     # Act
     target_time_june: dt.datetime = dt.datetime(2024, 6, 30)  # June 2024
-    chrono_june: Chrono = Chrono(target_time=target_time_june, policy=policy_july)
+    chrono_june: Chrono = Chrono(target_dt=target_time_june, policy=policy_july)
     # Assert
     expected_fiscal_year_june = 2023
     expected_fiscal_quarter_june = 4
@@ -34,7 +34,7 @@ def test_fiscal_boundary_crossing() -> None:
 
     # Act
     target_time_july: dt.datetime = dt.datetime(2024, 7, 1)  # July 2024
-    chrono_july: Chrono = Chrono(target_time=target_time_july, policy=policy_july)
+    chrono_july: Chrono = Chrono(target_dt=target_time_july, policy=policy_july)
     # Assert
     expected_fiscal_year_july = 2024
     expected_fiscal_quarter_july = 1

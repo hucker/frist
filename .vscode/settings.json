@@ -16,6 +16,8 @@
         "Chrono",
         "datetimes",
         "frist",
+        "fromtimestamp",
+        "iterdir",
         "pathlib",
         "pycon",
         "Pytest",
@@ -25,6 +27,7 @@
         "testpaths",
         "timedelta",
         "usecases",
+        "venv",
         "xdist"
     ],
     "python.sortImports.provider": "ruff",

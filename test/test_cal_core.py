@@ -39,7 +39,7 @@ def test_cal_with_chrono() -> None:
 	# Arrange
 	target_time: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
 	reference_time: dt.datetime = dt.datetime(2024, 1, 1, 18, 0, 0)  # Same day, 6 hours later
-	z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
+	z: Chrono = Chrono(target_dt=target_time, ref_dt=reference_time)
 
 	# Act
 	cal: Cal = z.cal
@@ -58,7 +58,7 @@ def test_cal_in_minutes() -> None:
 	# Arrange
 	target_time: dt.datetime = dt.datetime(2024, 1, 1, 12, 30, 0)
 	reference_time: dt.datetime = dt.datetime(2024, 1, 1, 12, 35, 0)  # 5 minutes later
-	z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
+	z: Chrono = Chrono(target_dt=target_time, ref_dt=reference_time)
 	cal: Cal = z.cal
 
 	# Act
@@ -78,7 +78,7 @@ def test_cal_in_hours() -> None:
 	# Arrange
 	target_time: dt.datetime = dt.datetime(2024, 1, 1, 10, 30, 0)
 	reference_time: dt.datetime = dt.datetime(2024, 1, 1, 12, 30, 0)  # 2 hours later
-	z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
+	z: Chrono = Chrono(target_dt=target_time, ref_dt=reference_time)
 	cal: Cal = z.cal
 
 	# Act
@@ -98,7 +98,7 @@ def test_cal_in_days() -> None:
 	# Arrange
 	target_time: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
 	reference_time: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)  # Next day
-	z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
+	z: Chrono = Chrono(target_dt=target_time, ref_dt=reference_time)
 	cal: Cal = z.cal
 
 	# Act
@@ -120,7 +120,7 @@ def test_cal_in_weeks() -> None:
 	# Monday Jan 1, 2024
 	target_time: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)  # Monday
 	reference_time: dt.datetime = dt.datetime(2024, 1, 8, 12, 0, 0)  # Next Monday
-	z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
+	z: Chrono = Chrono(target_dt=target_time, ref_dt=reference_time)
 	cal: Cal = z.cal
 
 	# Act
@@ -140,7 +140,7 @@ def test_cal_in_months() -> None:
 	# Arrange
 	target_time: dt.datetime = dt.datetime(2024, 1, 15, 12, 0, 0)  # January 15
 	reference_time: dt.datetime = dt.datetime(2024, 2, 15, 12, 0, 0)  # February 15
-	z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
+	z: Chrono = Chrono(target_dt=target_time, ref_dt=reference_time)
 	cal: Cal = z.cal
 
 	# Act
@@ -160,7 +160,7 @@ def test_cal_in_quarters() -> None:
 	# Arrange
 	target_time: dt.datetime = dt.datetime(2024, 1, 15, 12, 0, 0)  # Q1 2024
 	reference_time: dt.datetime = dt.datetime(2024, 4, 15, 12, 0, 0)  # Q2 2024
-	z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
+	z: Chrono = Chrono(target_dt=target_time, ref_dt=reference_time)
 	cal: Cal = z.cal
 
 	# Act
@@ -180,7 +180,7 @@ def test_cal_in_years() -> None:
 	# Arrange
 	target_time: dt.datetime = dt.datetime(2023, 6, 15, 12, 0, 0)  # 2023
 	reference_time: dt.datetime = dt.datetime(2024, 6, 15, 12, 0, 0)  # 2024
-	z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
+	z: Chrono = Chrono(target_dt=target_time, ref_dt=reference_time)
 	cal: Cal = z.cal
 
 	# Act
@@ -201,7 +201,7 @@ def test_cal_single_vs_range() -> None:
 	reference_time: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)
 
 	# Arrange
-	z: Chrono = Chrono(target_time=target_time, reference_time=reference_time)
+	z: Chrono = Chrono(target_dt=target_time, ref_dt=reference_time)
 	cal: Cal = z.cal
 
 	# Act

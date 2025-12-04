@@ -10,44 +10,157 @@ import pytest
 from pytest import approx
 
 from frist._biz_policy import BizPolicy
-from frist._frist import Age, Cal, Chrono
+from frist._frist import Age, Cal, Chrono, time_pair
 
+
+def test_time_pair_datetime() -> None:
+    """Test time_pair with datetime objects."""
+    # Arrange
+    target_tim: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
+    reference_tim: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)
+    # Act
+    actual_target_tim, actual_reference_tim = time_pair(start_time=target_tim, end_time=reference_tim)
+    # Assert
+    expected_target_tim = target_tim
+    expected_reference_tim = reference_tim
+    assert actual_target_tim == expected_target_tim, f"Expected target {expected_target_tim}, got {actual_target_tim}"
+    assert actual_reference_tim == expected_reference_tim, f"Expected reference {expected_reference_tim}, got {actual_reference_tim}"
+
+def test_time_pair_date() -> None:
+    """Test time_pair with date objects."""
+    # Arrange
+    target_dt: dt.date = dt.date(2024, 1, 1)
+    reference_dt: dt.date = dt.date(2024, 1, 2)
+    # Act
+    actual_target_tim, actual_reference_tim = time_pair(start_time=target_dt, end_time=reference_dt)
+    # Assert
+    expected_target_tim = dt.datetime(2024, 1, 1)
+    expected_reference_tim = dt.datetime(2024, 1, 2)
+    assert actual_target_tim == expected_target_tim, f"Expected target {expected_target_tim}, got {actual_target_tim}"
+    assert actual_reference_tim == expected_reference_tim, f"Expected reference {expected_reference_tim}, got {actual_reference_tim}"
+
+def test_time_pair_float_timestamp() -> None:
+    """Test time_pair with float timestamps."""
+    # Arrange
+    target_ts: float = dt.datetime(2024, 1, 1, 12, 0, 0).timestamp()
+    reference_ts: float = dt.datetime(2024, 1, 2, 12, 0, 0).timestamp()
+    # Act
+    actual_target_tim, actual_reference_tim = time_pair(start_time=target_ts, end_time=reference_ts)
+    # Assert
+    expected_target_tim = dt.datetime(2024, 1, 1, 12, 0, 0)
+    expected_reference_tim = dt.datetime(2024, 1, 2, 12, 0, 0)
+    assert actual_target_tim == expected_target_tim, f"Expected target {expected_target_tim}, got {actual_target_tim}"
+    assert actual_reference_tim == expected_reference_tim, f"Expected reference {expected_reference_tim}, got {actual_reference_tim}"
+
+def test_time_pair_int_timestamp() -> None:
+    """Test time_pair with int timestamps."""
+    # Arrange
+    target_ts: int = int(dt.datetime(2024, 1, 1, 12, 0, 0).timestamp())
+    reference_ts: int = int(dt.datetime(2024, 1, 2, 12, 0, 0).timestamp())
+    # Act
+    actual_target_tim, actual_reference_tim = time_pair(start_time=target_ts, end_time=reference_ts)
+    # Assert
+    expected_target_tim = dt.datetime(2024, 1, 1, 12, 0, 0)
+    expected_reference_tim = dt.datetime(2024, 1, 2, 12, 0, 0)
+    assert actual_target_tim == expected_target_tim, f"Expected target {expected_target_tim}, got {actual_target_tim}"
+    assert actual_reference_tim == expected_reference_tim, f"Expected reference {expected_reference_tim}, got {actual_reference_tim}"
+
+def test_time_pair_string_datetime() -> None:
+    """Test time_pair with string full datetime."""
+    # Arrange
+    start_str: str = "2024-01-01 12:00:00"
+    end_str: str = "2024-01-02 12:00:00"
+    # Act
+    actual_target_tim, actual_reference_tim = time_pair(start_time=start_str, end_time=end_str)
+    # Assert
+    expected_target_tim = dt.datetime(2024, 1, 1, 12, 0, 0)
+    expected_reference_tim = dt.datetime(2024, 1, 2, 12, 0, 0)
+    assert actual_target_tim == expected_target_tim, f"Expected target {expected_target_tim}, got {actual_target_tim}"
+    assert actual_reference_tim == expected_reference_tim, f"Expected reference {expected_reference_tim}, got {actual_reference_tim}"
+
+def test_time_pair_string_date() -> None:
+    """Test time_pair with string date only."""
+    # Arrange
+    start_str: str = "2024-01-01"
+    end_str: str = "2024-01-02"
+    # Act
+    actual_target_tim, actual_reference_tim = time_pair(start_time=start_str, end_time=end_str)
+    # Assert
+    expected_target_tim = dt.datetime(2024, 1, 1, 0, 0, 0)
+    expected_reference_tim = dt.datetime(2024, 1, 2, 0, 0, 0)
+    assert actual_target_tim == expected_target_tim, f"Expected target {expected_target_tim}, got {actual_target_tim}"
+    assert actual_reference_tim == expected_reference_tim, f"Expected reference {expected_reference_tim}, got {actual_reference_tim}"
+
+def test_time_pair_end_time_none_defaults_to_now() -> None:
+    """Test time_pair with end_time=None defaults to now."""
+    # Arrange
+    target_tim: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
+    # Act
+    actual_target_tim, actual_reference_tim = time_pair(start_time=target_tim, end_time=None)
+    # Assert
+    expected_target_tim = target_tim
+    assert actual_target_tim == expected_target_tim, f"Expected target {expected_target_tim}, got {actual_target_tim}"
+    assert isinstance(actual_reference_tim, dt.datetime), f"Expected reference to be datetime, got {type(actual_reference_tim)}"
+
+def test_time_pair_start_time_none_raises() -> None:
+    """Test time_pair with start_time=None raises TypeError."""
+    # Arrange
+    reference_tim: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)
+    # Act & Assert
+    with pytest.raises(TypeError):
+        time_pair(start_time=None, end_time=reference_tim)
+
+def test_time_pair_unsupported_type_raises() -> None:
+    """Test time_pair with unsupported type raises TypeError."""
+    # Arrange
+    reference_tim: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)
+    # Act & Assert
+    with pytest.raises(TypeError):
+        time_pair(start_time=[2024, 1, 1], end_time=reference_tim)
+
+def test_time_pair_unsupported_string_format_raises() -> None:
+    """Test time_pair with unsupported string format raises TypeError."""
+    # Arrange
+    reference_tim: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)
+    # Act & Assert
+    with pytest.raises(TypeError):
+        time_pair(start_time="not-a-date", end_time=reference_tim)
 
 def test_chrono_creation():
     """Test basic Chrono object creation."""
-    target_dt: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
-    ref_dt: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)
+    target_tim: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
+    reference_tim: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)
 
     # Test with explicit reference time
-    z: Chrono = Chrono(target_dt=target_dt, ref_dt=ref_dt)
-    assert z.target_dt == target_dt
-    assert z.ref_dt == ref_dt
+    z: Chrono = Chrono(target_dt=target_tim, ref_dt=reference_tim)
+    assert z.target_dt == target_tim
+    assert z.ref_dt == reference_tim
 
     # Test with default reference time (now)
-    chrono_now: Chrono = Chrono(target_dt=target_dt)
+    chrono_now: Chrono = Chrono(target_dt=target_tim)
 
-    assert chrono_now.target_dt == target_dt
+    assert chrono_now.target_dt == target_tim
     assert chrono_now.ref_dt is not None
 
 
 def test_chrono_properties():
     """Test Chrono object properties."""
-    target_dt: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
-    ref_dt: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)
+    target_tim: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
+    reference_tim: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)
 
-    z: Chrono = Chrono(target_dt=target_dt, ref_dt=ref_dt)
+    z: Chrono = Chrono(target_dt=target_tim, ref_dt=reference_tim)
 
     # Test basic properties
-    assert z.timestamp == target_dt.timestamp()
+    assert z.timestamp == target_tim.timestamp()
 
 
 
 def test_chrono_age_property():
     """Test that Chrono age property works correctly."""
-    target_dt: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
-    ref_dt: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)
+    target_tim: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
+    reference_tim: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)
 
-    z: Chrono = Chrono(target_dt=target_dt, ref_dt=ref_dt)
+    z: Chrono = Chrono(target_dt=target_tim, ref_dt=reference_tim)
     age: Age = z.age
 
     # Test that age calculations work
@@ -55,15 +168,15 @@ def test_chrono_age_property():
     assert age.minutes == 1440.0
     assert age.hours == 24.0
     assert age.days == 1.0
-    assert age.weeks == approx(1.0 / 7.0) # type: ignore
+    assert age.weeks == pytest.approx(1.0 / 7.0) # type: ignore
 
 
 def test_chrono_calendar_property():
     """Test that Chrono calendar property works correctly."""
-    target_dt: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
-    ref_dt: dt.datetime = dt.datetime(2024, 1, 1, 18, 0, 0)  # Same day, 6 hours later
+    target_tim: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
+    reference_tim: dt.datetime = dt.datetime(2024, 1, 1, 18, 0, 0)  # Same day, 6 hours later
 
-    z: Chrono = Chrono(target_dt=target_dt, ref_dt=ref_dt)
+    z: Chrono = Chrono(target_dt=target_tim, ref_dt=reference_tim)
     cal: Cal = z.cal
 
     # Test calendar window functionality
@@ -74,27 +187,27 @@ def test_chrono_calendar_property():
 
 def test_chrono_with_reference_time():
     """Test creating new Chrono with different reference time."""
-    target_dt: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
-    original_ref_dt: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)
-    new_ref_dt: dt.datetime = dt.datetime(2024, 1, 3, 12, 0, 0)
+    target_tim: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
+    original_ref_tim: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)
+    new_ref_tim: dt.datetime = dt.datetime(2024, 1, 3, 12, 0, 0)
 
-    chrono1: Chrono = Chrono(target_dt=target_dt, ref_dt=original_ref_dt)
-    chrono2: Chrono = chrono1.with_reference_time(new_ref_dt)
+    chrono1: Chrono = Chrono(target_dt=target_tim, ref_dt=original_ref_tim)
+    chrono2: Chrono = chrono1.with_reference_time(new_ref_tim)
 
     # Original should be unchanged
-    assert chrono1.ref_dt == original_ref_dt
+    assert chrono1.ref_dt == original_ref_tim
 
     # New one should have different reference
-    assert chrono2.ref_dt == new_ref_dt
-    assert chrono2.target_dt == target_dt  # Same target
+    assert chrono2.ref_dt == new_ref_tim
+    assert chrono2.target_dt == target_tim  # Same target
 
 
 def test_chrono_string_representations():
     """Test string representations of Chrono objects."""
-    target_dt: dt.datetime = dt.datetime(2024, 1, 1, 12, 30, 45)
-    ref_dt: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)
+    target_tim: dt.datetime = dt.datetime(2024, 1, 1, 12, 30, 45)
+    reference_tim: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)
 
-    z: Chrono = Chrono(target_dt=target_dt, ref_dt=ref_dt)
+    z: Chrono = Chrono(target_dt=target_tim, ref_dt=reference_tim)
 
     # Test __repr__
     repr_str: str = repr(z)
@@ -143,14 +256,14 @@ def test_chrono_parse_errors():
 def test_chrono_fiscal_properties():
     """Test fiscal year and quarter properties."""
     # Default fiscal year (starts in January)
-    target_dt: dt.datetime = dt.datetime(2024, 2, 15)
-    z: Chrono = Chrono(target_dt=target_dt)
+    target_tim: dt.datetime = dt.datetime(2024, 2, 15)
+    z: Chrono = Chrono(target_dt=target_tim)
     assert z.biz.fiscal_year == 2024
     assert z.biz.fiscal_quarter == 1  # Jan-Mar
 
     # Fiscal year starting in April using BizPolicy
     policy_april: BizPolicy = BizPolicy(fiscal_year_start_month=4)
-    chrono_april: Chrono = Chrono(target_dt=target_dt, policy=policy_april)
+    chrono_april: Chrono = Chrono(target_dt=target_tim, policy=policy_april)
     assert chrono_april.biz.fiscal_year == 2023  # Feb is before April start
     assert chrono_april.biz.fiscal_quarter == 4  # Jan-Mar is Q4 for April start
 
@@ -164,17 +277,17 @@ def test_chrono_holiday_property():
     """Test holiday detection property."""
     policy: BizPolicy = BizPolicy(holidays={"2024-01-01", "2024-12-25"})
 
-    target_dt: dt.datetime = dt.datetime(2024, 1, 1)
-    chrono: Chrono = Chrono(target_dt=target_dt, policy=policy)
+    target_tim: dt.datetime = dt.datetime(2024, 1, 1)
+    chrono: Chrono = Chrono(target_dt=target_tim, policy=policy)
     assert chrono.biz.holiday is True
 
-    target_dt_not_holiday: dt.datetime = dt.datetime(2024, 7, 4)
-    chrono_not: Chrono = Chrono(target_dt=target_dt_not_holiday, policy=policy)
+    target_tim_not_holiday: dt.datetime = dt.datetime(2024, 7, 4)
+    chrono_not: Chrono = Chrono(target_dt=target_tim_not_holiday, policy=policy)
     assert chrono_not.biz.holiday is False
 
     # Empty holidays
     empty_policy: BizPolicy = BizPolicy(holidays=set())
-    chrono_empty: Chrono = Chrono(target_dt=target_dt, policy=empty_policy)
+    chrono_empty: Chrono = Chrono(target_dt=target_tim, policy=empty_policy)
     assert chrono_empty.biz.holiday is False
 
 
@@ -184,7 +297,7 @@ def test_chrono_holiday_property():
 )
 def test_age_equivalent_inputs_produce_same_results(input_type: str) -> None:
     """
-    Test that equivalent TimeLike representations of the same instant produce same Age calculations.
+    Test that equivalent TimeLike representations of the same instant produce identical Age calculations.
     
     This tests that datetime, timestamp (float/int), and string representations of the same time
     all produce identical Age objects and calculations.
@@ -349,15 +462,15 @@ def test_biz_business_day_arithmetic():
     
     # Target: Monday, Jan 1 (2 business days before ref)
     chrono_past = Chrono(target_dt=dt.datetime(2024, 1, 1), ref_dt=ref_time, policy=policy)
-    assert chrono_past.biz.biz_day.in_(-2)  # Exactly 2 business days before
+    assert chrono_past.biz.in_business_days(-2)  # Exactly 2 business days before
     
     # Target: Friday, Jan 5 (2 business days after ref)
     chrono_future = Chrono(target_dt=dt.datetime(2024, 1, 5), ref_dt=ref_time, policy=policy)
-    assert chrono_future.biz.biz_day.in_(2)  # Exactly 2 business days after
+    assert chrono_future.biz.in_business_days(2)  # Exactly 2 business days after
     
     # Target: Saturday, Jan 6 (not a business day)
     chrono_weekend = Chrono(target_dt=dt.datetime(2024, 1, 6), ref_dt=ref_time, policy=policy)
-    assert chrono_weekend.biz.biz_day.in_(-10, 10) is False  # Not a business day
+    assert chrono_weekend.biz.in_business_days(-10, 10) is False  # Not a business day
     
     # Working days (ignore holidays)
     assert chrono_past.biz.work_day.in_(-2)  # Monday is a workday
@@ -396,15 +509,15 @@ def test_chrono_property_integration():
     chrono = Chrono(target_dt=target, ref_dt=ref)
     
     # Age should show about 4 days
-    assert chrono.age.days == pytest.approx(4.0)
+    assert chrono.age.days == approx(4.0)
     
     # Cal should show within same week
     assert chrono.cal.week.in_(0)  # Same week
     assert chrono.cal.day.in_(-4)  # Exactly 4 days ago
     
     # Biz should show business days (assuming standard policy)
-    assert chrono.biz.business_days == pytest.approx(4.0)  # Mon-Thu-Fri
-    assert chrono.biz.working_days == pytest.approx(4.0)  # Same as business days here
+    assert chrono.biz.business_days == approx(4.0)  # Mon-Thu-Fri
+    assert chrono.biz.working_days == approx(4.0)  # Same as business days here
     
     # Fiscal properties
     assert chrono.biz.fiscal_year == 2024  # January 2024
@@ -491,72 +604,3 @@ def test_chrono_business_day_shortcuts():
     assert chrono_weekend.biz.is_business_this_day is False
     assert chrono_weekend.biz.is_business_last_day is False
     assert chrono_weekend.biz.is_business_next_day is False
-
-
-
-@pytest.mark.parametrize(
-    "dt_obj, expected_minute, expected_hour, expected_day_val, expected_day_name, expected_month_val, expected_month_name, expected_month_day, expected_qtr_val, expected_qtr_name, expected_year_val, expected_year_day",
-    [
-        (
-            dt.datetime(2025, 1, 5, 14, 30),  # Jan 5, 2025, Sunday
-            30,  # minute
-            14,  # hour
-            7, "Sunday",  # day of week
-            1, "January", 5,  # month, name, day of month
-            1, "Q1", 2025, 5  # quarter, name, year, day of year
-        ),
-        (
-            dt.datetime(2024, 7, 4, 0, 0),  # July 4, 2024, Thursday
-            0,
-            0,
-            4, "Thursday",
-            7, "July", 4,
-            3, "Q3", 2024, 186
-        ),
-        (
-            dt.datetime(2023, 12, 31, 23, 59),  # Dec 31, 2023, Sunday
-            59,
-            23,
-            7, "Sunday",
-            12, "December", 31,
-            4, "Q4", 2023, 365
-        ),
-    ]
-)
-def test_val_and_name_properties(
-    dt_obj: dt.datetime,
-    expected_minute: int,
-    expected_hour: int,
-    expected_day_val: int,
-    expected_day_name: str,
-    expected_month_val: int,
-    expected_month_name: str,
-    expected_month_day: int,
-    expected_qtr_val: int,
-    expected_qtr_name: str,
-    expected_year_val: int,
-    expected_year_day: int,
-):
-    """
-    Test val and name properties for all time scales.
-
-    AAA Pattern:
-    - Arrange: Create Chrono object for test datetime.
-    - Act: Query val and name properties.
-    - Assert: Check results against expected values.
-    """
-    # Arrange
-    chrono = Chrono(target_dt=dt_obj)
-
-    # Act & Assert
-    assert chrono.cal.minute.val == expected_minute
-    assert chrono.cal.hour.val == expected_hour
-    assert chrono.cal.day.val == expected_day_val
-    assert chrono.cal.day.name == expected_day_name
-    assert chrono.cal.month.val == expected_month_val
-    assert chrono.cal.month.name == expected_month_name
-    assert chrono.cal.month.day == expected_month_day
-    assert chrono.cal.qtr.val == expected_qtr_val
-    assert chrono.cal.qtr.name == expected_qtr_name
-    assert chrono.cal.year.val == expected_year_val
-    assert chrono.cal.year.day == expected_year_day

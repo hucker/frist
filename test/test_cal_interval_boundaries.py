@@ -21,7 +21,7 @@ def cal_factory() -> Cal:
     """
     ref_dt: dt.datetime = dt.datetime(2025, 1, 1, 0, 0, 0)
     value: dt.datetime = dt.datetime(2025, 1, 1, 0, 0, 0)
-    z: Chrono = Chrono(target_time=value, reference_time=ref_dt)
+    z: Chrono = Chrono(target_dt=value, ref_dt=ref_dt)
     return z.cal
 
 
@@ -39,7 +39,7 @@ def test_minute_interval_half_open():
     # Arrange
     ref_dt: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
     value: dt.datetime = dt.datetime(2024, 1, 1, 12, 1, 0)
-    cal: Cal = Chrono(target_time=value, reference_time=ref_dt).cal
+    cal: Cal = Chrono(target_dt=value, ref_dt=ref_dt).cal
     # Act
     in_current = cal.minute.in_(0)
     in_next = cal.minute.in_(1)
@@ -57,7 +57,7 @@ def test_hour_interval_half_open():
     value: dt.datetime = ref_dt.replace(
         minute=0, second=0, microsecond=0
     ) + dt.timedelta(hours=1)
-    z: Chrono = Chrono(target_time=value, reference_time=ref_dt)
+    z: Chrono = Chrono(target_dt=value, ref_dt=ref_dt)
     cal: Cal = z.cal
     # Act
     in_current = cal.hour.in_(0)
@@ -75,7 +75,7 @@ def test_quarter_interval_half_open():
         month=4, day=1, hour=0, minute=0, second=0, microsecond=0
     )  # Q2 start
 
-    z: Chrono = Chrono(target_time=value, reference_time=ref_dt)
+    z: Chrono = Chrono(target_dt=value, ref_dt=ref_dt)
     cal: Cal = z.cal
     # Act
     in_current = cal.qtr.in_(0)
@@ -112,7 +112,7 @@ def test_year_interval_half_open():
     # Arrange
     ref_dt: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
     value: dt.datetime = dt.datetime(2025, 1, 1, 0, 0, 0)  # First moment of next year
-    z: Chrono = Chrono(target_time=value, reference_time=ref_dt)
+    z: Chrono = Chrono(target_dt=value, ref_dt=ref_dt)
     cal: Cal = z.cal
     # Act
     in_current: bool = cal.year.in_(0)

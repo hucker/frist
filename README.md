@@ -86,7 +86,7 @@ def move_old_files_to_backup(src: pathlib.Path, backup: pathlib.Path, days: int 
                 shutil.move(str(file), str(backup / file.name))
 ```
 
-Here is a similar case of copy all files that were created last month to the backup folder.  This isn't an age question it is a window question.  Using `frist` the implimentation of dates at the operating system (as timestamps, or seconds) is hidden, you just give it a time like value and you use the `month` property of the `Cal` object to make a window.  Again it is one line of code to create the object and one method call to check the window.
+Here is a similar case of copy all files that were created last month to the backup folder.  This isn't an age question it is a window question.  Using `frist` the implementation of dates at the operating system (as timestamps, or seconds) is hidden, you just give it a time like value and you use the `month` property of the `Cal` object to make a window.  Again it is one line of code to create the object and one method call to check the window.
 
 ```python
 import pathlib
@@ -175,7 +175,6 @@ Example:
 > If the start is less than the end
 > `Age(start, end).months_precise == -Age(end, start).months_precise`
 
-
 ---
 
 ## Cal
@@ -189,6 +188,7 @@ The `Cal` object provides calendar-aligned window queries (minute/hour/day/week/
 Practical note on half-open intervals:
 
 It is normal English to define time spans as half-open intervals. For example, when you say "from 1:00 PM to 2:00 PM" you mean a meeting that starts at 1:00 PM and ends at 2:00 PM (one hour long). You do not mean "any time whose hour is 1 or 2" or that the instant at 2:00 PM is included in the 1:00–2:00 meeting. In half-open semantics the start is inclusive and the end is exclusive — i.e. the interval contains times t where 1:00 PM <= t < 2:00 PM. This convention avoids overlapping windows (e.g., an event that ends exactly at 2:00 PM belongs to the next interval, not the previous one) and makes unit-based queries like `in_hours(1)` intuitive.
+
 
 Example:
 
@@ -225,6 +225,51 @@ True
 >>> Cal(dt.datetime(2025,11,17), ref).day.in_(-3, 0)
 True
 ```
+
+### Generic Between
+
+The `between(start, end, inclusive)` helper lets you express range-membership with explicit boundary style while still using Frist's canonical half-open logic under the hood.
+
+- Purpose: configurable boundary inclusivity without re-implementing range math.
+- Base rule: core `in_(S, E)` checks use half-open intervals `S <= value < E`.
+- Inputs: `start`/`end` are integer offsets in the unit of the namespace (minutes, days, months, etc.) relative to `ref_dt`.
+- Single-arg: if `end` is `None`, a one-unit window is used after inclusivity adjustment.
+
+Mapping of `inclusive` to `in_(...)`
+
+| Inclusive | Mathematical intent              | Adjusted call                      |
+| --------- | -------------------------------- | ---------------------------------- |
+| `"both"` | start ≤ value ≤ end             | `in_(start, (end or start) + 1)`   |
+| `"left"` | start ≤ value < end             | `in_(start, (end or start) + 0)`   |
+| `"right"`| start < value ≤ end             | `in_(start + 1, (end or start) + 1)` |
+| `"neither"` | start < value < end           | `in_(start + 1, (end or start) + 0)` |
+
+Examples
+
+```python
+from frist import Cal
+import datetime as dt
+
+ref = dt.datetime(2025, 11, 20)
+
+# Yesterday..tomorrow inclusive
+Cal(dt.datetime(2025, 11, 19), ref).day.between(-1, 1, "both")   # -> in_(-1, 2)
+
+# Last two full months (end exclusive)
+Cal(dt.datetime(2025, 9, 15), ref).month.between(-2, 0, "left")  # -> in_(-2, 0)
+
+# Strictly after start week, end inclusive
+Cal(dt.datetime(2025, 11, 24), ref).week.between(0, 1, "right")  # -> in_(1, 2)
+
+# One-hour window with explicit style (single-arg)
+Cal(dt.datetime(2025, 11, 20, 13), ref).hour.between(-1, None, "both")  # -> in_(-1, 0)
+```
+
+Notes
+
+- Invalid `inclusive` values raise `ValueError`.
+- `between` is a thin adapter around `in_`, keeping the API consistent and predictable while offering familiar boundary semantics inspired by `pandas.Series.between`.
+- Single‑unit windows: if `end` is `None`, `between(start, None, ...)` always maps to `in_(start, start + 1)` for all modes.
 
 ---
 
@@ -373,7 +418,6 @@ The Cal object provides a family of `in_*` methods (e.g., `in_days`, `in_months`
 | `cal.year.day_of_year()`                           | Day of year for target      | `int` |
 | `cal.year.is_day_of_year(n)`                       | Is target nth day of year   | `bool` |
 
-
 ---
 
 ### Month Namespace: nth_weekday and is_nth_weekday
@@ -516,7 +560,7 @@ In some situations you will need to have all three of these classes together bec
 >>> target = dt.datetime(2025, 4, 25, 15, 0)
 >>> ref = dt.datetime(2025, 4, 30, 12, 0)
 >>> policy = BizPolicy(workdays={0,1,2,3,4}, holidays={"2025-04-28"})
->>> z = Chrono(target_time=target, reference_time=ref, policy=policy)
+>>> z = Chrono(target_dt=target, ref_dt=ref, policy=policy)
 
 # Age (elapsed-time properties)
 >>> z.age.days                # elapsed days (float)
@@ -541,7 +585,7 @@ True
 False
 ```
 
-`Chrono(target_time: TimeLike, reference_time: TimeLike = None, biz_policy:BizPolicy|None, formats: list[str] | None = None)`
+`Chrono(target_td: TimeLike, ref_dt: TimeLike = None, biz_policy:BizPolicy|None, formats: list[str] | None = None)`
 
 | Property | Description                                           |
 | -------- | ----------------------------------------------------- |
@@ -551,7 +595,7 @@ False
 
 ### Status
 
-[![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13%20|%203.14-blue?logo=python&logoColor=white)](https://www.python.org/) [![Coverage](https://img.shields.io/badge/coverage-100%25-green)](https://github.com/hucker/frist/actions) [![Pytest](https://img.shields.io/badge/pytest-100%25%20pass%20%7C%20530%20tests-green?logo=pytest&logoColor=white)](https://docs.pytest.org/en/stable/) [![Ruff](https://img.shields.io/badge/ruff-100%25-green?logo=ruff&logoColor=white)](https://github.com/charliermarsh/ruff) [![Tox](https://img.shields.io/static/v1?label=tox&message=3.10-3.14&color=green&logo=tox&logoColor=white)](https://tox.readthedocs.io/) [![Mypy](https://img.shields.io/static/v1?label=mypy&message=0%20issues&color=green&logo=mypy&logoColor=white)](https://mypy-lang.org/)
+[![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13%20|%203.14-blue?logo=python&logoColor=white)](https://www.python.org/) [![Coverage](https://img.shields.io/badge/coverage-100%25-green)](https://github.com/hucker/frist/actions) [![Pytest](https://img.shields.io/badge/pytest-100%25%20pass%20%7C%20582%20tests-green?logo=pytest&logoColor=white)](https://docs.pytest.org/en/stable/) [![Ruff](https://img.shields.io/badge/ruff-100%25-green?logo=ruff&logoColor=white)](https://github.com/charliermarsh/ruff) [![Tox](https://img.shields.io/static/v1?label=tox&message=3.10-3.14&color=green&logo=tox&logoColor=white)](https://tox.readthedocs.io/) [![Mypy](https://img.shields.io/static/v1?label=mypy&message=0%20issues&color=green&logo=mypy&logoColor=white)](https://mypy-lang.org/)
 
 ### Pytest (100% pass/100% coverage)
 
@@ -570,7 +614,7 @@ src\frist\_types.py                           31      0     16      0   100%
 src\frist\_util.py                            28      0      6      0   100%
 ```
 
-> Note: running `pytest -m smoke` on the current branch produced ~63% coverage and completed in ~0.46s
+> Note: running `pytest -m smoke` on the current branch produced ~62% coverage and completed in ~0.46s
 > (test run: `512 passed`).
 
 ### Tox
@@ -596,7 +640,7 @@ Success: no issues found in 10 source files
 
 This project was developed iteratively using agentic AI thus most of the code was generated from prompts rather that writing code.  It was tricky getting tests implemented correctly. Generally I write a test case and then ask the AI to parameterize it and then I review.  I discovered that I had some code that had a bug in one case and the AI changed the test inputs (added 1) to make the test pass. I find with agentic AI that I spend more time on my testing than on coding, even to the point that I will happily delete a test file and start over if I don't like it. With manually written code I would be far less inclined to do that.
 
-I also noted that certain types of refactoring humans are much better at.  I change the naming convention of some methods and asked the AI to fix it, after messing around with constant tab issues and bad assumptions I rolled it back and did a search and replace and change the names manually in a fraction of the time.
+I also noted that certain types of refactoring humans are much better at.  I change the naming convention of some methods and asked the AI to fix it, after messing around with constant tab issues, bad patches and generally bad assumptions I rolled it back and did a search and replace and change the names manually in a fraction of the time.
 
 ## Development and Testing Notes
 

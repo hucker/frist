@@ -65,7 +65,7 @@ def test_cal_edge_cases() -> None:
     # Arrange
     target = dt.datetime(2024, 1, 15, 12, 30, 0)
     reference = dt.datetime(2024, 1, 15, 12, 30, 0)
-    chrono = Chrono(target_time=target, reference_time=reference)
+    chrono = Chrono(target_dt=target, ref_dt=reference)
     cal = chrono.cal
     # Assert
     assert cal.minute.in_(0), "Target should be in current minute window"
@@ -84,7 +84,7 @@ def test_cal_month_edge_cases() -> None:
     # Arrange
     target = dt.datetime(2023, 12, 15, 12, 0, 0)
     reference = dt.datetime(2024, 1, 15, 12, 0, 0)
-    chrono = Chrono(target_time=target, reference_time=reference)
+    chrono = Chrono(target_dt=target, ref_dt=reference)
     cal = chrono.cal
     # Assert
     assert cal.month.in_(-1, 0), "Target should be last month"
@@ -92,7 +92,7 @@ def test_cal_month_edge_cases() -> None:
     # Arrange for year transition
     target = dt.datetime(2022, 6, 15, 12, 0, 0)
     reference = dt.datetime(2024, 1, 15, 12, 0, 0)
-    chrono = Chrono(target_time=target, reference_time=reference)
+    chrono = Chrono(target_dt=target, ref_dt=reference)
     cal = chrono.cal
     # Assert
     assert cal.month.in_(-20, -18), "Target should be in range -20 to -18 months"
@@ -106,7 +106,7 @@ def test_cal_quarter_edge_cases() -> None:
     # Arrange
     target = dt.datetime(2023, 11, 15, 12, 0, 0)
     reference = dt.datetime(2024, 2, 15, 12, 0, 0)
-    chrono = Chrono(target_time=target, reference_time=reference)
+    chrono = Chrono(target_dt=target, ref_dt=reference)
     cal = chrono.cal
     # Assert
     assert cal.qtr.in_(-1), "Target should be previous quarter"
@@ -114,7 +114,7 @@ def test_cal_quarter_edge_cases() -> None:
     # Arrange for next test
     target = dt.datetime(2024, 3, 31, 12, 0, 0)
     reference = dt.datetime(2024, 4, 1, 12, 0, 0)
-    chrono = Chrono(target_time=target, reference_time=reference)
+    chrono = Chrono(target_dt=target, ref_dt=reference)
     cal = chrono.cal
     # Assert
     assert cal.qtr.in_(-1), "Target should be previous quarter"
@@ -128,7 +128,7 @@ def test_cal_year_edge_cases() -> None:
     # Arrange
     target = dt.datetime(2023, 12, 31, 23, 59, 59)
     reference = dt.datetime(2024, 1, 1, 0, 0, 1)
-    chrono = Chrono(target_time=target, reference_time=reference)
+    chrono = Chrono(target_dt=target, ref_dt=reference)
     cal = chrono.cal
     # Assert
     assert cal.year.in_(-1), "Target should be last year"
@@ -144,7 +144,7 @@ def test_cal_minutes_edge_cases() -> None:
     # Arrange
     target = dt.datetime(2024, 1, 1, 12, 29, 59)
     reference = dt.datetime(2024, 1, 1, 12, 30, 0)
-    chrono = Chrono(target_time=target, reference_time=reference)
+    chrono = Chrono(target_dt=target, ref_dt=reference)
     cal = chrono.cal
     # Assert
     assert cal.minute.in_(-1), "Target should be previous minute"
@@ -159,7 +159,7 @@ def test_cal_hours_edge_cases() -> None:
     # Arrange
     target = dt.datetime(2024, 1, 1, 11, 59, 59)
     reference = dt.datetime(2024, 1, 1, 12, 0, 0)
-    chrono = Chrono(target_time=target, reference_time=reference)
+    chrono = Chrono(target_dt=target, ref_dt=reference)
     cal = chrono.cal
     # Assert
     assert cal.hour.in_(-1), "Target should be previous hour"
@@ -174,7 +174,7 @@ def test_cal_future_windows() -> None:
     # Arrange
     target = dt.datetime(2024, 1, 2, 12, 0, 0)
     reference = dt.datetime(2024, 1, 1, 12, 0, 0)
-    chrono = Chrono(target_time=target, reference_time=reference)
+    chrono = Chrono(target_dt=target, ref_dt=reference)
     cal = chrono.cal
     # Assert
     assert cal.day.in_(1, 2), "Target should be tomorrow"
@@ -184,19 +184,19 @@ def test_cal_future_windows() -> None:
     # Arrange for next month
     target = dt.datetime(2024, 2, 15, 12, 0, 0)
     reference = dt.datetime(2024, 1, 15, 12, 0, 0)
-    chrono = Chrono(target_time=target, reference_time=reference)
+    chrono = Chrono(target_dt=target, ref_dt=reference)
     cal = chrono.cal
     assert cal.month.in_(1, 2), "Target should be next month"
     # Arrange for next quarter
     target = dt.datetime(2024, 7, 15, 12, 0, 0)
     reference = dt.datetime(2024, 1, 15, 12, 0, 0)
-    chrono = Chrono(target_time=target, reference_time=reference)
+    chrono = Chrono(target_dt=target, ref_dt=reference)
     cal = chrono.cal
     assert cal.qtr.in_(2), "Target should be 2 quarters from now"
     # Arrange for next year
     target = dt.datetime(2026, 1, 15, 12, 0, 0)
     reference = dt.datetime(2024, 1, 15, 12, 0, 0)
-    chrono = Chrono(target_time=target, reference_time=reference)
+    chrono = Chrono(target_dt=target, ref_dt=reference)
     cal = chrono.cal
     assert cal.year.in_(2), "Target should be 2 years from now"
 

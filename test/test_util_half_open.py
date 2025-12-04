@@ -58,7 +58,7 @@ def _cal_from(target: dt.datetime, ref: dt.datetime):
     """Helper to create a Cal via Chrono for tests."""
     from frist import Chrono
 
-    return Chrono(target_time=target, reference_time=ref).cal
+    return Chrono(target_dt=target, ref_dt=ref).cal
 
 
 @pytest.mark.parametrize("ref", [dt.datetime(2025, 1, 1, 12, 0, 0)])

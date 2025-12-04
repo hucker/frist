@@ -40,8 +40,8 @@ class Chrono:
     def __init__(
         self,
         *,
-        target_time: TimeLike,
-        reference_time: TimeLike | None = None,
+        target_dt: TimeLike,
+        ref_dt: TimeLike | None = None,
         policy: BizPolicy | None = None,
         formats: list[str] | None = None,
     ):
@@ -49,29 +49,29 @@ class Chrono:
         Initialize Chrono with target and reference times and an optional BizPolicy.
 
         Args:
-            target_time (TimeLike): The datetime to analyze (e.g., file timestamp, event time).
-            reference_time (TimeLike, optional): The reference datetime for calculations (defaults to now).
+            target_dt (TimeLike): The datetime to analyze (e.g., file timestamp, event time).
+            ref_dt (TimeLike, optional): The reference datetime for calculations (defaults to now).
             policy (BizPolicy, optional): BizPolicy object for business rules (defaults to fiscal year Jan, 9-5, no holidays).
             formats (list[str], optional): Custom datetime formats for string parsing.
 
         Raises:
-            ValueError: If target_time is not a datetime instance.
+            ValueError: If target_dt is not a datetime instance.
 
         Examples:
-            >>> Chrono(target_time=datetime(2024, 5, 1))
-            >>> Chrono(target_time=datetime(2024, 5, 1), reference_time=datetime(2025, 5, 1))
-            >>> Chrono(target_time=datetime(2024, 5, 1), policy=BizPolicy(fiscal_year_start_month=4))
-            >>> Chrono(target_time="2024-05-01", formats=["%Y-%m-%d"])
+            >>> Chrono(target_dt=datetime(2024, 5, 1))
+            >>> Chrono(target_dt=datetime(2024, 5, 1), ref_dt=datetime(2025, 5, 1))
+            >>> Chrono(target_dt=datetime(2024, 5, 1), policy=BizPolicy(fiscal_year_start_month=4))
+            >>> Chrono(target_dt="2024-05-01", formats=["%Y-%m-%d"])
         """
         
         # Normalize target and reference so we get clean  datetime objects
-        target,ref = time_pair(start_time=target_time, 
-                                                   end_time=reference_time, 
+        target,ref = time_pair(start_time=target_dt, 
+                                                   end_time=ref_dt, 
                                                    formats__=formats) 
 
         # This keeps the typechecker happy
-        self.target_time:dt.datetime = target
-        self.reference_time:dt.datetime = ref
+        self.target_dt:dt.datetime = target
+        self.ref_dt:dt.datetime = ref
 
         # Forward the policy to both objects
         self.policy: BizPolicy = policy or BizPolicy()
@@ -81,12 +81,12 @@ class Chrono:
         # be up to you to ensure the same reference time.  This could make VERY hard to find bugs 
         # if the reference time for the two objects occurred across a hour/day/month/quarter/year 
         # boundary.
-        self._age: Age = Age(self.target_time, self.reference_time)
-        self._cal: Cal = Cal(self.target_time, self.reference_time)
+        self._age: Age = Age(self.target_dt, self.ref_dt)
+        self._cal: Cal = Cal(self.target_dt, self.ref_dt)
 
         # Biz gets the policy since that is how it figures things out.
-        self._biz: Biz = Biz(target_dt=self.target_time, 
-                             ref_dt=self.reference_time, 
+        self._biz: Biz = Biz(target_dt=self.target_dt, 
+                             ref_dt=self.ref_dt, 
                              policy=self.policy)
         
 
@@ -108,7 +108,7 @@ class Chrono:
     @property
     def timestamp(self) -> float:
         """Get the raw timestamp for target_time."""
-        return self.target_time.timestamp()
+        return self.target_dt.timestamp()
 
     @staticmethod
     def parse(time_str: str, reference_time: TimeLike | None = None, policy: BizPolicy | None = None):
@@ -134,7 +134,7 @@ class Chrono:
         # Handle Unix timestamp (all digits)
         if time_str.isdigit():
             target_time = dt.datetime.fromtimestamp(float(time_str))
-            return Chrono(target_time=target_time, reference_time=reference_time, policy=policy)
+            return Chrono(target_dt=target_time, ref_dt=reference_time, policy=policy)
 
         # Try common datetime formats
         formats = [
@@ -152,28 +152,28 @@ class Chrono:
         for fmt in formats:
             try:
                 target_time = dt.datetime.strptime(time_str, fmt)
-                return Chrono(target_time=target_time, reference_time=reference_time, policy=policy)
+                return Chrono(target_dt=target_time, ref_dt=reference_time, policy=policy)
             except ValueError:
                 continue
 
         raise ValueError(f"Unable to parse time string: {time_str}")
 
-    def with_reference_time(self, reference_time: dt.datetime):
+    def with_reference_time(self, ref_dt: dt.datetime):
         """
         Create a new Chrono object with a different reference time.
 
         Args:
-            reference_time: New reference time for calculations
+            ref_dt: New reference time for calculations
 
         Returns:
             New Chrono object with same target_time but different reference_time
         """
-        return Chrono(target_time=self.target_time, reference_time=reference_time, policy=self.policy)
+        return Chrono(target_dt=self.target_dt, ref_dt=ref_dt, policy=self.policy)
 
     def __repr__(self) -> str:
         """String representation of Chrono object."""
-        return f"Chrono(target={self.target_time.isoformat()}, reference={self.reference_time.isoformat()})"
+        return f"Chrono(target={self.target_dt.isoformat()}, reference={self.ref_dt.isoformat()})"
 
     def __str__(self) -> str:
         """Human-readable string representation."""
-        return f"Chrono for {self.target_time.strftime('%Y-%m-%d %H:%M:%S')}"
+        return f"Chrono for {self.target_dt.strftime('%Y-%m-%d %H:%M:%S')}"

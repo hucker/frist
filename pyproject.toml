@@ -1,5 +1,4 @@
 
-
 [project]
 name = "frist"
 version = "0.17.0"
@@ -19,17 +18,25 @@ classifiers = [
 # Add runtime dependencies
 dependencies = [
     "python-dateutil",
-]
-
-# frist has no runtime dependencies
-[project.optional-dependencies]
-dev = [
+    # Existing dependencies
     "pytest",
     "pytest-cov",
     "pytest-xdist",
     "mypy",
     "hypothesis",
     "types-python-dateutil"
+]
+
+
+# frist has no runtime dependencies
+[project.optional-dependencies]
+dev = [
+        "pytest",
+        "pytest-cov",
+        "pytest-xdist",
+        "mypy",
+        "hypothesis",
+        "types-python-dateutil"
 ]
 
 [project.scripts]

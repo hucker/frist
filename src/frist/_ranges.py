@@ -118,7 +118,14 @@ class UnitNamespace:
         Returns:
             True if target is in the specified range.
         """
-        # Offset adjustments for each inclusive mode
+        # Single-unit window behavior:
+        # If end is None, treat it as one unit wide for ALL inclusive modes.
+        # This makes `.between(start, None, ...)` equivalent to `.in_(start, start+1)`
+        # and avoids empty/inverted intervals for "left", "right", or "neither".
+        if end is None:
+            return self.in_(start, start + 1)
+
+        # For explicit end, apply inclusivity offsets using half-open semantics.
         start_offsets = {
             "both": 0,
             "left": 0,
@@ -136,7 +143,7 @@ class UnitNamespace:
             raise ValueError(f"Invalid inclusive value: {inclusive!r}")
 
         adj_start = start + start_offsets[inclusive]
-        adj_end = (end if end is not None else start) + end_offsets[inclusive]
+        adj_end = end + end_offsets[inclusive]
 
         return self.in_(adj_start, adj_end)
 

@@ -27,7 +27,7 @@ def test_holiday_detection_param(
     # Create BizPolicy with holiday overrides
     policy: BizPolicy = BizPolicy(holidays=holidays)
 
-    chrono = Chrono(target_time=target_time, policy=policy)
+    chrono = Chrono(target_dt=target_time, policy=policy)
     # Defensive: .date() only if target_time is datetime
     date_str:str = target_time.date().isoformat() if hasattr(target_time, "date") else str(target_time)
     holidays_list: list[str] = sorted(holidays)

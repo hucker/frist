@@ -25,7 +25,7 @@ def test_in_days_backwards_range():
     # Arrange
     target_time = dt.datetime(2024, 1, 1)
     reference_time = dt.datetime(2024, 1, 2)
-    z = Chrono(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_dt=target_time, ref_dt=reference_time)
     cal = z.cal
     # Act & Assert
     with pytest.raises(ValueError):
@@ -38,7 +38,7 @@ def test_in_qtr_invalid_ranges():
     target_time = dt.datetime(2024, 1, 1)
     reference_time = dt.datetime(2024, 4, 1)
     # Act
-    Chrono(target_time=target_time, reference_time=reference_time)
+    Chrono(target_dt=target_time, ref_dt=reference_time)
 
 
 def test_boundary_dates():
@@ -47,15 +47,15 @@ def test_boundary_dates():
     # Leap year boundary
     target_time = dt.datetime(2024, 2, 29)  # Leap day
     reference_time = dt.datetime(2024, 3, 1)
-    chrono_leap = Chrono(target_time=target_time, reference_time=reference_time)
+    chrono_leap = Chrono(target_dt=target_time, ref_dt=reference_time)
     # Assert
     expected_year = 2024
     expected_month = 2
     expected_day = 29
     expected_days = 1
-    actual_year = chrono_leap.target_time.year
-    actual_month = chrono_leap.target_time.month
-    actual_day = chrono_leap.target_time.day
+    actual_year = chrono_leap.target_dt.year
+    actual_month = chrono_leap.target_dt.month
+    actual_day = chrono_leap.target_dt.day
     actual_days = chrono_leap.age.days
     assert actual_year == expected_year, "Leap year should be 2024"
     assert actual_month == expected_month, "Leap month should be February"
@@ -65,15 +65,15 @@ def test_boundary_dates():
     # Year boundary
     target_time = dt.datetime(2023, 12, 31, 23, 59, 59)
     reference_time = dt.datetime(2024, 1, 1, 0, 0, 1)
-    chrono_year = Chrono(target_time=target_time, reference_time=reference_time)
+    chrono_year = Chrono(target_dt=target_time, ref_dt=reference_time)
     expected_year = 2023
     expected_month = 12
     expected_day = 31
     expected_days = 0
     expected_seconds = 2
-    actual_year = chrono_year.target_time.year
-    actual_month = chrono_year.target_time.month
-    actual_day = chrono_year.target_time.day
+    actual_year = chrono_year.target_dt.year
+    actual_month = chrono_year.target_dt.month
+    actual_day = chrono_year.target_dt.day
     actual_days = chrono_year.age.days
     actual_seconds = chrono_year.age.seconds
     assert actual_year == expected_year, "Year should be 2023"
@@ -91,7 +91,7 @@ def test_large_time_differences():
     target_time = dt.datetime(2000, 1, 1)
     reference_time = dt.datetime(2024, 1, 1)
     # Act
-    z = Chrono(target_time=target_time, reference_time=reference_time)
+    z = Chrono(target_dt=target_time, ref_dt=reference_time)
     # Assert
     expected_years: float = 24.0
     actual_years = z.age.years
@@ -107,7 +107,7 @@ def test_parse_edge_cases():
     z = Chrono.parse(large_timestamp)
     # Assert
     expected_year = 2038
-    actual_year = z.target_time.year
+    actual_year = z.target_dt.year
     assert actual_year >= expected_year, (
         f"Expected year >= {expected_year}, got {actual_year}"
     )
@@ -119,7 +119,7 @@ def test_parse_edge_cases():
     # Act & Assert
     z_ws = Chrono.parse("  2024-01-01  ")
     expected_year = 2024
-    actual_year = z_ws.target_time.year
+    actual_year = z_ws.target_dt.year
     assert actual_year == expected_year, (
         f"Expected year {expected_year}, got {actual_year}"
     )
@@ -131,13 +131,13 @@ def test_min_max_datetime():
     min_dt = dt.datetime.min.replace(microsecond=0)
     max_dt = dt.datetime.max.replace(microsecond=0)
     # Act
-    z_min = Chrono(target_time=min_dt)
-    z_max = Chrono(target_time=max_dt)
+    z_min = Chrono(target_dt=min_dt)
+    z_max = Chrono(target_dt=max_dt)
     # Assert
     expected_min = min_dt
     expected_max = max_dt
-    actual_min = z_min.target_time
-    actual_max = z_max.target_time
+    actual_min = z_min.target_dt
+    actual_max = z_max.target_dt
     assert actual_min == expected_min, (
         f"Expected min datetime {expected_min}, got {actual_min}"
     )
@@ -152,13 +152,13 @@ def test_microsecond_precision():
     dt1 = dt.datetime(2024, 1, 1, 12, 0, 0, 0)
     dt2 = dt.datetime(2024, 1, 1, 12, 0, 0, 999999)
     # Act
-    z1 = Chrono(target_time=dt1)
-    z2 = Chrono(target_time=dt2)
+    z1 = Chrono(target_dt=dt1)
+    z2 = Chrono(target_dt=dt2)
     # Assert
     expected_microsecond_2 = 999999
     expected_microsecond_1 = 0
-    actual_microsecond_2 = z2.target_time.microsecond
-    actual_microsecond_1 = z1.target_time.microsecond
+    actual_microsecond_2 = z2.target_dt.microsecond
+    actual_microsecond_1 = z1.target_dt.microsecond
     assert actual_microsecond_2 == expected_microsecond_2, (
         f"Expected microsecond {expected_microsecond_2}, got {actual_microsecond_2}"
     )
@@ -173,16 +173,16 @@ def test_timezone_aware_naive():
     naive_dt = dt.datetime(2024, 1, 1, 12, 0, 0)
     aware_dt = dt.datetime(2024, 1, 1, 12, 0, 0, tzinfo=dt.timezone.utc)
     # Act
-    z_naive = Chrono(target_time=naive_dt)
+    z_naive = Chrono(target_dt=naive_dt)
     # Assert
     expected_tzinfo = None
-    actual_tzinfo = z_naive.target_time.tzinfo
+    actual_tzinfo = z_naive.target_dt.tzinfo
     assert actual_tzinfo is expected_tzinfo, (
         "Expected tzinfo to be None for naive datetime"
     )
     # Timezone-aware datetimes should raise TypeError
     with pytest.raises(TypeError, match="Timezones are not supported"):
-        Chrono(target_time=aware_dt)
+        Chrono(target_dt=aware_dt)
 
 
 def test_invalid_input():
@@ -190,10 +190,10 @@ def test_invalid_input():
     # Arrange, Act & Assert
     # Non-datetime input should raise
     with pytest.raises(TypeError):
-        Chrono(target_time={"1": "one"})  # type: ignore # Intentional wrong type for test
+        Chrono(target_dt={"1": "one"})  # type: ignore # Intentional wrong type for test
     # Extreme year out of range
     with pytest.raises(ValueError):
-        Chrono(target_time=dt.datetime(10000, 1, 1))
+        Chrono(target_dt=dt.datetime(10000, 1, 1))
 
 
 def test_leap_year():
@@ -201,12 +201,12 @@ def test_leap_year():
     # Arrange
     leap_dt = dt.datetime(2024, 2, 29, 12, 0, 0)
     # Act
-    z = Chrono(target_time=leap_dt)
+    z = Chrono(target_dt=leap_dt)
     # Assert
     expected_month = 2
     expected_day = 29
-    actual_month = z.target_time.month
-    actual_day = z.target_time.day
+    actual_month = z.target_dt.month
+    actual_day = z.target_dt.day
     assert actual_month == expected_month, (
         f"Expected month {expected_month} for leap year, got {actual_month}"
     )
@@ -221,15 +221,15 @@ def test_end_of_month_year():
     eom_dt = dt.datetime(2024, 1, 31, 23, 59, 59)
     eoy_dt = dt.datetime(2024, 12, 31, 23, 59, 59)
     # Act
-    z_eom = Chrono(target_time=eom_dt)
-    z_eoy = Chrono(target_time=eoy_dt)
+    z_eom = Chrono(target_dt=eom_dt)
+    z_eoy = Chrono(target_dt=eoy_dt)
     # Assert
     expected_eom_day = 31
     expected_eoy_month = 12
     expected_eoy_day = 31
-    actual_eom_day = z_eom.target_time.day
-    actual_eoy_month = z_eoy.target_time.month
-    actual_eoy_day = z_eoy.target_time.day
+    actual_eom_day = z_eom.target_dt.day
+    actual_eoy_month = z_eoy.target_dt.month
+    actual_eoy_day = z_eoy.target_dt.day
     assert actual_eom_day == expected_eom_day, (
         f"Expected day {expected_eom_day} for end of month, got {actual_eom_day}"
     )
@@ -263,8 +263,8 @@ def test_string_datetime_formats_chrono_parse(string_input, expected_datetime):
     # Assert
     expected_target = expected_datetime
     expected_ref = ref_dt
-    actual_target = chrono.target_time
-    actual_ref = chrono.reference_time
+    actual_target = chrono.target_dt
+    actual_ref = chrono.ref_dt
     assert actual_target == expected_target, (
         f"Chrono.parse failed to parse {string_input}"
     )
