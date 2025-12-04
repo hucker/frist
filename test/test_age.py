@@ -294,23 +294,19 @@ def test_age_with_dates():
     assert age.hours == 24.0, "Age should be 24 hours for date inputs one day apart"
 
 
-def test_set_times_invalid_start_type() -> None:
+def test_invalid_start_type_on_construction() -> None:
     """
-    Arrange: Create Age object, call set_times with invalid start_time type
-    Act & Assert: TypeError is raised
+    Invalid start_time type raises TypeError during construction.
     """
-    age = Age(dt.datetime(2020, 1, 1), dt.datetime(2021, 1, 1))
     with pytest.raises(TypeError, match="Unrecognized datetime string format"):
-        age.set_times(start_time="not-a-date") # type: ignore
+        Age("not-a-date", dt.datetime(2021, 1, 1))  # type: ignore
 
-def test_set_times_invalid_end_type() -> None:
+def test_invalid_end_type_on_construction() -> None:
     """
-    Arrange: Create Age object, call set_times with invalid end_time type
-    Act & Assert: TypeError is raised
+    Invalid end_time type raises TypeError during construction.
     """
-    age = Age(dt.datetime(2020, 1, 1), dt.datetime(2021, 1, 1))
     with pytest.raises(TypeError, match="Unrecognized datetime string format"):
-        age.set_times(end_time="not-a-date") # type: ignore
+        Age(dt.datetime(2020, 1, 1), "not-a-date")  # type: ignore
 
 
 def test_age_with_dates():
@@ -343,24 +339,20 @@ def test_age_with_mixed_date_types(start, end):
 
 
 def test_age_timezone_not_supported():
-    """Age raises TypeError for timezone-aware datetimes."""
+    """Age raises for timezone-aware datetimes (handled in time_pair)."""
     # Arrange
     tz_dt = dt.datetime(2025, 1, 1, tzinfo=dt.timezone.utc)
     
     # Act & Assert
-    with pytest.raises(TypeError, match="Timezones are not supported"):
+    with pytest.raises(ValueError, match="timezone mismatch"):
         Age(tz_dt)
     
-    with pytest.raises(TypeError, match="Timezones are not supported"):
+    with pytest.raises(ValueError, match="timezone mismatch"):
         Age(dt.datetime(2025, 1, 1), tz_dt)
     
-    # Also for set_times
-    age = Age(dt.datetime(2020, 1, 1), dt.datetime(2021, 1, 1))
-    with pytest.raises(TypeError, match="Timezones are not supported"):
-        age.set_times(start_time=tz_dt)
-    
-    with pytest.raises(TypeError, match="Timezones are not supported"):
-        age.set_times(end_time=tz_dt)
+    # Also ensure constructing with mixed tz raises
+    with pytest.raises(ValueError, match="timezone mismatch"):
+        Age(dt.datetime(2020, 1, 1), tz_dt)
 
 
 def test_age_negative():

@@ -139,3 +139,19 @@ def test_time_pair_unsupported_string_format_raises() -> None:
     # Act & Assert
     with pytest.raises(TypeError):
         time_pair(start_time="not-a-date", end_time=reference_tim)
+
+def test_time_pair_naive_vs_aware_raises() -> None:
+    """Mixing naive and aware datetimes should raise ValueError."""
+    naive = dt.datetime(2024, 1, 1, 12, 0, 0)
+    aware = dt.datetime(2024, 1, 2, 12, 0, 0, tzinfo=dt.timezone.utc)
+    with pytest.raises((ValueError, TypeError)):
+        time_pair(start_time=naive, end_time=aware)
+
+def test_time_pair_different_tzinfo_raises() -> None:
+    """Using two aware datetimes with different tzinfo should raise ValueError."""
+    tz1 = dt.timezone(dt.timedelta(hours=-5))
+    tz2 = dt.timezone(dt.timedelta(hours=+1))
+    aware1 = dt.datetime(2024, 1, 1, 12, 0, 0, tzinfo=tz1)
+    aware2 = dt.datetime(2024, 1, 2, 12, 0, 0, tzinfo=tz2)
+    with pytest.raises((ValueError, TypeError)):
+        time_pair(start_time=aware1, end_time=aware2)

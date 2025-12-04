@@ -9,7 +9,7 @@ import datetime as dt
 from functools import cached_property
 from typing import TYPE_CHECKING
 
-from ._ranges import (
+from .units import (
     DayNamespace,
     HourNamespace,
     MinuteNamespace,
@@ -18,7 +18,7 @@ from ._ranges import (
     WeekNamespace,
     YearNamespace,
 )
-from ._types import TimeLike, to_datetime
+from ._types import TimeLike, time_pair
 
 if TYPE_CHECKING:  # pragma: no cover
     pass
@@ -33,8 +33,12 @@ class Cal:
         ref_dt: TimeLike,
         formats: list[str] | None = None,
     ) -> None:
-        self._target_dt = to_datetime(target_dt, formats)
-        self._ref_dt = to_datetime(ref_dt, formats)
+        # Normalize and validate timezone compatibility via centralized utility
+        self._target_dt, self._ref_dt = time_pair(
+            start_time=target_dt,
+            end_time=ref_dt,
+            formats__=formats,
+        )
 
 
     @property

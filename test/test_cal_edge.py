@@ -220,9 +220,9 @@ def test_cal_timezone_not_supported():
     # Arrange
     tz_dt = dt.datetime(2025, 1, 1, tzinfo=dt.timezone.utc)
     # Act & Assert
-    with pytest.raises(TypeError, match="Timezones are not supported"):
+    with pytest.raises(ValueError, match="timezone mismatch"):
         Cal(tz_dt, dt.datetime(2025, 1, 1))
-    with pytest.raises(TypeError, match="Timezones are not supported"):
+    with pytest.raises(ValueError, match="timezone mismatch"):
         Cal(dt.datetime(2025, 1, 1), tz_dt)
 
 

@@ -11,14 +11,14 @@ from collections.abc import Callable
 from functools import cached_property
 
 from ._biz_policy import BizPolicy
-from ._ranges import (
+from .units import (
     BizDayNamespace,
     FiscalQuarterNamespace,
     FiscalYearNamespace,
     UnitNamespace,
     WorkingDayNamespace,
 )
-from ._types import TimeLike, to_datetime
+from ._types import TimeLike, time_pair
 from ._util import in_half_open, in_half_open_date, verify_start_end
 
 
@@ -53,11 +53,13 @@ class Biz:
         """
         self.cal_policy: BizPolicy = policy or BizPolicy()
 
-        self._target_dt = to_datetime(target_dt, formats)
-        self._ref_dt = (
-            to_datetime(ref_dt, formats)
-            if ref_dt is not None
-            else dt.datetime.now()
+        # Normalize and validate timezone compatibility via centralized utility
+        if ref_dt is None:
+            ref_dt = dt.datetime.now()
+        self._target_dt, self._ref_dt = time_pair(
+            start_time=target_dt,
+            end_time=ref_dt,
+            formats__=formats,
         )
 
     @property

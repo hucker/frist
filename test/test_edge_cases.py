@@ -221,8 +221,8 @@ def test_timezone_aware_naive():
     assert actual_tzinfo is expected_tzinfo, (
         "Expected tzinfo to be None for naive datetime"
     )
-    # Timezone-aware datetimes should raise TypeError
-    with pytest.raises(TypeError, match="Timezones are not supported"):
+    # Timezone-aware datetimes should raise due to tz mismatch handled in time_pair
+    with pytest.raises(ValueError, match="timezone mismatch"):
         Chrono(target_dt=aware_dt)
 
 

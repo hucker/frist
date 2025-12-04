@@ -29,8 +29,6 @@ def to_datetime(val: TimeLike, formats: list[str] | None = None) -> dt.datetime:
     """
     # In order of expected frequency of use
     if isinstance(val, dt.datetime):
-        if val.tzinfo is not None:
-            raise TypeError("Timezones are not supported")
         return val
     elif isinstance(val, dt.date):
         return dt.datetime.combine(val, dt.time(0, 0, 0))
@@ -94,5 +92,12 @@ def time_pair(
         normalized_end_time = dt.datetime.now()
     else:
         normalized_end_time = to_datetime(end_time, formats)
+    # Ensure timezone compatibility: both naive or both aware with identical tzinfo
+    tz1 = getattr(normalized_start_time, "tzinfo", None)
+    tz2 = getattr(normalized_end_time, "tzinfo", None)
+    if (tz1 is None) != (tz2 is None):
+        raise ValueError("Datetime timezone mismatch: one naive, one aware")
+    if tz1 is not None and tz1 != tz2:
+        raise ValueError("Datetime timezone mismatch: differing tzinfo")
 
     return normalized_start_time, normalized_end_time

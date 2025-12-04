@@ -309,13 +309,13 @@ def test_working_days_start_after_end() -> None:
 
 
 def test_biz_timezone_not_supported():
-    """Biz raises TypeError for timezone-aware datetimes."""
+    """Biz raises for timezone-aware datetimes (handled in time_pair)."""
     tz_dt = dt.datetime(2025, 1, 1, tzinfo=dt.timezone.utc)
     
-    with pytest.raises(TypeError, match="Timezones are not supported"):
+    with pytest.raises(ValueError, match="timezone mismatch"):
         Biz(tz_dt)
     
-    with pytest.raises(TypeError, match="Timezones are not supported"):
+    with pytest.raises(ValueError, match="timezone mismatch"):
         Biz(dt.datetime(2025, 1, 1), tz_dt)
 
 

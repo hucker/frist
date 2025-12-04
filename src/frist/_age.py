@@ -90,49 +90,7 @@ class Age:
     def end_time(self) -> dt.datetime:
         return self._end_time
 
-    def set_times(
-        self,
-        *,
-        start_time: TimeLike | None = None,
-        end_time: TimeLike | None = None,
-        formats: list[str] | None = None,
-    ) -> None:
-        """
-        WARNING: This method mutates the Age instance in place, beware of side effects 
-                 during threaded operation.
-
-
-        Update the start and/or end time for this Age instance.
-
-        This method is kwargs-only: you must specify start_time and/or end_time as 
-        keyword arguments. If a value is None, the previous value is retained.
-
-        Parameters:
-            start_time (TimeLike | None): New start time. If None, keeps previous value.
-            end_time (TimeLike | None): New end time. If None, keeps previous value.
-            formats (list[str] | None): Custom datetime formats for string parsing.
-
-        Type support:
-            - dt.datetime: Used directly (timezones not supported)
-            - dt.date: Converted to datetime at midnight
-            - float/int: Interpreted as a POSIX timestamp
-            - str: Parsed using supported datetime formats
-
-        Raises:
-            TypeError: If a provided value is not a supported type
-            ValueError: If start_time is not set at least once
-
-        Example:
-            age.set_times(start_time=dt.datetime(2020, 1, 1))
-            age.set_times(end_time=dt.datetime(2024, 1, 1))
-            age.set_times(start_time=1700000000.0)  # POSIX timestamp
-            age.set_times(start_time="2023-12-25 14:30:00")  # String format
-        """
-        if start_time is not None:
-            self._start_time = to_datetime(start_time, formats)
-
-        if end_time is not None:
-            self._end_time = to_datetime(end_time, formats)
+    # Note: Age is immutable; no state mutation methods are provided.
 
     # Suggestion: You can use set_times inside __init__ to centralize type handling and 
     # validation for start/end times. Makes future updates easier and keeps logic DRY.
