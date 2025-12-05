@@ -178,22 +178,9 @@ class Biz:
     def fiscal_quarter(self) -> int:
         return self.fis_qtr.val
 
-    # Compatibility wrappers for tests (delegating to units)
-    def _workday_fraction_at(self, dt_obj: dt.datetime) -> float:
-        """Fraction of working-day elapsed at dt_obj via WorkingDayUnit.
-
-        Provided for test compatibility; logic lives in WorkingDayUnit.
-        """
-        return self.work_day.workday_fraction_at(dt_obj)
-
-    def _move_n_days(self, start_date: dt.date, n: int, count_business: bool) -> dt.date:
-        """Move n business/working days from start_date using unit adapters.
-
-        Provided for test compatibility; logic lives in BizDayUnit/WorkingDayUnit.
-        """
-        if count_business:
-            return self.biz_day.move_n_days(start_date, n)
-        return self.work_day.move_n_days(start_date, n)
+    # (No compatibility wrappers; use unit adapters directly.)
+    
+    
     # ---------- Public calculations ----------
     @property
     def business_days(self) -> float:
