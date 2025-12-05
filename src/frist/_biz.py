@@ -173,15 +173,11 @@ class Biz:
 
     @property
     def fiscal_year(self) -> int:
-        return self.get_fiscal_year(
-            self.target_dt, self.cal_policy.fiscal_year_start_month
-        )
+        return self.fis_year.val
 
     @property
     def fiscal_quarter(self) -> int:
-        return self.get_fiscal_quarter(
-            self.target_dt, self.cal_policy.fiscal_year_start_month
-        )
+        return self.fis_qtr.val
 
     def _workday_fraction_at(self, dt_obj: dt.datetime) -> float:
         """Fraction of business-day elapsed at dt_obj, ignoring holidays/workday checks.
@@ -312,125 +308,23 @@ class Biz:
 
     @verify_start_end
     def in_business_days(self, start: int = 0, end: int = 0) -> bool:
-        """Return True if target_time.date() is within business-day range [start, end]
-           counted from ref_time.date().
-
-        Both start and end are integers (can be negative). The window is computed by 
-        moving start and end business-days from ref_date. The target must itself be a
-        business day to be considered "in" the business-day window.
-        """
-
-        ref: dt.date = self.ref_dt.date()
-        tgt: dt.date = self.target_dt.date()
-        start_date: dt.date = self._move_n_days(ref, start, count_business=True)
-        end_date: dt.date = self._move_n_days(ref, end, count_business=True)
-
-        lower, upper = start_date, end_date
-
-        # target must be a business day
-        if not self.cal_policy.is_business_day(tgt):
-            return False
-
-        # Half-open semantics: start is inclusive, end is exclusive.
-        return in_half_open_date(lower, tgt, upper)
+        """True if `target_dt.date()` is within the business-day window [start, end)."""
+        return self.biz_day.in_(start, end)
 
     @verify_start_end
     def in_working_days(self, start: int = 0, end: int = 0) -> bool:
-        """Return True if target_time.date() is within the working-day range [start, end]
-           counted from ref_time.date().
-
-        Working days ignore holidays (only policy.workdays matter).
-        """
-
-        ref: dt.date = self.ref_dt.date()
-        tgt: dt.date = self.target_dt.date()
-        start_date: dt.date = self._move_n_days(ref, start, count_business=False)
-        end_date: dt.date = self._move_n_days(ref, end, count_business=False)
-
-        lower, upper = start_date, end_date
-
-        if not self.cal_policy.is_workday(tgt):
-            return False
-
-        # Half-open semantics: include `lower`, exclude `upper`.
-        return in_half_open_date(lower, tgt, upper)
+        """True if `target_dt.date()` is within the working-day window [start, end)."""
+        return self.work_day.in_(start, end)
 
     @verify_start_end
     def in_fiscal_quarters(self, start: int = 0, end: int = 0) -> bool:
-        """
-        True if timestamp falls within the fiscal quarter window(s) from start to end.
-
-        Uses a half-open interval: start_tuple <= target_tuple < (end_tuple[0], end_tuple[1] + 1).
-
-        Args:
-            start: Fiscal quarters from now to start range (negative = past, 0 = this 
-                   fiscal quarter, positive = future)
-            end: Fiscal quarters from now to end range (defaults to start for single 
-                 fiscal quarter)
-
-        Examples:
-            chrono.cal.in_fiscal_quarters(0)     # This fiscal quarter
-            chrono.cal.in_fiscal_quarters(-1)    # Last fiscal quarter
-            chrono.cal.in_fiscal_quarters(-4, -1)# From 4 fiscal qtrs ago thru last fiscal qtr
-            chrono.cal.in_fiscal_quarters(-8, 0) # Last 8 fiscal qtrs through this fiscal qtr
-        """
-
-        fy_start_month: int = self.cal_policy.fiscal_year_start_month
-        base_time: dt.datetime = self.ref_dt
-        fy: int = Biz.get_fiscal_year(base_time, fy_start_month)
-        fq: int = Biz.get_fiscal_quarter(base_time, fy_start_month)
-
-        # Use a monotonic fiscal-quarter index (fy * 4 + (fq-1)) so we can
-        # compare fiscal quarters with integer arithmetic (consistent with
-        # `_month_index` and the `Cal.in_quarters` implementation).
-        base_idx = fy * 4 + (fq - 1)
-
-        def fiscal_quarter_index_for_offset(offset: int) -> int:
-            return base_idx + offset
-
-        start_idx = fiscal_quarter_index_for_offset(start)
-        end_idx = fiscal_quarter_index_for_offset(end)
-
-        target_fy: int = Biz.get_fiscal_year(self.target_dt, fy_start_month)
-        target_fq: int = Biz.get_fiscal_quarter(self.target_dt, fy_start_month)
-        target_idx = target_fy * 4 + (target_fq - 1)
-
-        # Use in_half_open on integer quarter indices. The decorator
-        # normalization already makes single-arg calls represent a single-quarter
-        # half-open window, so `end_idx` is the exclusive end.
-        return in_half_open(start_idx, target_idx, end_idx)
+        """True if timestamp falls within the fiscal quarter window(s)."""
+        return self.fis_qtr.in_(start, end)
 
     @verify_start_end
     def in_fiscal_years(self, start: int = 0, end: int = 0) -> bool:
-        """
-        True if timestamp falls within the fiscal year window(s) from start to end.
-
-        Uses a half-open interval: start_year <= target_year < end_year + 1.
-
-        Args:
-            start: Fiscal years from now to start range (negative = past, 0 = this fiscal year,
-                   positive = future)
-            end: Fiscal years from now to end range (defaults to start for single fiscal year)
-
-        Examples:
-            chrono.cal.in_fiscal_years(0)      #This fiscal year
-            chrono.cal.in_fiscal_years(-1)     #Last fiscal year
-            chrono.cal.in_fiscal_years(-5, -1) #From 5 fiscal years ago thru last fiscal yr
-            chrono.cal.in_fiscal_years(-10, 0) #Last 10 fiscal years thru this fiscal yr
-        """
-
-        fy_start_month: int = self.cal_policy.fiscal_year_start_month
-        base_time: dt.datetime = self.ref_dt
-        fy: int = Biz.get_fiscal_year(base_time, fy_start_month)
-        start_year: int = fy + start
-        end_year: int = fy + end
-
-        target_fy: int = Biz.get_fiscal_year(self.target_dt, fy_start_month)
-
-        # Use in_half_open for numeric years; the decorator normalization
-        # already makes single-arg calls represent a single-year half-open
-        # interval, so `end_year` is the exclusive end.
-        return in_half_open(start_year, target_fy, end_year)
+        """True if timestamp falls within the fiscal year window(s)."""
+        return self.fis_year.in_(start, end)
 
     @staticmethod
     def get_fiscal_year(dt_: dt.datetime, fy_start_month: int) -> int:
@@ -456,22 +350,22 @@ class Biz:
     @cached_property
     def biz_day(self) -> BizDayUnit:
         """Returns a BizDayUnit for business day range checks and utilities."""
-        return BizDayUnit(self)
+        return BizDayUnit(self, self.cal_policy)
 
     @cached_property
     def work_day(self) -> WorkingDayUnit:
         """Returns a WorkingDayUnit for working day range checks and utilities."""
-        return WorkingDayUnit(self)
+        return WorkingDayUnit(self, self.cal_policy)
 
     @cached_property
     def fis_qtr(self) -> FiscalQuarterUnit:
         """Returns a FiscalQuarterUnit for fiscal quarter range checks and utilities."""
-        return FiscalQuarterUnit(self)
+        return FiscalQuarterUnit(self, self.cal_policy)
 
     @cached_property
     def fis_year(self) -> FiscalYearUnit:
         """Returns a FiscalYearUnit for fiscal year range checks and utilities."""
-        return FiscalYearUnit(self)
+        return FiscalYearUnit(self, self.cal_policy)
 
 
 __all__ = ["Biz"]

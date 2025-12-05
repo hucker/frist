@@ -32,38 +32,9 @@ class CalProtocol(Protocol):
         ...
 
 
-class BizProtocol(CalProtocol, Protocol):
-    """Protocol for business-calendar parents.
-
-    Extends `CalProtocol` with business-aware membership checks and fiscal context.
-    Methods use unit-offset semantics compatible with `UnitName` helpers.
-    """
-
-    def in_business_days(self, start: int, end: int) -> bool:
-        """Return True if `target_dt` falls within `[start, end)` business days."""
-        ...
-
-    def in_working_days(self, start: int, end: int) -> bool:
-        """Return True if `target_dt` falls within `[start, end)` working days."""
-        ...
-
-    def in_fiscal_quarters(self, start: int, end: int) -> bool:
-        """Return True if `target_dt` falls within `[start, end)` fiscal quarters."""
-        ...
-
-    def in_fiscal_years(self, start: int, end: int) -> bool:
-        """Return True if `target_dt` falls within `[start, end)` fiscal years."""
-        ...
-
-    @property
-    def fiscal_year(self) -> int:
-        """Current fiscal year derived from `target_dt` under the configured policy."""
-        ...
-
-    @property
-    def fiscal_quarter(self) -> int:
-        """Current fiscal quarter (1–4) derived from `target_dt` under policy."""
-        ...
+## Note: Business-specific logic is implemented within business unit classes,
+## which accept a `CalProtocol` parent and a `BizPolicy`. A separate BizProtocol
+## is not required.
 
 
 # Generic parent type for unit names.
