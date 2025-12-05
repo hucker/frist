@@ -11,7 +11,7 @@ from functools import cached_property
 
 from ._biz_policy import BizPolicy
 from ._types import TimeLike, time_pair
-from ._util import verify_start_end
+# No verify_start_end decorators needed; unit adapters are used directly.
 from .units import (
     BizDayUnit,
     FiscalQuarterUnit,
@@ -198,25 +198,7 @@ class Biz:
         """
         return self.work_day.working_days()
 
-    @verify_start_end
-    def in_business_days(self, start: int = 0, end: int = 0) -> bool:
-        """True if `target_dt.date()` is within the business-day window [start, end)."""
-        return self.biz_day.in_(start, end)
-
-    @verify_start_end
-    def in_working_days(self, start: int = 0, end: int = 0) -> bool:
-        """True if `target_dt.date()` is within the working-day window [start, end)."""
-        return self.work_day.in_(start, end)
-
-    @verify_start_end
-    def in_fiscal_quarters(self, start: int = 0, end: int = 0) -> bool:
-        """True if timestamp falls within the fiscal quarter window(s)."""
-        return self.fis_qtr.in_(start, end)
-
-    @verify_start_end
-    def in_fiscal_years(self, start: int = 0, end: int = 0) -> bool:
-        """True if timestamp falls within the fiscal year window(s)."""
-        return self.fis_year.in_(start, end)
+    # (No in_* forwards; use unit adapters directly.)
 
     @staticmethod
     def get_fiscal_year(dt_: dt.datetime, fy_start_month: int) -> int:

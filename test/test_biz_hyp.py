@@ -112,14 +112,14 @@ def test_biz_in_business_days_consistency(target_ref: tuple[dt.datetime, dt.date
 
     # Test single business day window
     for offset in range(-5, 6):
-        result = biz.in_business_days(offset)
-        # Result should be boolean
-        assert isinstance(result, bool)
+        result = biz.biz_day.in_(offset)
+    # Result should be boolean
+    assert isinstance(result, bool)
 
     # Test range windows (ensure start < end)
     for start in range(-3, 4):
         for end in range(start + 1, start + 4):
-            result = biz.in_business_days(start, end)
+            result = biz.biz_day.in_(start, end)
             assert isinstance(result, bool)
 
 
@@ -132,13 +132,13 @@ def test_biz_in_working_days_consistency(target_ref: tuple[dt.datetime, dt.datet
 
     # Test single working day window
     for offset in range(-5, 6):
-        result = biz.in_working_days(offset)
-        assert isinstance(result, bool)
+        result = biz.work_day.in_(offset)
+    assert isinstance(result, bool)
 
     # Test range windows (ensure start < end)
     for start in range(-3, 4):
         for end in range(start + 1, start + 4):
-            result = biz.in_working_days(start, end)
+            result = biz.work_day.in_(start, end)
             assert isinstance(result, bool)
 
 
@@ -163,8 +163,8 @@ def test_biz_in_fiscal_quarters_consistency(target_ref: tuple[dt.datetime, dt.da
 
     # Test fiscal quarter windows
     for offset in range(-4, 5):
-        expected = offset <= quarter_diff < offset + 1
-        assert biz.in_fiscal_quarters(offset) == expected
+            expected = offset <= quarter_diff < offset + 1
+            assert biz.fis_qtr.in_(offset) == expected
 
 
 @pytest.mark.hypothesis
@@ -183,7 +183,7 @@ def test_biz_in_fiscal_years_consistency(target_ref: tuple[dt.datetime, dt.datet
     # Test fiscal year windows
     for offset in range(-5, 6):
         expected = offset <= year_diff < offset + 1
-        assert biz.in_fiscal_years(offset) == expected
+        assert biz.fis_year.in_(offset) == expected
 
 
 @pytest.mark.hypothesis
