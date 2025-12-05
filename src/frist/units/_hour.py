@@ -1,5 +1,5 @@
 """
-Hour namespace adapter for `Cal`.
+Hour unit adapter for `Cal`.
 
 Provides `.in_(offset)` and helpers for hour-aligned half-open windows relative
 to the reference datetime. Delegates to `Cal` implementation.
@@ -8,12 +8,12 @@ from __future__ import annotations
 
 import datetime as dt
 
-from ._base import UnitNamespace, CalProtocol
 from .._util import in_half_open_dt
+from ._base import CalProtocol, UnitName
 
 
-class HourNamespace(UnitNamespace[CalProtocol]):
-    """Hour-specific namespace implementing hour-aligned half-open logic."""
+class HourUnit(UnitName[CalProtocol]):
+    """Hour-specific unit implementing hour-aligned half-open logic."""
 
     def __init__(self, cal: CalProtocol) -> None:
         super().__init__(cal)

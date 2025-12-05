@@ -1,5 +1,5 @@
 """
-Day namespace adapter for `Cal`.
+Day unit adapter for `Cal`.
 
 Implements ergonomic `.in_(offset)` checks for calendar day half-open windows,
 delegating to `Cal` for core behavior.
@@ -8,15 +8,12 @@ from __future__ import annotations
 
 import datetime as dt
 
-from ._base import UnitNamespace, CalProtocol
+from ._base import UnitName, CalProtocol
 from .._util import in_half_open_date
 
 
-class DayNamespace(UnitNamespace[CalProtocol]):
-    """Day-specific namespace that implements _in_impl with day logic.
-
-    Migrated from `_ranges.py` to `units/_day.py`.
-    """
+class DayUnit(UnitName[CalProtocol]):
+    """Day-specific unit that implements _in_impl with day logic."""
 
     def __init__(self, cal: CalProtocol) -> None:
         super().__init__(cal)

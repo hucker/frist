@@ -207,7 +207,7 @@ False   # not in the 7..1 days before ref
 
 ### Inclusive `thru` helper
 
-Frist also provides a helper available on the compact `UnitNamespace` properties (for example `cal.mon`, `cal.day`, `biz.biz_day`) named `thru`. The `thru` method uses inclusive end semantics which is convenient for human-readable ranges such as "Mon thru Fri" where the end unit is part of the range.
+Frist also provides a helper available on the compact `UnitNames` properties (for example `cal.mon`, `cal.day`, `biz.biz_day`) named `thru`. The `thru` method uses inclusive end semantics which is convenient for human-readable ranges such as "Mon thru Fri" where the end unit is part of the range.
 
 - `*.in_` methods and the main API use half-open intervals: `start <= value < end`. - `*.thru(start, end)` is inclusive on the end: it returns True when `start <= value <= end`.
 
@@ -233,7 +233,7 @@ The `between(start, end, inclusive)` helper lets you express range-membership wi
 
 - Purpose: configurable boundary inclusivity without re-implementing range math.
 - Base rule: core `in_(S, E)` checks use half-open intervals `S <= value < E`.
-- Inputs: `start`/`end` are integer offsets in the unit of the namespace (minutes, days, months, etc.) relative to `ref_dt`.
+- Inputs: `start`/`end` are integer offsets in the current unit (minutes, days, months, etc.) relative to `ref_dt`.
 - Single-arg: if `end` is `None`, a one-unit window is used after inclusivity adjustment.
 
 Mapping of `inclusive` to `in_(...)`
@@ -421,7 +421,7 @@ The Cal object provides a family of `in_*` methods (e.g., `in_days`, `in_months`
 
 ---
 
-### Month Namespace: nth_weekday and is_nth_weekday
+### MonthUnit: nth_weekday and is_nth_weekday
 
 #### Get the Nth Weekday of a Month
 
@@ -476,10 +476,10 @@ is_100th = cal.year.is_day_of_year(100)
 
 ### API Reference Additions
 
-- `MonthNamespace.nth_weekday(weekday: str, n: int) -> datetime`
-- `MonthNamespace.is_nth_weekday(weekday: str, n: int) -> bool`
-- `YearNamespace.day_of_year() -> int`
-- `YearNamespace.is_day_of_year(n: int) -> bool`
+- `MonthUnit.nth_weekday(weekday: str, n: int) -> datetime`
+- `MonthUnit.is_nth_weekday(weekday: str, n: int) -> bool`
+- `YearUnit.day_of_year() -> int`
+- `YearUnit.is_day_of_year(n: int) -> bool`
 
 ---
 
@@ -599,16 +599,28 @@ False
 ```text
 Name                       Stmts   Miss Branch BrPart  Cover   Missing
 -------------------------------------------------------------------------------------
-src\frist\__init__.py                          8      0      0      0   100%
-src\frist\_age.py                            114      0     24      0   100%
-src\frist\_biz.py                            193      0     28      0   100%
-src\frist\_biz_policy.py                      80      0     38      0   100%
-src\frist\_cal.py                             81      0      0      0   100%
-src\frist\_constants.py                       15      0      0      0   100%
-src\frist\_frist.py                           47      0      4      0   100%
-src\frist\_ranges.py                         155      0      6      0   100%
-src\frist\_types.py                           31      0     16      0   100%
-src\frist\_util.py                            28      0      6      0   100%
+src\frist\__init__.py                    8      0   100%
+src\frist\_age.py                      122      0   100%
+src\frist\_biz.py                      194      0   100%
+src\frist\_biz_policy.py                80      0   100%
+src\frist\_cal.py                       80      0   100%
+src\frist\_constants.py                 15      0   100%
+src\frist\_frist.py                     47      0   100%
+src\frist\_types.py                     35      0   100%
+src\frist\_util.py                      28      0   100%
+src\frist\units\__init__.py             13      0   100%
+src\frist\units\_base.py                35      0   100%
+src\frist\units\_biz_day.py              7      0   100%
+src\frist\units\_day.py                 18      0   100%
+src\frist\units\_fiscal_quarter.py      13      0   100%
+src\frist\units\_fiscal_year.py         10      0   100%
+src\frist\units\_hour.py                18      0   100%
+src\frist\units\_minute.py              18      0   100%
+src\frist\units\_month.py               43      0   100%
+src\frist\units\_quarter.py             27      0   100%
+src\frist\units\_week.py                23      0   100%
+src\frist\units\_work_day.py             7      0   100%
+src\frist\units\_year.py                23      0   100%
 ```
 
 > Note: running `pytest -m smoke` on the current branch produced ~62% coverage and completed in ~0.46s

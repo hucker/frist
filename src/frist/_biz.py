@@ -14,10 +14,10 @@ from ._biz_policy import BizPolicy
 from ._types import TimeLike, time_pair
 from ._util import in_half_open, in_half_open_date, verify_start_end
 from .units import (
-    BizDayNamespace,
-    FiscalQuarterNamespace,
-    FiscalYearNamespace,
-    WorkingDayNamespace,
+    BizDayUnit,
+    FiscalQuarterUnit,
+    FiscalYearUnit,
+    WorkingDayUnit,
 )
 
 
@@ -447,31 +447,31 @@ class Biz:
         )
         return (offset // 3) + 1
 
-    # Compact cached namespaces for policy-aware ranges. These provide a
+    # Compact cached units for policy-aware ranges. These provide a
     # compact ergonomic surface that delegates to the public decorated `in_*`
     # methods (e.g., `in_business_days`, `in_working_days`). The public
-    # `in_*` methods are the canonical implementations; `UnitNamespace` is
+    # `in_*` methods are the canonical implementations; `Unit` is
     # an ergonomic, non-invasive adapter that forwards to them.
 
     @cached_property
-    def biz_day(self) -> BizDayNamespace:
-        """Returns a BizDayNamespace for business day range checks and utilities."""
-        return BizDayNamespace(self)
+    def biz_day(self) -> BizDayUnit:
+        """Returns a BizDayUnit for business day range checks and utilities."""
+        return BizDayUnit(self)
 
     @cached_property
-    def work_day(self) -> WorkingDayNamespace:
-        """Returns a WorkingDayNamespace for working day range checks and utilities."""
-        return WorkingDayNamespace(self)
+    def work_day(self) -> WorkingDayUnit:
+        """Returns a WorkingDayUnit for working day range checks and utilities."""
+        return WorkingDayUnit(self)
 
     @cached_property
-    def fis_qtr(self) -> FiscalQuarterNamespace:
-        """Returns a FiscalQuarterNamespace for fiscal quarter range checks and utilities."""
-        return FiscalQuarterNamespace(self)
+    def fis_qtr(self) -> FiscalQuarterUnit:
+        """Returns a FiscalQuarterUnit for fiscal quarter range checks and utilities."""
+        return FiscalQuarterUnit(self)
 
     @cached_property
-    def fis_year(self) -> FiscalYearNamespace:
-        """Returns a FiscalYearNamespace for fiscal year range checks and utilities."""
-        return FiscalYearNamespace(self)
+    def fis_year(self) -> FiscalYearUnit:
+        """Returns a FiscalYearUnit for fiscal year range checks and utilities."""
+        return FiscalYearUnit(self)
 
 
 __all__ = ["Biz"]

@@ -145,8 +145,8 @@ def test_cal_in_weeks_consistency(target_ref: tuple[dt.datetime, dt.datetime]):
 
 @pytest.mark.hypothesis
 @given(target_ref=datetime_pair_strategy)
-def test_cal_unit_namespace_consistency(target_ref: tuple[dt.datetime, dt.datetime]):
-    """Test that UnitNamespace call syntax and thru syntax work correctly."""
+def test_cal_unit_unit_consistency(target_ref: tuple[dt.datetime, dt.datetime]):
+    """Test that Unit call syntax and thru syntax work correctly."""
     # Arrange
     target_dt, ref_dt = target_ref
     # Act

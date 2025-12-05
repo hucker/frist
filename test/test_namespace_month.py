@@ -1,7 +1,6 @@
 """
-Unit tests for the MonthNamespace class in frist._ranges.
+Unit tests for the MonthUnit class.
 Covers core methods and edge cases for direct usage.
-All tests use AAA (Arrange, Act, Assert) comments and docstrings.
 """
 
 import datetime as dt
@@ -9,20 +8,20 @@ import datetime as dt
 import pytest
 
 from frist import Cal
-from frist._ranges import MonthNamespace
+from frist.units import MonthUnit
 
 
-def test_month_namespace_in_impl_basic():
+def test_month_unit_in_impl_basic():
     """
     Test _in_impl for current, previous, and next month.
     """
     # Arrange
     cal = Cal(dt.datetime(2024, 3, 15), dt.datetime(2024, 3, 15))
-    mn = MonthNamespace(cal)
+    mn: MonthUnit = MonthUnit(cal)
     # Act & Assert
-    assert mn._in_impl(0, 1), "Should be in current month (0 offset)"
-    assert not mn._in_impl(-1, 0), "Should not be in previous month"
-    assert not mn._in_impl(1, 2), "Should not be in next month"
+    assert mn.in_(0, 1), "Should be in current month (0 offset)"
+    assert not mn.in_(-1, 0), "Should not be in previous month"
+    assert not mn.in_(1, 2), "Should not be in next month"
 
 
 @pytest.mark.parametrize(
@@ -32,13 +31,13 @@ def test_month_namespace_in_impl_basic():
         (dt.datetime(2024, 12, 31), 2024 * 12 + 12, "Dec/2024 should be 2024*12+12"),
     ]
 )
-def test_month_namespace_month_index(dt_value, expected, msg):
+def test_month_unit_month_index(dt_value:dt.datetime, expected:int, msg:str):
     """
     Parametrized test for _month_index, including assert message.
     """
     # Arrange
     cal = Cal(dt.datetime(2024, 3, 15), dt.datetime(2024, 3, 15))
-    mn = MonthNamespace(cal)
+    mn = MonthUnit(cal)
     # Act & Assert
     assert mn._month_index(dt_value) == expected, msg
 
@@ -56,7 +55,7 @@ def test_month_namespace_month_index(dt_value, expected, msg):
         (dt.datetime(2024, 2, 1), "friday", -5, None),
     ],
 )
-def test_month_namespace_nth_weekday_param(
+def test_month_unit_nth_weekday_param(
     ref_date: dt.datetime,
     weekday: str,
     n: int,
@@ -67,7 +66,7 @@ def test_month_namespace_nth_weekday_param(
     """
     # Arrange
     cal = Cal(ref_date, ref_date)
-    mn = MonthNamespace(cal)
+    mn = MonthUnit(cal)
     # Act & Assert
     if expected is not None:
         assert mn.nth_weekday(weekday, n) == expected, (
@@ -91,7 +90,7 @@ def test_month_namespace_nth_weekday_param(
         (dt.datetime(2024, 2, 1), dt.datetime(2024, 2, 23), "friday", -5, False),
     ],
 )
-def test_monthnamespace_is_nth_weekday_param(
+def test_monthunit_is_nth_weekday_param(
     ref_date: dt.datetime,
     target_date: dt.datetime,
     weekday: str,
@@ -104,7 +103,7 @@ def test_monthnamespace_is_nth_weekday_param(
     """
     # Arrange
     cal = Cal(target_date, ref_date)
-    mn = MonthNamespace(cal)
+    mn = MonthUnit(cal)
     # Act & Assert
     result = mn.is_nth_weekday(weekday, n)
     assert result is expected, (

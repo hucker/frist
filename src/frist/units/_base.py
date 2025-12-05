@@ -1,44 +1,75 @@
 """
-Base types and protocols for unit namespaces.
+Base types and protocols for units.
 
-Defines `UnitNamespace` and protocol aliases used by calendar (`Cal`) and
-business (`Biz`) adapters. Namespaces provide ergonomic helpers (.in_()) that
+Defines `UnitName` and protocol aliases used by calendar (`Cal`) and
+business (`Biz`) adapters. `UnitName` provide ergonomic helpers (.in_()) that
 delegate to the canonical methods on their parent objects without owning core
 logic.
 """
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 import datetime as dt
+from abc import ABC, abstractmethod
 from collections.abc import Mapping
 from typing import Generic, Literal, Protocol, TypeVar
 
 
 class CalProtocol(Protocol):
-    @property
-    def ref_dt(self) -> dt.datetime: ...
+    """Protocol for calendar-like parents.
+
+    Exposes only the reference and target datetimes required by unit adapters.
+    Implementations should ensure timezone consistency elsewhere (see `time_pair`).
+    """
 
     @property
-    def target_dt(self) -> dt.datetime: ...
+    def ref_dt(self) -> dt.datetime:
+        """Reference datetime used as the zero point for unit offsets."""
+        ...
+
+    @property
+    def target_dt(self) -> dt.datetime:
+        """Target datetime to evaluate against unit windows relative to `ref_dt`."""
+        ...
 
 
 class BizProtocol(CalProtocol, Protocol):
-    def in_business_days(self, start: int, end: int) -> bool: ...
-    def in_working_days(self, start: int, end: int) -> bool: ...
-    def in_fiscal_quarters(self, start: int, end: int) -> bool: ...
-    def in_fiscal_years(self, start: int, end: int) -> bool: ...
+    """Protocol for business-calendar parents.
+
+    Extends `CalProtocol` with business-aware membership checks and fiscal context.
+    Methods use unit-offset semantics compatible with `UnitName` helpers.
+    """
+
+    def in_business_days(self, start: int, end: int) -> bool:
+        """Return True if `target_dt` falls within `[start, end)` business days."""
+        ...
+
+    def in_working_days(self, start: int, end: int) -> bool:
+        """Return True if `target_dt` falls within `[start, end)` working days."""
+        ...
+
+    def in_fiscal_quarters(self, start: int, end: int) -> bool:
+        """Return True if `target_dt` falls within `[start, end)` fiscal quarters."""
+        ...
+
+    def in_fiscal_years(self, start: int, end: int) -> bool:
+        """Return True if `target_dt` falls within `[start, end)` fiscal years."""
+        ...
 
     @property
-    def fiscal_year(self) -> int: ...
+    def fiscal_year(self) -> int:
+        """Current fiscal year derived from `target_dt` under the configured policy."""
+        ...
 
     @property
-    def fiscal_quarter(self) -> int: ...
+    def fiscal_quarter(self) -> int:
+        """Current fiscal quarter (1–4) derived from `target_dt` under policy."""
+        ...
 
 
-# Generic parent type for namespaces.
-# Bound to `CalProtocol` so `UnitNamespace[TCal]` is type-safe:
-# - Calendar namespaces accept `Cal`-like parents (must expose `ref_dt`/`target_dt`).
-# - Business namespaces can use richer `Biz` parents while staying compatible.
+# Generic parent type for unit names.
+# Bound to `CalProtocol` so `UnitName[TCal]` is type-safe:
+# - Calendar unit names accept `Cal`-like parents (must expose `ref_dt`/`target_dt`).
+# - Business unit names can use richer `Biz` parents while staying compatible.
 # This improves IDE hints and catches misuse (e.g., calling biz-only methods on Cal).
 TCal = TypeVar("TCal", bound=CalProtocol)
 
@@ -46,12 +77,12 @@ TCal = TypeVar("TCal", bound=CalProtocol)
 Inclusive = Literal["both", "left", "right", "neither"]
 
 
-class UnitNamespace(Generic[TCal], ABC):
-    """Base namespace for time unit operations with half-open semantics.
+class UnitName(Generic[TCal], ABC):
+    """Base unit name for time unit operations with half-open semantics.
 
     This adapter is intentionally minimal: functionality relies only on the
     parent object's `target_dt` and `ref_dt` (as required by `CalProtocol`).
-    Concrete namespaces implement `_in_impl(start, end)` using those two
+    Concrete units implement `_in_impl(start, end)` using those two
     datetimes; no other parent state is required.
     """
 
@@ -62,7 +93,7 @@ class UnitNamespace(Generic[TCal], ABC):
         """Half-open window membership for this unit.
 
         Semantics:
-        - Offsets are in this unit (e.g., hours for HourNamespace).
+        - Offsets are in this unit (e.g., hours for Hours).
         - `end=None` represents a single-unit window `[start, start+1)`.
         - Uses half-open intervals: `[start, end)`.
         - Validates `start < end` after normalization.
@@ -121,4 +152,3 @@ class UnitNamespace(Generic[TCal], ABC):
         if end is None:
             end = start
         return self.in_(start, end + 1)
-

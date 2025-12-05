@@ -1,5 +1,5 @@
 """
-Month namespace adapter for `Cal`.
+Month unit adapter for `Cal`.
 
 Handles month-aligned half-open windows and related helpers. Internals leverage
 calendar boundaries; external recurrence utilities (e.g., `dateutil.rrule`) may
@@ -11,15 +11,12 @@ import datetime as dt
 
 from dateutil.rrule import FR, MO, MONTHLY, SA, SU, TH, TU, WE, rrule
 
-from ._base import UnitNamespace, CalProtocol
+from ._base import UnitName, CalProtocol
 from .._util import in_half_open, normalize_weekday
 
 
-class MonthNamespace(UnitNamespace[CalProtocol]):
-    """Month-specific namespace that implements _in_impl with month logic.
-
-    Migrated from `_ranges.py` to `units/_month.py`.
-    """
+class MonthUnit(UnitName[CalProtocol]):
+    """Month-specific unit that implements _in_impl with month logic."""
 
     def __init__(self, cal: CalProtocol) -> None:
         super().__init__(cal)

@@ -1,5 +1,5 @@
 """
-Tests verifying inclusive `thru` behavior for Cal namespaces.
+Tests verifying inclusive `thru` behavior for Cal units.
 
 These ensure `ns.thru(start, end)` produces the correct half-open semantics
 by advancing the end by 1 compared to `in_`.

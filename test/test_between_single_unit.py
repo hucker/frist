@@ -21,13 +21,13 @@ def test_between_single_unit_maps_to_in_left_both(mode: str) -> None:
     target = dt.datetime(2025, 11, 20, 12, 0, 0)
     c = Cal(target_dt=target, ref_dt=ref)
 
-    # Hour namespace: start=0 represents the current hour window
+    # Hour unit: start=0 represents the current hour window
     assert c.hour.between(0, None, mode) == c.hour.in_(0, 1)
 
-    # Day namespace: start=0 represents the current day window
+    # Day unit: start=0 represents the current day window
     assert c.day.between(0, None, mode) == c.day.in_(0, 1)
 
-    # Month namespace: start=0 represents the current month window
+    # Month unit: start=0 represents the current month window
     assert c.month.between(0, None, mode) == c.month.in_(0, 1)
 
 
@@ -38,11 +38,11 @@ def test_between_single_unit_maps_to_in_right_neither(mode: str) -> None:
     target = dt.datetime(2025, 11, 20, 12, 0, 0)
     c = Cal(target_dt=target, ref_dt=ref)
 
-    # Hour namespace: `adj_start = start + 1` when end=None for right/neither
+    # Hour unit: `adj_start = start + 1` when end=None for right/neither
     assert c.hour.between(0, None, mode) == c.hour.in_(1, 2)
 
-    # Day namespace
+    # Day unit
     assert c.day.between(0, None, mode) == c.day.in_(1, 2)
 
-    # Month namespace
+    # Month unit
     assert c.month.between(0, None, mode) == c.month.in_(1, 2)

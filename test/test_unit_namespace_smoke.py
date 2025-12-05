@@ -1,9 +1,9 @@
-"""Smoke tests for the compact unit namespace API.
+"""Smoke tests for the compact unit API.
 
-These tests verify the ergonomic `cal.<unit>` namespace (compact form)
+These tests verify the ergonomic `cal.<unit>` (compact form)
 supports call and inclusive `thru` sugar.
 
-Style: follow Arrange / Act / Assert (AA) comments per project `CODEGUIDE.md`.
+Style: follow Arrange / Act / Assert (AA) comments per project `CODESTYLE.md`.
 """
 
 import datetime as dt
@@ -23,10 +23,10 @@ UNITS = [
 ]
 
 @pytest.mark.smoke
-def test_unit_namespace_smoke():
-    """Smoke test for compact unit namespaces.
+def test_unit_unit_smoke():
+    """Smoke test for compact unit 
 
-    Verifies that each compact namespace supports call/slice/thru sugar.
+    Verifies that each compact supports call/slice/thru sugar.
     """
     # Arrange
     ref = dt.datetime(2025, 3, 15, 12, 34, 56)

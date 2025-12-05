@@ -1,5 +1,5 @@
 """
-Tests for YearNamespace in frist._ranges.py
+Tests for YearUnit in frist.units._year.py.
 """
 
 import datetime as dt
@@ -7,7 +7,7 @@ import datetime as dt
 import pytest
 
 from frist import Cal
-from frist._ranges import YearNamespace
+from frist.units import YearUnit
 
 
 @pytest.mark.parametrize(
@@ -19,14 +19,14 @@ from frist._ranges import YearNamespace
         (dt.datetime(2023, 12, 31), 365),  # 2023 is not a leap year
     ]
 )
-def test_year_namespace_day_of_year(target_date: dt.datetime,
+def test_year_unit_day_of_year(target_date: dt.datetime,
                                    expected_day_of_year: int) -> None:
     """
-    Test YearNamespace.day_of_year returns correct day of year.
+    Test YearUnit.day_of_year returns correct day of year.
     """
     # Arrange
     cal = Cal(target_date, target_date)
-    yn = YearNamespace(cal)
+    yn = YearUnit(cal)
     # Act
     actual = yn.day_of_year()
     expected = expected_day_of_year
@@ -45,13 +45,13 @@ def test_year_namespace_day_of_year(target_date: dt.datetime,
         (dt.datetime(2023, 12, 31), 366, False),
     ]
 )
-def test_year_namespace_is_day_of_year(target_date: dt.datetime, n: int, expected: bool) -> None:
+def test_year_unit_is_day_of_year(target_date: dt.datetime, n: int, expected: bool) -> None:
     """
-    Test YearNamespace.is_day_of_year returns True only for correct day.
+    Test YearUnit.is_day_of_year returns True only for correct day.
     """
     # Arrange
     cal = Cal(target_date, target_date)
-    yn = YearNamespace(cal)
+    yn = YearUnit(cal)
     # Act
     actual = yn.is_day_of_year(n)
     # Assert

@@ -1,16 +1,16 @@
 """
-Fiscal quarter namespace adapter for `Biz`.
+Fiscal quarter unit adapter for `Biz`.
 
 Implements `.in_(offset)` for fiscal quarters derived from policy start month,
 forwarding to `Biz`.
 """
 from __future__ import annotations
 
-from ._base import UnitNamespace, BizProtocol
+from ._base import BizProtocol, UnitName
 
 
-class FiscalQuarterNamespace(UnitNamespace[BizProtocol]):
-    """Fiscal quarter-specific namespace delegating to Biz policy logic."""
+class FiscalQuarterUnit(UnitName[BizProtocol]):
+    """Fiscal quarter-specific unit delegating to Biz policy logic."""
 
     def __init__(self, cal: BizProtocol) -> None:
         super().__init__(cal)

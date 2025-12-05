@@ -1,4 +1,4 @@
-"""Explicit checks for Biz compact unit namespaces.
+"""Explicit checks for Biz compact unit units.
 
 These tests exercise a concrete `Biz` instance where `target_time == ref_time`.
 They assert expected True/False membership for offset 0 and a simple negative
@@ -10,7 +10,7 @@ import datetime as dt
 from frist._biz import Biz
 
 
-def test_biz_unit_namespace_explicit_checks():
+def test_biz_unit_unit_explicit_checks():
     # Arrange
     # Use a weekday (Friday) so business/working-day checks are True
     ref = dt.datetime(2025, 3, 14, 12, 34, 56)

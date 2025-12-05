@@ -1,5 +1,5 @@
 """
-Year namespace adapter for `Cal`.
+Year unit adapter for `Cal`.
 
 Provides `.in_(offset)` checks for calendar year half-open windows, forwarding
 to `Cal`.
@@ -8,12 +8,12 @@ from __future__ import annotations
 
 import datetime as dt
 
-from ._base import UnitNamespace, CalProtocol
+from ._base import UnitName, CalProtocol
 from .._util import in_half_open
 
 
-class YearNamespace(UnitNamespace[CalProtocol]):
-    """Year-specific namespace implementing year half-open logic."""
+class YearUnit(UnitName[CalProtocol]):
+    """Year-specific unit implementing year half-open logic."""
 
     def __init__(self, cal: CalProtocol) -> None:
         super().__init__(cal)

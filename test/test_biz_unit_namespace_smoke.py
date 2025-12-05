@@ -1,4 +1,4 @@
-"""Smoke tests for Biz compact unit namespaces.
+"""Smoke tests for Biz compact unit units.
 
 Verifies that `biz.biz_day`, `biz.work_day`, `biz.fis_qtr`, and `biz.fis_year`
 support call and thru sugar.
@@ -20,7 +20,7 @@ UNITS = [
 ]
 
 @pytest.mark.smoke
-def test_biz_unit_namespace_smoke():
+def test_biz_unit_unit_smoke():
     # Arrange
     ref = dt.datetime(2025, 3, 15, 12, 34, 56)
     biz = Biz(target_dt=ref, ref_dt=ref)

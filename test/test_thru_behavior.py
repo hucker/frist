@@ -1,4 +1,4 @@
-"""Tests verifying inclusive `thru` behavior for compact namespaces.
+"""Tests verifying inclusive `thru` behavior for compact units.
 
 These ensure `ns.thru(start, end)` produces the correct half-open semantics
 by advancing the end by 1 compared to `in_`.

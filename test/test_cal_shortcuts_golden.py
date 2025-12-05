@@ -76,10 +76,10 @@ def test_biz_shortcuts_golden(shortcut: str, target_dt: dt.datetime, expected: b
     assert getattr(b, shortcut) is expected
 
 
-def test_unitnamespace_call_and_thru() -> None:
-    """Exercise UnitNamespace call/between/thru/alias behaviors with golden expectations.
+def test_unit_call_and_thru() -> None:
+    """Exercise Unit call/between/thru/alias behaviors with golden expectations.
 
-    This avoids parity checks while still exercising the UnitNamespace implementation
+    This avoids parity checks while still exercising the Unit implementation
     paths (call, between alias, and thru property).
     """
     cal = Cal(target_dt=REF, ref_dt=REF)
@@ -94,7 +94,7 @@ def test_unitnamespace_call_and_thru() -> None:
     # thru two-arg for previous..current should be True (inclusive)
     assert day_ns.thru(-1, 0) is True
 
-    # Also exercise a Biz UnitNamespace (work_day)
+    # Also exercise a Biz Unit (work_day)
     policy = BizPolicy()
     b = Biz(target_dt=REF, ref_dt=REF, policy=policy)
     w_ns = b.work_day

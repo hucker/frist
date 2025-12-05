@@ -1,5 +1,5 @@
 """
-Quarter namespace adapter for `Cal`.
+Quarter unit adapter for `Cal`.
 
 Supports calendar quarter half-open windows (Q1–Q4) via `.in_(offset)` while
 delegating core logic to `Cal`.
@@ -8,12 +8,12 @@ from __future__ import annotations
 
 import datetime as dt
 
-from ._base import UnitNamespace, CalProtocol
+from ._base import UnitName, CalProtocol
 from .._util import in_half_open
 
 
-class QuarterNamespace(UnitNamespace[CalProtocol]):
-    """Quarter-specific namespace implementing quarter-index half-open logic."""
+class QuarterUnit(UnitName[CalProtocol]):
+    """Quarter-specific unit implementing quarter-index half-open logic."""
 
     def __init__(self, cal: CalProtocol) -> None:
         super().__init__(cal)

@@ -1,5 +1,5 @@
 """
-Week namespace adapter for `Cal`.
+Week unit adapter for `Cal`.
 
 Provides `.in_(offset)` checks using calendar-aligned week boundaries (default
 start Monday) with half-open semantics. Delegates to `Cal`.
@@ -8,15 +8,12 @@ from __future__ import annotations
 
 import datetime as dt
 
-from ._base import UnitNamespace, CalProtocol
+from ._base import UnitName, CalProtocol
 from .._util import in_half_open_date, normalize_weekday
 
 
-class WeekNamespace(UnitNamespace[CalProtocol]):
-    """Week-specific namespace that implements _in_impl with week logic.
-
-    Migrated from `_ranges.py` to `units/_week.py`.
-    """
+class WeekUnit(UnitName[CalProtocol]):
+    """Week-specific unit that implements _in_impl with week logic."""
 
     def __init__(self, cal: CalProtocol) -> None:
         super().__init__(cal)

@@ -1,9 +1,9 @@
 """
-Tests for UnitNamespace val and name properties.
+Tests for Unit.val and name properties.
 
 AAA Pattern:
 - Arrange: Construct Cal/Biz with explicit target/ref datetimes.
-- Act: Read val/name (and day where applicable) from namespaces.
+- Act: Read val/name (and day where applicable) from units.
 - Assert: Compare expected vs actual with clear assertion messages.
 
 Follows frist CODESTYLE.md:
@@ -29,8 +29,8 @@ def cal() -> Cal:
     return Cal(target_dt=target, ref_dt=ref)
 
 
-def test_minute_namespace_val(cal: Cal) -> None:
-    """MinuteNamespace.val returns the minute component (0-59)."""
+def test_minute_unit_val(cal: Cal) -> None:
+    """MinuteUnit.val returns the minute component (0-59)."""
     # Arrange
     # Arrange handled by fixture `cal`
 
@@ -38,8 +38,8 @@ def test_minute_namespace_val(cal: Cal) -> None:
     assert cal.minute.val == 34, f"Minute val mismatch: expected=34, actual={cal.minute.val}"
 
 
-def test_hour_namespace_val(cal: Cal) -> None:
-    """HourNamespace.val returns the hour component (0-23)."""
+def test_hour_unit_val(cal: Cal) -> None:
+    """HourUnit.val returns the hour component (0-23)."""
     # Arrange
     # Arrange handled by fixture `cal`
 
@@ -47,8 +47,8 @@ def test_hour_namespace_val(cal: Cal) -> None:
     assert cal.hour.val == 12, f"Hour val mismatch: expected=12, actual={cal.hour.val}"
 
 
-def test_day_namespace_val_and_name(cal: Cal) -> None:
-    """DayNamespace.val is ISO weekday (1-7) and .name is localized weekday name."""
+def test_day_unit_val_and_name(cal: Cal) -> None:
+    """DayUnit.val is ISO weekday (1-7) and .name is localized weekday name."""
     # Arrange (Wednesday)
     # Arrange handled by fixture `cal`
 
@@ -63,8 +63,8 @@ def test_day_namespace_val_and_name(cal: Cal) -> None:
     )
 
 
-def test_week_namespace_val_and_day(cal: Cal) -> None:
-    """WeekNamespace.val is ISO week number and .day is ISO weekday (1-7)."""
+def test_week_unit_val_and_day(cal: Cal) -> None:
+    """WeekUnit.val is ISO week number and .day is ISO weekday (1-7)."""
     # Arrange
     # Monday; ISO week should be 3 for 2025
     # Arrange handled by fixture `cal`
@@ -80,8 +80,8 @@ def test_week_namespace_val_and_day(cal: Cal) -> None:
     )
 
 
-def test_month_namespace_val_name_day(cal: Cal) -> None:
-    """MonthNamespace.val is 1-12, .name is month name, .day is day of month."""
+def test_month_unit_val_name_day(cal: Cal) -> None:
+    """MonthUnit.val is 1-12, .name is month name, .day is day of month."""
     # Arrange
     # Arrange handled by fixture `cal`
 
@@ -91,8 +91,8 @@ def test_month_namespace_val_name_day(cal: Cal) -> None:
     assert cal.month.day == 15, f"Month day mismatch: expected=15, actual={cal.month.day}"
 
 
-def test_quarter_namespace_val_and_name(cal: Cal) -> None:
-    """QuarterNamespace.val returns 1-4 and .name returns Q{val}."""
+def test_quarter_unit_val_and_name(cal: Cal) -> None:
+    """QuarterUnit.val returns 1-4 and .name returns Q{val}."""
     # Arrange (July -> Q3)
     # Arrange handled by fixture `cal`
 
@@ -101,8 +101,8 @@ def test_quarter_namespace_val_and_name(cal: Cal) -> None:
     assert cal.qtr.name == "Q3", f"Quarter name mismatch: expected=Q3, actual={cal.qtr.name}"
 
 
-def test_year_namespace_val_and_day(cal: Cal) -> None:
-    """YearNamespace.val is the year and .day is day-of-year (1-366)."""
+def test_year_unit_val_and_day(cal: Cal) -> None:
+    """YearUnit.val is the year and .day is day-of-year (1-366)."""
     # Arrange
     # Arrange handled by fixture `cal`
 

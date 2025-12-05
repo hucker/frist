@@ -11,13 +11,13 @@ from typing import TYPE_CHECKING
 
 from ._types import TimeLike, time_pair
 from .units import (
-    DayNamespace,
-    HourNamespace,
-    MinuteNamespace,
-    MonthNamespace,
-    QuarterNamespace,
-    WeekNamespace,
-    YearNamespace,
+    DayUnit,
+    HourUnit,
+    MinuteUnit,
+    MonthUnit,
+    QuarterUnit,
+    WeekUnit,
+    YearUnit,
 )
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -181,35 +181,32 @@ class Cal:
         """
         return self.year.in_(-1)
 
-    # Compact cached namespaces (short 2-4 char names). These are lazy
-    # properties that construct a small namespace object delegating to the
-    # existing `in_*` methods. They are non-invasive and do not change
-    # the canonical API surface which remains the `in_*` methods.
+    # Cached units lazily created
 
     @cached_property
-    def minute(self) -> MinuteNamespace:
-        return MinuteNamespace(self)
+    def minute(self) -> MinuteUnit:
+        return MinuteUnit(self)
 
     @cached_property
-    def hour(self) -> HourNamespace:
-        return HourNamespace(self)
+    def hour(self) -> HourUnit:
+        return HourUnit(self)
 
     @cached_property
-    def day(self) -> DayNamespace:
-        return DayNamespace(self)
+    def day(self) -> DayUnit:
+        return DayUnit(self)
 
     @cached_property
-    def week(self) -> WeekNamespace:
-        return WeekNamespace(self)
+    def week(self) -> WeekUnit:
+        return WeekUnit(self)
 
     @cached_property
-    def month(self) -> MonthNamespace:
-        return MonthNamespace(self)
+    def month(self) -> MonthUnit:
+        return MonthUnit(self)
 
     @cached_property
-    def qtr(self) -> QuarterNamespace:
-        return QuarterNamespace(self)
+    def qtr(self) -> QuarterUnit:
+        return QuarterUnit(self)
 
     @cached_property
-    def year(self) -> YearNamespace:
-        return YearNamespace(self)
+    def year(self) -> YearUnit:
+        return YearUnit(self)

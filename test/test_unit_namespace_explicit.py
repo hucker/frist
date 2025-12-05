@@ -1,5 +1,5 @@
 """
-Explicit membership checks for compact unit namespaces using `Cal`.
+Explicit membership checks for compact units using `Cal`.
 
 Follows CODESTYLE with AAA comments and direct Act/Assert for simple cases.
 """
@@ -9,8 +9,8 @@ import datetime as dt
 from frist._cal import Cal
 
 
-def test_unit_namespace_explicit_checks():
-    """Explicit checks for each compact unit namespace against a concrete Cal.
+def test_unit_explicit_checks():
+    """Explicit checks for each compact unit against a concrete Cal.
 
     Uses a reference datetime and a target equal to the reference so the
     expected membership is straightforward: the 0 offset should be True and

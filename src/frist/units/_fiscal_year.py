@@ -1,16 +1,16 @@
 """
-Fiscal year namespace adapter for `Biz`.
+Fiscal year unit adapter for `Biz`.
 
 Provides `.in_(offset)` checks for fiscal years computed from policy start
 month, delegating to `Biz`.
 """
 from __future__ import annotations
 
-from ._base import UnitNamespace, BizProtocol
+from ._base import BizProtocol, UnitName
 
 
-class FiscalYearNamespace(UnitNamespace[BizProtocol]):
-    """Fiscal year-specific namespace delegating to Biz policy logic."""
+class FiscalYearUnit(UnitName[BizProtocol]):
+    """Fiscal year-specific unit delegating to Biz policy logic."""
 
     def __init__(self, cal: BizProtocol) -> None:
         super().__init__(cal)

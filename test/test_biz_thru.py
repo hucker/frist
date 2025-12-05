@@ -1,5 +1,5 @@
 """
-Tests verifying inclusive `thru` behavior for Biz namespaces.
+Tests verifying inclusive `thru` behavior for Biz units.
 
 These ensure `ns.thru(start, end)` produces the correct half-open semantics
 by advancing the end by 1 compared to `in_`.

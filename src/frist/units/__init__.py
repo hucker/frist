@@ -1,38 +1,35 @@
 """
-Namespace units package.
+Units package.
 
-This module re-exports unit namespace classes to provide a stable import surface
-(e.g., `from frist.units import DayNamespace`). The implementation will be
-incrementally migrated from `_ranges.py` into per-file modules like `_day.py`,
-`_week.py`, etc., without changing the public API.
+This module re-exports unit classes to provide a stable import surface:
+
+(e.g., `from frist.units import DayUnit`). 
 """
 
-# Temporary re-exports from the existing monolithic module.
-# As we migrate, these imports will point to per-file modules.
-from ._base import UnitNamespace
-from ._biz_day import BizDayNamespace
-from ._day import DayNamespace
-from ._fiscal_quarter import FiscalQuarterNamespace
-from ._fiscal_year import FiscalYearNamespace
-from ._hour import HourNamespace
-from ._minute import MinuteNamespace
-from ._month import MonthNamespace
-from ._quarter import QuarterNamespace
-from ._week import WeekNamespace
-from ._work_day import WorkingDayNamespace
-from ._year import YearNamespace
+from ._base import UnitName
+from ._biz_day import BizDayUnit
+from ._day import DayUnit
+from ._fiscal_quarter import FiscalQuarterUnit
+from ._fiscal_year import FiscalYearUnit
+from ._hour import HourUnit
+from ._minute import MinuteUnit
+from ._month import MonthUnit
+from ._quarter import QuarterUnit
+from ._week import WeekUnit
+from ._work_day import WorkingDayUnit
+from ._year import YearUnit
 
 __all__ = [
-    "UnitNamespace",
-    "MinuteNamespace",
-    "HourNamespace",
-    "DayNamespace",
-    "WeekNamespace",
-    "MonthNamespace",
-    "QuarterNamespace",
-    "YearNamespace",
-    "BizDayNamespace",
-    "WorkingDayNamespace",
-    "FiscalQuarterNamespace",
-    "FiscalYearNamespace",
+    "UnitName",
+    "MinuteUnit",
+    "HourUnit",
+    "DayUnit",
+    "WeekUnit",
+    "MonthUnit",
+    "QuarterUnit",
+    "YearUnit",
+    "BizDayUnit",
+    "WorkingDayUnit",
+    "FiscalQuarterUnit",
+    "FiscalYearUnit",
 ]

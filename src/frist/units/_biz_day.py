@@ -1,16 +1,16 @@
 """
-Business-day namespace adapter for `Biz`.
+Business-day unit adapter for `Biz`.
 
 Ergonomic `.in_(offset)` range checks for policy-aware business days (workday
 and not holiday), delegating to `Biz`.
 """
 from __future__ import annotations
 
-from ._base import UnitNamespace, BizProtocol
+from ._base import BizProtocol, UnitName
 
 
-class BizDayNamespace(UnitNamespace[BizProtocol]):
-    """Business day-specific namespace delegating to Biz policy logic."""
+class BizDayUnit(UnitName[BizProtocol]):
+    """Business day-specific unit delegating to Biz policy logic."""
 
     def __init__(self, cal: BizProtocol) -> None:
         super().__init__(cal)
