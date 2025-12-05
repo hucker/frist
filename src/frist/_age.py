@@ -6,7 +6,7 @@ Handles age calcs in various time units, supports both file-based and standalone
 
 import datetime as dt
 import re
-from typing import Callable
+from collections.abc import Callable
 
 from ._constants import (
     DAYS_PER_MONTH,
@@ -19,7 +19,7 @@ from ._constants import (
     SECONDS_PER_WEEK,
     SECONDS_PER_YEAR,
 )
-from ._types import TimeLike, time_pair, to_datetime
+from ._types import TimeLike, time_pair
 
 
 class Age:
@@ -254,7 +254,7 @@ class Age:
             age.format()  # "3.25 hours"
             age.format(fmt="{value:.0f}{unit}", units=[...])  # "3h"
             # Override all formatting:
-            age.format(units=[(1e20, "my custom format", lambda self: self.seconds)], fmt="Custom: {value} {unit}")
+            age.format(units=[(1e20, "custom:", lambda self: self.seconds)], fmt="{value} {unit}")
 
         Note:
             Unit transition thresholds are inspired by the `humanize` Python library:

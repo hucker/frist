@@ -1,13 +1,12 @@
 """
 Compatibility shim for legacy imports.
 
-This module re-exports unit namespace classes from `frist.units` to avoid
-breaking existing import paths while the codebase was refactored to per-file
-modules under `src/frist/units/`.
+Re-exports unit namespaces from `frist.units`. Prefer importing from
+`frist.units` directly in new code. This module may be removed in a future
+major release.
 """
 
 from .units import (
-    UnitNamespace,
     MinuteNamespace,
     HourNamespace,
     DayNamespace,
@@ -22,7 +21,6 @@ from .units import (
 )
 
 __all__ = [
-    "UnitNamespace",
     "MinuteNamespace",
     "HourNamespace",
     "DayNamespace",

@@ -1,5 +1,5 @@
 {
-    "python.defaultInterpreterPath": "./.venv/Scripts/python.exe",
+    "python.defaultInterpreterPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
     "python.testing.pytestArgs": [
         "test"
     ],
@@ -17,6 +17,7 @@
         "datetimes",
         "frist",
         "fromtimestamp",
+        "inclusivity",
         "iterdir",
         "pathlib",
         "pycon",
@@ -35,5 +36,14 @@
     "python.sortImports.args": ["--fix"],
     "python.formatting.provider": "ruff",
     "ruff.fixOnSave": true,
-    "ruff.config": "${workspaceFolder}/pyproject.toml"
+    "ruff.config": "${workspaceFolder}/pyproject.toml",
+
+
+    "python.terminal.activateEnvironment": true,
+    "python.venvPath": "${workspaceFolder}",
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "terminal.integrated.env.windows": {
+        "VIRTUAL_ENV": "${workspaceFolder}\\.venv",
+        "PATH": "${workspaceFolder}\\.venv\\Scripts;${env:PATH}"
+    }
 }

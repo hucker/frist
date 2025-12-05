@@ -1,3 +1,9 @@
+"""
+Quarter namespace adapter for `Cal`.
+
+Supports calendar quarter half-open windows (Q1–Q4) via `.in_(offset)` while
+delegating core logic to `Cal`.
+"""
 from __future__ import annotations
 
 import datetime as dt

@@ -1,3 +1,9 @@
+"""
+Fiscal year namespace adapter for `Biz`.
+
+Provides `.in_(offset)` checks for fiscal years computed from policy start
+month, delegating to `Biz`.
+"""
 from __future__ import annotations
 
 from ._base import UnitNamespace, BizProtocol

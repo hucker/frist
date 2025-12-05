@@ -1,3 +1,9 @@
+"""
+Fiscal quarter namespace adapter for `Biz`.
+
+Implements `.in_(offset)` for fiscal quarters derived from policy start month,
+forwarding to `Biz`.
+"""
 from __future__ import annotations
 
 from ._base import UnitNamespace, BizProtocol

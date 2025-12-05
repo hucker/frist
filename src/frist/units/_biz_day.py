@@ -1,3 +1,9 @@
+"""
+Business-day namespace adapter for `Biz`.
+
+Ergonomic `.in_(offset)` range checks for policy-aware business days (workday
+and not holiday), delegating to `Biz`.
+"""
 from __future__ import annotations
 
 from ._base import UnitNamespace, BizProtocol

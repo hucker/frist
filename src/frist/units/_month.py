@@ -1,3 +1,10 @@
+"""
+Month namespace adapter for `Cal`.
+
+Handles month-aligned half-open windows and related helpers. Internals leverage
+calendar boundaries; external recurrence utilities (e.g., `dateutil.rrule`) may
+be used by `Cal` for robust month computations.
+"""
 from __future__ import annotations
 
 import datetime as dt

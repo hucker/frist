@@ -11,15 +11,14 @@ from collections.abc import Callable
 from functools import cached_property
 
 from ._biz_policy import BizPolicy
+from ._types import TimeLike, time_pair
+from ._util import in_half_open, in_half_open_date, verify_start_end
 from .units import (
     BizDayNamespace,
     FiscalQuarterNamespace,
     FiscalYearNamespace,
-    UnitNamespace,
     WorkingDayNamespace,
 )
-from ._types import TimeLike, time_pair
-from ._util import in_half_open, in_half_open_date, verify_start_end
 
 
 class Biz:
@@ -455,22 +454,22 @@ class Biz:
     # an ergonomic, non-invasive adapter that forwards to them.
 
     @cached_property
-    def biz_day(self) -> UnitNamespace:
+    def biz_day(self) -> BizDayNamespace:
         """Returns a BizDayNamespace for business day range checks and utilities."""
         return BizDayNamespace(self)
 
     @cached_property
-    def work_day(self) -> UnitNamespace:
+    def work_day(self) -> WorkingDayNamespace:
         """Returns a WorkingDayNamespace for working day range checks and utilities."""
         return WorkingDayNamespace(self)
 
     @cached_property
-    def fis_qtr(self) -> UnitNamespace:
+    def fis_qtr(self) -> FiscalQuarterNamespace:
         """Returns a FiscalQuarterNamespace for fiscal quarter range checks and utilities."""
         return FiscalQuarterNamespace(self)
 
     @cached_property
-    def fis_year(self) -> UnitNamespace:
+    def fis_year(self) -> FiscalYearNamespace:
         """Returns a FiscalYearNamespace for fiscal year range checks and utilities."""
         return FiscalYearNamespace(self)
 

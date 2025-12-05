@@ -1,4 +1,29 @@
 {
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "venv: pytest biz+cal quick",
+      "type": "shell",
+      "command": "& .\\.venv\\Scripts\\Activate.ps1; pytest -k 'biz or cal' -q",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "venv: pytest between_single_unit",
+      "type": "shell",
+      "command": "& .\\.venv\\Scripts\\Activate.ps1; pytest -q -k between_single_unit",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "venv: pytest full",
+      "type": "shell",
+      "command": "& .\\.venv\\Scripts\\Activate.ps1; pytest -q",
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
+}{
 	"version": "2.0.0",
 	"tasks": [
 		{

@@ -9,6 +9,7 @@ import datetime as dt
 from functools import cached_property
 from typing import TYPE_CHECKING
 
+from ._types import TimeLike, time_pair
 from .units import (
     DayNamespace,
     HourNamespace,
@@ -18,7 +19,6 @@ from .units import (
     WeekNamespace,
     YearNamespace,
 )
-from ._types import TimeLike, time_pair
 
 if TYPE_CHECKING:  # pragma: no cover
     pass
