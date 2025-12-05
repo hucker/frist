@@ -58,21 +58,23 @@ class BizDayUnit(DayUnit):
 
     @property
     def is_yesterday(self) -> bool:
-        """Unsupported on business days: raises ValueError.
+        """Unsupported on business days: weekends/holidays break contiguity.
 
-        Business calendars skip weekends/holidays; "yesterday" is ambiguous.
-        Use explicit windows via `in_(start, end)` such as `in_(-1, 0)`.
+        Use explicit window checks via `in_(start, end)`, e.g., `in_(-1, 0)`.
         """
-        raise ValueError("biz_day.is_yesterday is not supported; use in_(-1, 0)")
+        raise ValueError(
+            "Unsupported on business days: use in_(-1, 0). Reason: weekends/holidays break contiguous day semantics."
+        )
 
     @property
     def is_tomorrow(self) -> bool:
-        """Unsupported on business days: raises ValueError.
+        """Unsupported on business days: weekends/holidays break contiguity.
 
-        Business calendars skip weekends/holidays; "tomorrow" is ambiguous.
-        Use explicit windows via `in_(start, end)` such as `in_(1, 2)`.
+        Use explicit window checks via `in_(start, end)`, e.g., `in_(1, 2)`.
         """
-        raise ValueError("biz_day.is_tomorrow is not supported; use in_(1, 2)")
+        raise ValueError(
+            "Unsupported on business days: use in_(1, 2). Reason: weekends/holidays break contiguous day semantics."
+        )
 
     # Intentionally no is_yesterday/is_tomorrow for business days
 

@@ -93,6 +93,14 @@ def main() -> None:
     print(f"{'Fiscal Quarter:':<18} {chrono.biz.fis_qtr.val} ({chrono.biz.fis_qtr.name})")
     print(f"{'Fiscal Year:':<18} {chrono.biz.fiscal_year}")
 
+    print("\n=== Biz Windows (explicit in_) ===")
+    print(f"{'work_day.is_today:':<22} {chrono.biz.work_day.is_today}")
+    print(f"{'Work Day in_(-1,0):':<22} {chrono.biz.work_day.in_(-1, 0):<6}  # prior working day")
+    print(f"{'Work Day in_(1,2):':<22} {chrono.biz.work_day.in_(1, 2):<6}  # next working day")
+    print(f"{'biz_day.is_today:':<22} {chrono.biz.biz_day.is_today}")
+    print(f"{'Biz Day in_(-1,0):':<22} {chrono.biz.biz_day.in_(-1, 0):<6}  # prior business day")
+    print(f"{'Biz Day in_(1,2):':<22} {chrono.biz.biz_day.in_(1, 2):<6}  # next business day")
+
 
 if __name__ == "__main__":
     main()

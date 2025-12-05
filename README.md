@@ -262,6 +262,12 @@ Biz/biz_day/work_day shortcuts:
 - `work_day.is_today` and `biz_day.is_today` are provided.
 - `is_yesterday`/`is_tomorrow` on `work_day`/`biz_day` raise `ValueError` (use `in_(-1, 0)` / `in_(1, 2)`).
 
+### Design Notes
+
+- Half-open window semantics: All unit adapters use half-open intervals for `in_(start, end)`, meaning `start <= value < end`. This prevents overlapping ranges at boundaries and keeps window checks predictable.
+- Explicit windows over vague shortcuts: For business/working days, "yesterday" and "tomorrow" are ambiguous because weekends and holidays break contiguity. Therefore, `work_day.is_yesterday`/`is_tomorrow` and `biz_day.is_yesterday`/`is_tomorrow` raise `ValueError`. Use explicit windows like `in_(-1, 0)` and `in_(1, 2)` to represent prior/next working/business days.
+- Day metadata reuse: `biz_day` and `work_day` inherit `val` (ISO weekday 1..7) and `name` (weekday string) from `DayUnit`, overriding only membership logic with policy-aware stepping.
+
 The `BizPolicy` object lets you customize business logic for calendar calculations using half-open intervals You can define:
 
 - **Workdays:** Any combination of weekdays (e.g., Mon, Wed, Fri, Sun)

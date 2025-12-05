@@ -22,8 +22,41 @@ from ._biz import Biz
 from ._biz_policy import BizPolicy
 from ._cal import Cal
 from ._frist import Chrono
+from .units import (
+    BizDayUnit,
+    DayUnit,
+    FiscalQuarterUnit,
+    FiscalYearUnit,
+    HourUnit,
+    MinuteUnit,
+    MonthUnit,
+    QuarterUnit,
+    UnitName,
+    WeekUnit,
+    WorkingDayUnit,
+    YearUnit,
+)
 
 __version__ = "0.17.0"
 __author__ = "Chuck Bass"
 
-__all__ = ["Chrono", "Age",  "Cal" ,"Biz","BizPolicy" ]
+__all__ = [
+    "Chrono",
+    "Age",
+    "Cal",
+    "Biz",
+    "BizPolicy",
+    # Units re-exported at top-level for convenience
+    "UnitName",
+    "MinuteUnit",
+    "HourUnit",
+    "DayUnit",
+    "WeekUnit",
+    "MonthUnit",
+    "QuarterUnit",
+    "YearUnit",
+    "BizDayUnit",
+    "WorkingDayUnit",
+    "FiscalQuarterUnit",
+    "FiscalYearUnit",
+]
