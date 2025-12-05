@@ -10,8 +10,6 @@ All functions follow PEP 8 and Google-style docstrings.
 """
 
 import datetime as dt
-import functools
-from collections.abc import Callable
 from typing import Any
 
 from ._constants import WEEKDAY_INDEX
@@ -62,38 +60,7 @@ def normalize_weekday(day_spec: str) -> int:
     )
 
 
-def verify_start_end(func: Callable[..., Any]) -> Callable[..., Any]:
-    """
-    Decorator for calendar window methods to validate and normalize start/end.
-
-    Behavior:
-      - If `end` is None it is normalized to `start + 1` so a single-arg call
-        like `in_days(n)` represents the half-open interval [n, n+1).
-      - The decorator enforces that start < end (strict). If start >= end an
-        error is raised because the half-open interval would be empty.
-    """
-
-    @functools.wraps(func)
-    def wrapper(
-        self: Any, start: int = 0, end: int | None = None, *args: Any, **kwargs: Any
-    ) -> Any:
-        # Normalize end: single-arg convenience -> one-unit half-open interval
-        end_fixed: int = start + 1 if end is None else end
-
-        # Enforce non-empty half-open interval: start must be strictly less than end
-        if start >= end_fixed:
-            func_name = getattr(func, "__name__", repr(func))
-            # Match existing test expectations which look for the phrase
-            # 'must not be greater than end'. Keep the function name prefix
-            # for clarity.
-            raise ValueError(
-                f"{func_name}: start ({start}) must not be > than end ({end_fixed})"
-            )
-
-        # Call wrapped function with normalized end
-        return func(self, start, end_fixed, *args, **kwargs)
-
-    return wrapper
+# verify_start_end decorator removed; unit adapters own validation/normalization.
 
 
 def in_half_open(start: int, value: int, end: int) -> bool:

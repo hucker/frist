@@ -4,22 +4,25 @@ Utility tests for helpers and normalization in frist.
 
 import pytest
 
-from frist._util import verify_start_end  # type: Callable[[Any], Callable[..., Any]]
+import datetime as dt
+from frist._util import in_half_open, in_half_open_dt, in_half_open_date
 
 
-def test_verify_start_end_raises_valueerror():
-    """
-    Test that verify_start_end raises ValueError when start >= end.
-    """
-    @verify_start_end
-    def dummy(self, start: int = 0, end: int | None = None) -> None:
-        return None
+def test_in_half_open_int():
+    assert in_half_open(0, 0, 1) is True
+    assert in_half_open(0, 1, 1) is False
+    assert in_half_open(-2, -1, 0) is True
 
-    class Dummy:
-        pass
 
-    d = Dummy()
-    with pytest.raises(ValueError, match="must not be > than end"):
-        dummy(d, 2, 1)
-    with pytest.raises(ValueError, match="must not be > than end"):
-        dummy(d, 0, 0)
+def test_in_half_open_dt():
+    start = dt.datetime(2025, 1, 1, 0, 0)
+    end = dt.datetime(2025, 1, 2, 0, 0)
+    assert in_half_open_dt(start, start, end) is True
+    assert in_half_open_dt(start, end, end) is False
+
+
+def test_in_half_open_date():
+    start = dt.date(2025, 1, 1)
+    end = dt.date(2025, 1, 2)
+    assert in_half_open_date(start, start, end) is True
+    assert in_half_open_date(start, end, end) is False
