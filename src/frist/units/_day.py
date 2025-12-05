@@ -42,3 +42,30 @@ class DayUnit(UnitName[CalProtocol]):
         Returns the day name for the target time.
         """
         return self._cal.target_dt.strftime("%A")
+
+    @property
+    def is_today(self) -> bool:
+        """Convenience shortcut for same calendar day as reference.
+
+        Alias for `day.in_(0)`.
+        For other windows, use `day.in_(start, end)`, `day.between(...)`, or `day.thru(...)`.
+        """
+        return self.in_(0)
+
+    @property
+    def is_yesterday(self) -> bool:
+        """Convenience shortcut for previous calendar day relative to reference.
+
+        Alias for `day.in_(-1)`.
+        For other windows, use `day.in_(start, end)`, `day.between(...)`, or `day.thru(...)`.
+        """
+        return self.in_(-1)
+
+    @property
+    def is_tomorrow(self) -> bool:
+        """Convenience shortcut for next calendar day relative to reference.
+
+        Alias for `day.in_(1)`.
+        For other windows, use `day.in_(start, end)`, `day.between(...)`, or `day.thru(...)`.
+        """
+        return self.in_(1)

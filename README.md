@@ -205,47 +205,11 @@ True    # target was in Sept/Oct (the two full months before Nov)
 False   # not in the 7..1 days before ref
 ```
 
-### Inclusive `thru` helper
+### Window Checks: `in_`
 
-Frist also provides a helper available on the compact `UnitNames` properties (for example `cal.mon`, `cal.day`, `biz.biz_day`) named `thru`. The `thru` method uses inclusive end semantics which is convenient for human-readable ranges such as "Mon thru Fri" where the end unit is part of the range.
-
-- `*.in_` methods and the main API use half-open intervals: `start <= value < end`. - `*.thru(start, end)` is inclusive on the end: it returns True when `start <= value <= end`.
-
-Implementation note: `thru` is implemented as a thin ergonomic adapter that forwards to the canonical half-open `in_*` methods by advancing the exclusive end by one unit. For example `cal.month.thru(-2, 0)` is equivalent to `cal.month.in_(-2, 1)` (the inclusive end `0` becomes exclusive `1`). This keeps the core API canonical while offering a more natural English-style `thru` surface for users.
+Frist's canonical way to express window membership is the `in_` method on unit adapters. Use `in_(start, end)` with half-open semantics where `start` is inclusive and `end` is exclusive. This keeps ranges non-overlapping and predictable.
 
 Examples:
-
-```pycon
->>> from frist import Cal
->>> import datetime as dt
->>> ref = dt.datetime(2025,11,20)
->>> # "last Monday thru Friday" style checks
->>> Cal(dt.datetime(2025,11,17), ref).day.thru(-3, -1)   # Mon thru Wed
-True
->>> # Equivalent half-open call
->>> Cal(dt.datetime(2025,11,17), ref).day.in_(-3, 0)
-True
-```
-
-### Generic Between
-
-The `between(start, end, inclusive)` helper lets you express range-membership with explicit boundary style while still using Frist's canonical half-open logic under the hood.
-
-- Purpose: configurable boundary inclusivity without re-implementing range math.
-- Base rule: core `in_(S, E)` checks use half-open intervals `S <= value < E`.
-- Inputs: `start`/`end` are integer offsets in the current unit (minutes, days, months, etc.) relative to `ref_dt`.
-- Single-arg: if `end` is `None`, a one-unit window is used after inclusivity adjustment.
-
-Mapping of `inclusive` to `in_(...)`
-
-| Inclusive | Mathematical intent              | Adjusted call                      |
-| --------- | -------------------------------- | ---------------------------------- |
-| `"both"` | start ≤ value ≤ end             | `in_(start, (end or start) + 1)`   |
-| `"left"` | start ≤ value < end             | `in_(start, (end or start) + 0)`   |
-| `"right"`| start < value ≤ end             | `in_(start + 1, (end or start) + 1)` |
-| `"neither"` | start < value < end           | `in_(start + 1, (end or start) + 0)` |
-
-Examples
 
 ```python
 from frist import Cal
@@ -253,24 +217,18 @@ import datetime as dt
 
 ref = dt.datetime(2025, 11, 20)
 
-# Yesterday..tomorrow inclusive
-Cal(dt.datetime(2025, 11, 19), ref).day.between(-1, 1, "both")   # -> in_(-1, 2)
+# Yesterday..tomorrow style checks via half-open windows
+Cal(dt.datetime(2025, 11, 19), ref).day.in_(-1, 2)
 
 # Last two full months (end exclusive)
-Cal(dt.datetime(2025, 9, 15), ref).month.between(-2, 0, "left")  # -> in_(-2, 0)
+Cal(dt.datetime(2025, 9, 15), ref).month.in_(-2, 0)
 
-# Strictly after start week, end inclusive
-Cal(dt.datetime(2025, 11, 24), ref).week.between(0, 1, "right")  # -> in_(1, 2)
+# Strictly after start week, end exclusive
+Cal(dt.datetime(2025, 11, 24), ref).week.in_(1, 2)
 
-# One-hour window with explicit style (single-arg)
-Cal(dt.datetime(2025, 11, 20, 13), ref).hour.between(-1, None, "both")  # -> in_(-1, 0)
+# One-hour window (single unit)
+Cal(dt.datetime(2025, 11, 20, 13), ref).hour.in_(-1, 0)
 ```
-
-Notes
-
-- Invalid `inclusive` values raise `ValueError`.
-- `between` is a thin adapter around `in_`, keeping the API consistent and predictable while offering familiar boundary semantics inspired by `pandas.Series.between`.
-- Single‑unit windows: if `end` is `None`, `between(start, None, ...)` always maps to `in_(start, start + 1)` for all modes.
 
 ---
 
@@ -296,9 +254,13 @@ Example:
 >>> b.business_days
 2.0      # Dec 25 removed from business-day total
 >>> b.biz_day.in_(0)
-False    # target is a holiday -> not a business day
+False    # holiday -> not a business day
 >>> b.work_day.in_(0)
-True     # still a weekday per policy
+True     # weekday per policy
+
+Biz/biz_day/work_day shortcuts:
+- `work_day.is_today` and `biz_day.is_today` are provided.
+- `is_yesterday`/`is_tomorrow` on `work_day`/`biz_day` raise `ValueError` (use `in_(-1, 0)` / `in_(1, 2)`).
 
 The `BizPolicy` object lets you customize business logic for calendar calculations using half-open intervals You can define:
 
@@ -526,29 +488,22 @@ It also computes fractional day contributions using the policy's business hours.
 | `working_days`       | Fractional working days between target and ref (ignores holidays)   | `float` |
 | `business_days`      | Fractional business days between target and ref (excludes holidays) | `float` |
 
-| Method                                   | Description                                           | Return |
+| Methods/Accessors                         | Description                                           | Return |
 | ---------------------------------------- | ----------------------------------------------------- | ------ |
-| `in_working_days(start=0, end=0)`        | Range membership by working days (ignores holidays)   | `bool` |
-| `in_business_days(start=0, end=0)`       | Range membership by business days (excludes holidays) | `bool` |
-| `get_fiscal_year(dt, fy_start_month)`    | Static helper to compute fiscal year for a datetime   | `int`  |
-| `get_fiscal_quarter(dt, fy_start_month)` | Static helper to compute fiscal quarter               | `int`  |
+| `work_day.in_(start=0, end=None)`        | Range membership by working days (ignores holidays)   | `bool` |
+| `biz_day.in_(start=0, end=None)`         | Range membership by business days (excludes holidays) | `bool` |
+| `fis_year.in_(start=0, end=None)`        | Fiscal year window membership                         | `bool` |
+| `fis_qtr.in_(start=0, end=None)`         | Fiscal quarter window membership                      | `bool` |
+| `biz.work_day`                           | Unit adapter for working-day logic                    | `Unit` |
+| `biz.biz_day`                            | Unit adapter for business-day logic                   | `Unit` |
+| `biz.fis_year`                           | Unit adapter for fiscal-year logic                    | `Unit` |
+| `biz.fis_qtr`                            | Unit adapter for fiscal-quarter logic                 | `Unit` |
 
-Shortcuts (convenience boolean properties):
+Shortcuts:
 
-| Shortcut | Equivalent `in_*` call |
-| -------- | --------------------- |
-| `is_business_last_day` | `biz_day.in_(-1)` (observes holidays) |
-| `is_business_this_day` | `biz_day.in_(0)` (observes holidays) |
-| `is_business_next_day` | `biz_day.in_(1)` (observes holidays) |
-| `is_workday_last_day` | `work_day.in_(-1)` |
-| `is_workday_this_day` | `work_day.in_(0)` |
-| `is_workday_next_day` | `work_day.in_(1)` |
-| `is_last_fiscal_quarter` | `in_fiscal_quarters(-1)` |
-| `is_this_fiscal_quarter` | `in_fiscal_quarters(0)` |
-| `is_next_fiscal_quarter` | `in_fiscal_quarters(1)` |
-| `is_last_fiscal_year` | `in_fiscal_years(-1)` |
-| `is_this_fiscal_year` | `in_fiscal_years(0)` |
-| `is_next_fiscal_year` | `in_fiscal_years(1)` |
+- `work_day.is_today` and `biz_day.is_today` are provided.
+- `work_day.is_yesterday`/`is_tomorrow` and `biz_day.is_yesterday`/`is_tomorrow` are not supported and raise `ValueError`. Use explicit windows with `in_(start, end)` (e.g., `in_(-1, 0)`, `in_(1, 2)`).
+- Fiscal shortcuts remain available via unit adapters (e.g., `biz.fis_qtr.in_(...)`, `biz.fis_year.in_(...)`).
 
 ### Chrono Object
 

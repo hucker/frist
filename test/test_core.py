@@ -583,24 +583,24 @@ def test_chrono_business_day_shortcuts():
     
     # Same business day
     chrono_same = Chrono(target_dt=dt.datetime(2024, 1, 3), ref_dt=ref_time, policy=policy)
-    assert chrono_same.biz.is_business_this_day is True
-    assert chrono_same.biz.is_business_last_day is False
-    assert chrono_same.biz.is_business_next_day is False
+    assert chrono_same.biz.is_business_day_today is True
+    assert chrono_same.biz.is_business_day_yesterday is False
+    assert chrono_same.biz.is_business_day_tomorrow is False
     
     # Previous business day (Tuesday)
     chrono_last = Chrono(target_dt=dt.datetime(2024, 1, 2), ref_dt=ref_time, policy=policy)
-    assert chrono_last.biz.is_business_this_day is False
-    assert chrono_last.biz.is_business_last_day is True
-    assert chrono_last.biz.is_business_next_day is False
+    assert chrono_last.biz.is_business_day_today is False
+    assert chrono_last.biz.is_business_day_yesterday is True
+    assert chrono_last.biz.is_business_day_tomorrow is False
     
     # Next business day (Thursday)
     chrono_next = Chrono(target_dt=dt.datetime(2024, 1, 4), ref_dt=ref_time, policy=policy)
-    assert chrono_next.biz.is_business_this_day is False
-    assert chrono_next.biz.is_business_last_day is False
-    assert chrono_next.biz.is_business_next_day is True
+    assert chrono_next.biz.is_business_day_today is False
+    assert chrono_next.biz.is_business_day_yesterday is False
+    assert chrono_next.biz.is_business_day_tomorrow is True
     
     # Weekend (not a business day)
     chrono_weekend = Chrono(target_dt=dt.datetime(2024, 1, 6), ref_dt=ref_time, policy=policy)
-    assert chrono_weekend.biz.is_business_this_day is False
-    assert chrono_weekend.biz.is_business_last_day is False
-    assert chrono_weekend.biz.is_business_next_day is False
+    assert chrono_weekend.biz.is_business_day_today is False
+    assert chrono_weekend.biz.is_business_day_yesterday is False
+    assert chrono_weekend.biz.is_business_day_tomorrow is False

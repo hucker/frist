@@ -10,11 +10,17 @@ import datetime as dt
 
 from .._biz_policy import BizPolicy
 from .._util import in_half_open_date
-from ._base import CalProtocol, UnitName
+from ._base import CalProtocol
+from ._day import DayUnit
 
 
-class WorkingDayUnit(UnitName[CalProtocol]):
-    """Working day-specific unit using the supplied Biz policy."""
+class WorkingDayUnit(DayUnit):
+    """Working day unit (inherits Day metadata).
+
+    - Inherits `val` (ISO weekday 1..7) and `name` (weekday string) from `DayUnit`.
+    - Provides policy-aware window checks via `in_(start, end)` using working-day stepping.
+    - Shortcut: `is_today` only. Use explicit windows with `in_` for previous/next working days.
+    """
 
     def __init__(self, cal: CalProtocol, policy: BizPolicy) -> None:
         super().__init__(cal)
@@ -83,3 +89,32 @@ class WorkingDayUnit(UnitName[CalProtocol]):
                 )
             current = current + dt.timedelta(days=1)
         return total
+
+    # val and name inherited from DayUnit
+
+    @property
+    def is_today(self) -> bool:
+        """Convenience shortcut for same working day as reference.
+
+        Alias for `work_day.in_(0)`. For prior/next windows, prefer
+        explicit `in_(start, end)` calls (e.g., `in_(-1, 0)`, `in_(1, 2)`).
+        """
+        return self.in_(0)
+
+    @property
+    def is_yesterday(self) -> bool:
+        """Unsupported on working days: raises ValueError.
+
+        Working calendars skip weekends/holidays; "yesterday" is ambiguous.
+        Use explicit windows via `in_(start, end)` such as `in_(-1, 0)`.
+        """
+        raise ValueError("work_day.is_yesterday is not supported; use in_(-1, 0)")
+
+    @property
+    def is_tomorrow(self) -> bool:
+        """Unsupported on working days: raises ValueError.
+
+        Working calendars skip weekends/holidays; "tomorrow" is ambiguous.
+        Use explicit windows via `in_(start, end)` such as `in_(1, 2)`.
+        """
+        raise ValueError("work_day.is_tomorrow is not supported; use in_(1, 2)")

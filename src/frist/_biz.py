@@ -11,6 +11,7 @@ from functools import cached_property
 
 from ._biz_policy import BizPolicy
 from ._types import TimeLike, time_pair
+
 # No verify_start_end decorators needed; unit adapters are used directly.
 from .units import (
     BizDayUnit,
@@ -92,40 +93,43 @@ class Biz:
 
     # ---------- Shortcut properties (policy-aware) ----------
     @property
-    def is_business_last_day(self) -> bool:
+    def is_business_day_yesterday(self) -> bool:
         """Shortcut: True when target is in the business-day immediately before ref_dt.
         """
         return self.biz_day.in_(-1)
 
     @property
-    def is_business_this_day(self) -> bool:
+    def is_business_day_today(self) -> bool:
         """Shortcut: True when the target is in the business-day of the ref_dt.
         """
         return self.biz_day.in_(0)
 
     @property
-    def is_business_next_day(self) -> bool:
+    def is_business_day_tomorrow(self) -> bool:
         """Shortcut: True when target is in the business-day immediately after ref_dt
         """
         return self.biz_day.in_(1)
 
     @property
-    def is_workday_last_day(self) -> bool:
+    def is_workday_yesterday(self) -> bool:
         """Shortcut: True when target is in the workday immediately before the ref_dt
         """
         return self.work_day.in_(-1)
 
     @property
-    def is_workday_this_day(self) -> bool:
+    def is_workday_today(self) -> bool:
         """Shortcut: True when target is in the workday of the reference.
         """
         return self.work_day.in_(0)
 
     @property
-    def is_workday_next_day(self) -> bool:
+    def is_workday_tomorrow(self) -> bool:
         """Shortcut: True when target is in the workday immediately after the ref_dt
         """
         return self.work_day.in_(1)
+
+    # No backward-compatible aliases; tests and API use explicit
+    # today/yesterday/tomorrow names.
 
     # Fiscal shortcuts (explicitly fiscal-aware)
     @property
@@ -177,14 +181,12 @@ class Biz:
     @property
     def fiscal_quarter(self) -> int:
         return self.fis_qtr.val
-
-    # (No compatibility wrappers; use unit adapters directly.)
     
     
     # ---------- Public calculations ----------
     @property
     def business_days(self) -> float:
-        """Fractional business days between target_time and ref_time.
+        """Fractional business days between target_time and ref_time using half-open interval.
 
         Delegates to `biz_day.business_days()`.
         """
@@ -192,7 +194,7 @@ class Biz:
 
     @property
     def working_days(self) -> float:
-        """Fractional working days between target_time and ref_time.
+        """Fractional working days between target_time and ref_time using half-open interval.
 
         Delegates to `work_day.working_days()`.
         """

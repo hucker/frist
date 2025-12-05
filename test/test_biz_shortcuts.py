@@ -4,8 +4,8 @@ These tests verify the five canonical boundary positions for each shortcut:
 below-lower, on-lower, interior (above-lower), on-upper (exclusive), above-upper.
 
 Shortcuts covered:
-- Day-level: is_business_last_day / is_business_this_day / is_business_next_day
-             is_workday_last_day / is_workday_this_day / is_workday_next_day
+- Day-level: is_business_day_yesterday / is_business_day_today / is_business_day_tomorrow
+             is_workday_yesterday / is_workday_today / is_workday_tomorrow
 - Fiscal: is_last_fiscal_quarter / is_this_fiscal_quarter / is_next_fiscal_quarter
           is_last_fiscal_year / is_this_fiscal_year / is_next_fiscal_year
 """
@@ -74,11 +74,11 @@ def test_day_shortcuts_five_cases() -> None:
     # Act & Assert
     # Act & Assert
     _check_five_biz(
-        "is_business_this_day", ref, policy,
+        "is_business_day_today", ref, policy,
         dt_below, dt_on_lower, dt_above_lower, dt_on_upper, dt_above_upper
     )
     _check_five_biz(
-        "is_workday_this_day", ref, policy,
+        "is_workday_today", ref, policy,
         dt_below, dt_on_lower, dt_above_lower, dt_on_upper, dt_above_upper
     )
 
@@ -102,9 +102,9 @@ def test_business_vs_workday_holiday_shortcuts() -> None:
     expected_business_last_day_thu = True
     expected_business_last_day_fri = False
     expected_workday_last_day_fri = True
-    actual_business_last_day_thu = Biz(dt_thu, ref, policy).is_business_last_day
-    actual_business_last_day_fri = Biz(dt_fri_hol, ref, policy).is_business_last_day
-    actual_workday_last_day_fri = Biz(dt_fri_hol, ref, policy).is_workday_last_day
+    actual_business_last_day_thu = Biz(dt_thu, ref, policy).is_business_day_yesterday
+    actual_business_last_day_fri = Biz(dt_fri_hol, ref, policy).is_business_day_yesterday
+    actual_workday_last_day_fri = Biz(dt_fri_hol, ref, policy).is_workday_yesterday
     assert actual_business_last_day_thu is expected_business_last_day_thu
     assert actual_business_last_day_fri is expected_business_last_day_fri
     assert actual_workday_last_day_fri is expected_workday_last_day_fri

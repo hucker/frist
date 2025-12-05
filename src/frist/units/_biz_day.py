@@ -8,12 +8,19 @@ from __future__ import annotations
 
 import datetime as dt
 
-from .._util import in_half_open_date
 from .._biz_policy import BizPolicy
-from ._base import CalProtocol, UnitName
+from .._util import in_half_open_date
+from ._base import CalProtocol
+from ._day import DayUnit
 
-class BizDayUnit(UnitName[CalProtocol]):
-    """Business day-specific unit using the supplied Biz policy."""
+
+class BizDayUnit(DayUnit):
+    """Business day unit (inherits Day metadata).
+
+    - Inherits `val` (ISO weekday 1..7) and `name` (weekday string) from `DayUnit`.
+    - Provides policy-aware window checks via `in_(start, end)` using business-day stepping.
+    - Shortcut: `is_today` only. Use explicit windows with `in_` for previous/next business days.
+    """
 
     def __init__(self, cal: CalProtocol, policy: BizPolicy) -> None:
         super().__init__(cal)
@@ -39,6 +46,35 @@ class BizDayUnit(UnitName[CalProtocol]):
         start_date = self.move_n_days(ref, start)
         end_date = self.move_n_days(ref, end)
         return in_half_open_date(start_date, tgt, end_date)
+
+    @property
+    def is_today(self) -> bool:
+        """Return True if current time is within today's business day.
+
+        Alias for `biz_day.in_(0)`. For prior/next windows, prefer
+        explicit `in_(start, end)` calls (e.g., `in_(-1, 0)`, `in_(1, 2)`).
+        """
+        return self.in_(0)
+
+    @property
+    def is_yesterday(self) -> bool:
+        """Unsupported on business days: raises ValueError.
+
+        Business calendars skip weekends/holidays; "yesterday" is ambiguous.
+        Use explicit windows via `in_(start, end)` such as `in_(-1, 0)`.
+        """
+        raise ValueError("biz_day.is_yesterday is not supported; use in_(-1, 0)")
+
+    @property
+    def is_tomorrow(self) -> bool:
+        """Unsupported on business days: raises ValueError.
+
+        Business calendars skip weekends/holidays; "tomorrow" is ambiguous.
+        Use explicit windows via `in_(start, end)` such as `in_(1, 2)`.
+        """
+        raise ValueError("biz_day.is_tomorrow is not supported; use in_(1, 2)")
+
+    # Intentionally no is_yesterday/is_tomorrow for business days
 
     def business_days(self) -> float:
         """Fractional business days between target_dt and ref_dt per policy.
@@ -70,3 +106,5 @@ class BizDayUnit(UnitName[CalProtocol]):
                 total += max(frac_at(end_dt) - frac_at(start_dt), 0.0)
             current = current + dt.timedelta(days=1)
         return total
+
+    # val and name inherited from DayUnit

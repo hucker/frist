@@ -193,15 +193,15 @@ def test_biz_convenience_properties(target_ref: tuple[dt.datetime, dt.datetime],
     target_dt, ref_dt = target_ref
     biz = Biz(target_dt, ref_dt, policy)
 
-    # Test business day properties
-    assert biz.is_business_last_day == biz.biz_day.in_(-1)
-    assert biz.is_business_this_day == biz.biz_day.in_(0)
-    assert biz.is_business_next_day == biz.biz_day.in_(1)
+    # Test business day properties (today/yesterday/tomorrow)
+    assert biz.is_business_day_yesterday == biz.biz_day.in_(-1)
+    assert biz.is_business_day_today == biz.biz_day.in_(0)
+    assert biz.is_business_day_tomorrow == biz.biz_day.in_(1)
 
     # Test working day properties
-    assert biz.is_workday_last_day == biz.work_day.in_(-1)
-    assert biz.is_workday_this_day == biz.work_day.in_(0)
-    assert biz.is_workday_next_day == biz.work_day.in_(1)
+    assert biz.is_workday_yesterday == biz.work_day.in_(-1)
+    assert biz.is_workday_today == biz.work_day.in_(0)
+    assert biz.is_workday_tomorrow == biz.work_day.in_(1)
 
     # Test fiscal properties
     assert biz.is_last_fiscal_quarter == biz.fis_qtr.in_(-1)

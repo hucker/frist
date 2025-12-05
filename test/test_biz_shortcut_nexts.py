@@ -20,11 +20,11 @@ def test_is_business_and_workday_next_day_shortcuts():
     b = Biz(target, ref, policy)
 
     # Act / Assert
-    assert b.is_business_next_day is True, "is_business_next_day should be True for Fri when ref is Thu"
-    assert b.is_business_next_day == b.biz_day.in_(1), "business shortcut should equal in_business_days(1)"
+    assert b.is_business_day_tomorrow is True, "is_business_day_tomorrow should be True for Fri when ref is Thu"
+    assert b.is_business_day_tomorrow == b.biz_day.in_(1), "business shortcut should equal biz_day.in_(1)"
 
-    assert b.is_workday_next_day is True, "is_workday_next_day should be True for Fri when ref is Thu"
-    assert b.is_workday_next_day == b.work_day.in_(1), "workday shortcut should equal in_working_days(1)"
+    assert b.is_workday_tomorrow is True, "is_workday_tomorrow should be True for Fri when ref is Thu"
+    assert b.is_workday_tomorrow == b.work_day.in_(1), "workday shortcut should equal work_day.in_(1)"
 
 
 def test_is_next_fiscal_quarter_and_year_shortcuts():

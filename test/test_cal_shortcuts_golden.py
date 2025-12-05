@@ -51,13 +51,13 @@ def test_cal_shortcuts_golden(shortcut: str, target_dt: dt.datetime, expected: b
 @pytest.mark.parametrize(
     "shortcut, target_dt, expected",
     [
-        # business-day / workday shortcuts
-        ("is_business_this_day", dt.datetime(2025, 1, 13, 10, 0), True),
-        ("is_business_last_day", dt.datetime(2025, 1, 10, 10, 0), True),
-        ("is_business_next_day", dt.datetime(2025, 1, 14, 10, 0), True),
-        ("is_workday_this_day", dt.datetime(2025, 1, 13, 10, 0), True),
-        ("is_workday_last_day", dt.datetime(2025, 1, 10, 10, 0), True),
-        ("is_workday_next_day", dt.datetime(2025, 1, 14, 10, 0), True),
+        # business-day / workday shortcuts (today/yesterday/tomorrow)
+        ("is_business_day_today", dt.datetime(2025, 1, 13, 10, 0), True),
+        ("is_business_day_yesterday", dt.datetime(2025, 1, 10, 10, 0), True),
+        ("is_business_day_tomorrow", dt.datetime(2025, 1, 14, 10, 0), True),
+        ("is_workday_today", dt.datetime(2025, 1, 13, 10, 0), True),
+        ("is_workday_yesterday", dt.datetime(2025, 1, 10, 10, 0), True),
+        ("is_workday_tomorrow", dt.datetime(2025, 1, 14, 10, 0), True),
         # fiscal shortcuts (calendar fiscal year starting Jan)
         ("is_this_fiscal_quarter", dt.datetime(2025, 2, 1, 0, 0), True),
         ("is_last_fiscal_quarter", dt.datetime(2024, 11, 15, 0, 0), True),
