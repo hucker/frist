@@ -7,12 +7,11 @@ and Cal; Chrono composes Biz when policy-aware operations are required.
 """
 
 import datetime as dt
-from collections.abc import Callable
 from functools import cached_property
 
 from ._biz_policy import BizPolicy
 from ._types import TimeLike, time_pair
-from ._util import in_half_open, in_half_open_date, verify_start_end
+from ._util import verify_start_end
 from .units import (
     BizDayUnit,
     FiscalQuarterUnit,
@@ -179,132 +178,38 @@ class Biz:
     def fiscal_quarter(self) -> int:
         return self.fis_qtr.val
 
+    # Compatibility wrappers for tests (delegating to units)
     def _workday_fraction_at(self, dt_obj: dt.datetime) -> float:
-        """Fraction of business-day elapsed at dt_obj, ignoring holidays/workday checks.
+        """Fraction of working-day elapsed at dt_obj via WorkingDayUnit.
 
-        Computes fraction between policy.start_of_business and policy.end_of_business
-        for the given date using the time component of dt_obj.
+        Provided for test compatibility; logic lives in WorkingDayUnit.
         """
-        start: dt.time = self.cal_policy.start_of_business
-        end: dt.time = self.cal_policy.end_of_business
-        start_dt: dt.datetime = dt.datetime.combine(dt_obj.date(), start)
-        end_dt: dt.datetime = dt.datetime.combine(dt_obj.date(), end)
-        total: float = (end_dt - start_dt).total_seconds()
-        cur: float = (
-            dt.datetime.combine(dt_obj.date(), dt_obj.time()) - start_dt
-        ).total_seconds()
-        if cur <= 0:
-            return 0.0
-        if cur >= total:
-            return 1.0
-        return cur / total if total > 0 else 0.0
+        return self.work_day.workday_fraction_at(dt_obj)
 
-    def _age_days_helper(
-        self,
-        check_fn: Callable[[dt.datetime], bool],
-        frac_fn: Callable[[dt.datetime], float] | None = None,
-    ) -> float:
-        """Generic day-iterator that sums fractional contributions for days 
-           where check_fn(day_dt) is True.
+    def _move_n_days(self, start_date: dt.date, n: int, count_business: bool) -> dt.date:
+        """Move n business/working days from start_date using unit adapters.
 
-        `check_fn` receives a datetime on the day being considered. `frac_fn`, if
-        provided, is used to compute the fractional business-day progress for a
-        given datetime; otherwise the policy's `business_day_fraction` is used
-        (which returns 0.0 for holidays).
+        Provided for test compatibility; logic lives in BizDayUnit/WorkingDayUnit.
         """
-        if self.target_dt > self.ref_dt:
-            raise ValueError(f"{self.target_dt=} must not be after {self.ref_dt=}")
-
-        if frac_fn is None:
-            frac_fn = self.cal_policy.business_day_fraction
-
-        current: dt.datetime = self.target_dt
-        end: dt.datetime = self.ref_dt
-        total: float = 0.0
-
-        while current.date() <= end.date():
-            if check_fn(current):
-                # Determine window for this day
-                if current.date() == self.target_dt.date():
-                    start_dt: dt.datetime = self.target_dt
-                    end_dt: dt.datetime = min(
-                        end,
-                        dt.datetime.combine(
-                            current.date(), self.cal_policy.end_of_business
-                        ),
-                    )
-                elif current.date() == end.date():
-                    start_dt = dt.datetime.combine(
-                        current.date(), self.cal_policy.start_of_business
-                    )
-                    end_dt = end
-                else:
-                    start_dt = dt.datetime.combine(
-                        current.date(), self.cal_policy.start_of_business
-                    )
-                    end_dt = dt.datetime.combine(
-                        current.date(), self.cal_policy.end_of_business
-                    )
-
-                frac: float = frac_fn(end_dt) - frac_fn(start_dt)
-                total += max(frac, 0.0)
-            current = current + dt.timedelta(days=1)
-
-        return total
-
+        if count_business:
+            return self.biz_day.move_n_days(start_date, n)
+        return self.work_day.move_n_days(start_date, n)
     # ---------- Public calculations ----------
     @property
     def business_days(self) -> float:
         """Fractional business days between target_time and ref_time.
 
-        Business day = policy.is_workday(date) AND not policy.is_holiday(date).
+        Delegates to `biz_day.business_days()`.
         """
-
-        def check(dt_obj: dt.datetime) -> bool:
-            return self.cal_policy.is_business_day(dt_obj)
-
-        return self._age_days_helper(check)
+        return self.biz_day.business_days()
 
     @property
     def working_days(self) -> float:
         """Fractional working days between target_time and ref_time.
 
-        Working days are defined by policy.is_workday (ignores holidays) and are
-        counted fractionally using business hours.
+        Delegates to `work_day.working_days()`.
         """
-
-        def check(dt_obj: dt.datetime) -> bool:
-            return self.cal_policy.is_workday(dt_obj)
-
-        return self._age_days_helper(check, self._workday_fraction_at)
-
-    # ---------- Range membership helpers ----------
-    def _move_n_days(
-        self, start_date: dt.date, n: int, count_business: bool
-    ) -> dt.date:
-        """Move n business/working days from start_date, skipping days that don't count
-
-        If n is positive, moves forward; if negative, moves backward. Returns the 
-        date reached after moving.
-        """
-        if n == 0:
-            return start_date
-
-        step: int = 1 if n > 0 else -1
-        remaining: int = abs(n)
-        current: dt.date = start_date
-
-        while remaining > 0:
-            current = current + dt.timedelta(days=step)
-            # Determine if the current day counts
-            if count_business:
-                counts: bool = self.cal_policy.is_business_day(current)
-            else:
-                counts = self.cal_policy.is_workday(current)
-            if counts:
-                remaining -= 1
-
-        return current
+        return self.work_day.working_days()
 
     @verify_start_end
     def in_business_days(self, start: int = 0, end: int = 0) -> bool:

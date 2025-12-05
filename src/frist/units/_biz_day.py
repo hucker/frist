@@ -19,7 +19,7 @@ class BizDayUnit(UnitName[CalProtocol]):
         super().__init__(cal)
         self._policy = policy
 
-    def _move_n_days(self, start_date: dt.date, n: int) -> dt.date:
+    def move_n_days(self, start_date: dt.date, n: int) -> dt.date:
         if n == 0:
             return start_date
         step = 1 if n > 0 else -1
@@ -36,6 +36,37 @@ class BizDayUnit(UnitName[CalProtocol]):
         tgt = self._cal.target_dt.date()
         if not self._policy.is_business_day(tgt):
             return False
-        start_date = self._move_n_days(ref, start)
-        end_date = self._move_n_days(ref, end)
+        start_date = self.move_n_days(ref, start)
+        end_date = self.move_n_days(ref, end)
         return in_half_open_date(start_date, tgt, end_date)
+
+    def business_days(self) -> float:
+        """Fractional business days between target_dt and ref_dt per policy.
+
+        Uses policy.business_day_fraction which returns 0.0 for holidays.
+        """
+        if self._cal.target_dt > self._cal.ref_dt:
+            raise ValueError(f"{self._cal.target_dt=} must not be after {self._cal.ref_dt=}")
+
+        policy = self._policy
+        current = self._cal.target_dt
+        end = self._cal.ref_dt
+        total = 0.0
+
+        def frac_at(dt_obj: dt.datetime) -> float:
+            return policy.business_day_fraction(dt_obj)
+
+        while current.date() <= end.date():
+            if policy.is_business_day(current):
+                if current.date() == self._cal.target_dt.date():
+                    start_dt = self._cal.target_dt
+                    end_dt = min(end, dt.datetime.combine(current.date(), policy.end_of_business))
+                elif current.date() == end.date():
+                    start_dt = dt.datetime.combine(current.date(), policy.start_of_business)
+                    end_dt = end
+                else:
+                    start_dt = dt.datetime.combine(current.date(), policy.start_of_business)
+                    end_dt = dt.datetime.combine(current.date(), policy.end_of_business)
+                total += max(frac_at(end_dt) - frac_at(start_dt), 0.0)
+            current = current + dt.timedelta(days=1)
+        return total
