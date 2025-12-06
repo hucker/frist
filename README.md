@@ -6,7 +6,7 @@
 
 `Frist` is not a [replacement](https://imgs.xkcd.com/comics/standards_2x.png) for `datetime` or `timedelta` or `dateutil`. If the standard library or popular tools meets your needs, keep using them.
 
-`Frist` does more than shorten expressions: it reduces many common calendar and business-date queries to a single, expressive property (for example, `Cal(...).is_this_quarter`, `Age(...).days`. That one-property approach makes intent explicit, avoids repeating low-level date math across projects, and centralizes tricky edge cases such as half-open intervals, fiscal boundaries, and business-hour fractions. For most usecases there is no date math, no conversion factors, no time stamps, only properties.
+`Frist` does more than shorten expressions: it reduces many common calendar and business-date queries to a single, expressive property (for example, `Cal(...).is_this_quarter`, `Age(...).days`. That one-property approach makes intent explicit, avoids repeating low-level date math across projects, and centralizes tricky edge cases such as half-open intervals, fiscal boundaries, and business-hour fractions. For most usecases there is no date math, no conversion factors, no timestamps—only properties.
 
 If you have pip installed `frist`  you can call frist directly from the command line as shown below.  Every one of the examples below are a single property accesses, and in the case of the window checks a start and end offset are required, in the given units.
 
