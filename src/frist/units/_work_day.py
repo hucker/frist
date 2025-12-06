@@ -27,6 +27,32 @@ class WorkingDayUnit(DayUnit):
         self._policy = policy
 
     def move_n_days(self, start_date: dt.date, n: int) -> dt.date:
+        """
+        Move forward or backward by `n` working days from `start_date` using the policy.
+
+        Behavior:
+        - Steps one calendar day at a time in the sign of `n` (+ → forward, - → backward).
+        - Counts only days where `policy.is_workday(date)` is True.
+        - Returns `start_date` immediately when `n == 0`.
+        - This assumes that workdays may be non-contiguous.
+
+        Args:
+            start_date: The starting calendar date.
+            n: Number of working days to move. Positive moves forward; negative moves backward.
+
+        Returns:
+            A `datetime.date` that is `n` working days away from `start_date` per the policy.
+
+        Examples:
+            # Forward 3 working days (skips weekends/non-workdays)
+            move_n_days(dt.date(2025, 12, 5), 3)
+
+            # Backward 2 working days
+            move_n_days(dt.date(2025, 12, 5), -2)
+
+            # No movement
+            move_n_days(dt.date(2025, 12, 5), 0)
+        """
         if n == 0:
             return start_date
         step = 1 if n > 0 else -1
@@ -62,19 +88,30 @@ class WorkingDayUnit(DayUnit):
         return cur / total if total > 0 else 0.0
 
     def working_days(self) -> float:
-        """Fractional working days between target_dt and ref_dt per policy."""
-        if self._cal.target_dt > self._cal.ref_dt:
-            raise ValueError(f"{self._cal.target_dt=} must not be after {self._cal.ref_dt=}")
+        """Signed fractional working days between target_dt and ref_dt per policy.
 
+        Positive when `target_dt <= ref_dt`, negative when `target_dt > ref_dt`.
+        Holidays are ignored (only workdays contribute).
+        """
         policy = self._policy
-        current = self._cal.target_dt
+        start = self._cal.target_dt
         end = self._cal.ref_dt
+
+        if start == end:
+            return 0.0
+
+        sign = 1.0
+        if start > end:
+            start, end = end, start
+            sign = -1.0
+
         total = 0.0
+        current = start
 
         while current.date() <= end.date():
             if policy.is_workday(current):
-                if current.date() == self._cal.target_dt.date():
-                    start_dt = self._cal.target_dt
+                if current.date() == start.date():
+                    start_dt = start
                     end_dt = min(end, dt.datetime.combine(current.date(), policy.end_of_business))
                 elif current.date() == end.date():
                     start_dt = dt.datetime.combine(current.date(), policy.start_of_business)
@@ -82,13 +119,14 @@ class WorkingDayUnit(DayUnit):
                 else:
                     start_dt = dt.datetime.combine(current.date(), policy.start_of_business)
                     end_dt = dt.datetime.combine(current.date(), policy.end_of_business)
+
                 total += max(
-                    self.workday_fraction_at(end_dt)
-                    - self.workday_fraction_at(start_dt),
+                    self.workday_fraction_at(end_dt) - self.workday_fraction_at(start_dt),
                     0.0,
                 )
             current = current + dt.timedelta(days=1)
-        return total
+
+        return sign * total
 
     # val and name inherited from DayUnit
 
@@ -108,7 +146,8 @@ class WorkingDayUnit(DayUnit):
         Use explicit window checks via `in_(start, end)`, e.g., `in_(-1, 0)`.
         """
         raise ValueError(
-            "Unsupported on working days: use in_(-1, 0). Reason: weekends/holidays break contiguous day semantics."
+            "Unsupported on working days: weekends/holidays break contiguity. "
+            "Use explicit window checks via in_(start, end), e.g., in_(-1, 0)."
         )
 
     @property
@@ -118,5 +157,6 @@ class WorkingDayUnit(DayUnit):
         Use explicit window checks via `in_(start, end)`, e.g., `in_(1, 2)`.
         """
         raise ValueError(
-            "Unsupported on working days: use in_(1, 2). Reason: weekends/holidays break contiguous day semantics."
+            "Unsupported on working days: weekends/holidays break contiguity. "
+            "Use explicit window checks via in_(start, end), e.g., in_(1, 2)."
         )

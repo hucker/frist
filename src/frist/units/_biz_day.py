@@ -27,6 +27,32 @@ class BizDayUnit(DayUnit):
         self._policy = policy
 
     def move_n_days(self, start_date: dt.date, n: int) -> dt.date:
+        """
+        Move forward or backward by `n` business days from `start_date` per policy.
+
+        Behavior:
+        - Steps one calendar day at a time in the sign of `n` (+ → forward, - → backward).
+        - Counts only days where `policy.is_business_day(date)` is True (workday and not a holiday).
+        - Returns `start_date` immediately when `n == 0`.
+        - Assumes that business days may be non-contiguous and that holidays may fall on workdays.
+
+        Args:
+            start_date: The starting calendar date.
+            n: Number of business days to move. Positive moves forward; negative moves backward.
+
+        Returns:
+            A `datetime.date` that is `n` business days away from `start_date` under the policy.
+
+        Examples:
+            # Forward 3 business days (skips weekends and holidays)
+            move_n_days(dt.date(2025, 12, 5), 3)
+
+            # Backward 2 business days
+            move_n_days(dt.date(2025, 12, 5), -2)
+
+            # No movement
+            move_n_days(dt.date(2025, 12, 5), 0)
+        """
         if n == 0:
             return start_date
         step = 1 if n > 0 else -1
@@ -63,7 +89,8 @@ class BizDayUnit(DayUnit):
         Use explicit window checks via `in_(start, end)`, e.g., `in_(-1, 0)`.
         """
         raise ValueError(
-            "Unsupported on business days: use in_(-1, 0). Reason: weekends/holidays break contiguous day semantics."
+            "Unsupported on business days: weekends/holidays break contiguity. "
+            "Use explicit window checks via in_(start, end), e.g., in_(-1, 0)."
         )
 
     @property
@@ -73,31 +100,39 @@ class BizDayUnit(DayUnit):
         Use explicit window checks via `in_(start, end)`, e.g., `in_(1, 2)`.
         """
         raise ValueError(
-            "Unsupported on business days: use in_(1, 2). Reason: weekends/holidays break contiguous day semantics."
+            "Unsupported on business days: weekends/holidays break contiguity. "
+            "Use explicit window checks via in_(start, end), e.g., in_(1, 2)."
         )
 
-    # Intentionally no is_yesterday/is_tomorrow for business days
 
     def business_days(self) -> float:
-        """Fractional business days between target_dt and ref_dt per policy.
+        """Signed fractional business days between target_dt and ref_dt per policy.
 
-        Uses policy.business_day_fraction which returns 0.0 for holidays.
+        Positive when `target_dt <= ref_dt`, negative when `target_dt > ref_dt`.
+        Uses policy.business_day_fraction (holidays contribute 0.0).
         """
-        if self._cal.target_dt > self._cal.ref_dt:
-            raise ValueError(f"{self._cal.target_dt=} must not be after {self._cal.ref_dt=}")
-
         policy = self._policy
-        current = self._cal.target_dt
+        start = self._cal.target_dt
         end = self._cal.ref_dt
+
+        if start == end:
+            return 0.0
+
+        sign = 1.0
+        if start > end:
+            start, end = end, start
+            sign = -1.0
+
         total = 0.0
+        current = start
 
         def frac_at(dt_obj: dt.datetime) -> float:
             return policy.business_day_fraction(dt_obj)
 
         while current.date() <= end.date():
             if policy.is_business_day(current):
-                if current.date() == self._cal.target_dt.date():
-                    start_dt = self._cal.target_dt
+                if current.date() == start.date():
+                    start_dt = start
                     end_dt = min(end, dt.datetime.combine(current.date(), policy.end_of_business))
                 elif current.date() == end.date():
                     start_dt = dt.datetime.combine(current.date(), policy.start_of_business)
@@ -107,6 +142,7 @@ class BizDayUnit(DayUnit):
                     end_dt = dt.datetime.combine(current.date(), policy.end_of_business)
                 total += max(frac_at(end_dt) - frac_at(start_dt), 0.0)
             current = current + dt.timedelta(days=1)
-        return total
+
+        return sign * total
 
     # val and name inherited from DayUnit

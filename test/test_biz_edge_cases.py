@@ -62,16 +62,17 @@ def test_workday_fraction_before_and_after() -> None:
     )
 
 
-def test_age_days_helper_raises_when_target_after_ref() -> None:
-    """business_days property raises when target_dt > ref_dt."""
+def test_business_days_signed_when_target_after_ref_edge() -> None:
+    """business_days is signed negative when target_dt > ref_dt (edge-case coverage)."""
     # Arrange
     ref = dt.datetime(2025, 1, 1, 0, 0)
     target = dt.datetime(2025, 1, 2, 0, 0)  # target > ref
-    biz = Biz(target_dt=target, ref_dt=ref)
+    forward = Biz(target_dt=ref, ref_dt=target)
+    reverse = Biz(target_dt=target, ref_dt=ref)
 
     # Act/Assert
-    with pytest.raises(ValueError):
-        _ = biz.business_days
+    import pytest as _pytest
+    assert reverse.business_days == _pytest.approx(-forward.business_days, rel=1e-9)
 
 
 def test_move_n_days_zero_returns_same_date() -> None:

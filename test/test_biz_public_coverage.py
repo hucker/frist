@@ -40,21 +40,17 @@ def test_working_days_fraction_edges_via_public_api():
     assert b.working_days == pytest.approx(1.0, rel=1e-3), "working_days spanning two business days should total ~1.0"
 
 
-def test_age_days_helper_raises_value_error_via_public_api():
-    """Calling `business_days` with target after ref should raise ValueError.
-
-    This exercises the guard in the internal `_age_days_helper` via the public
-    `business_days` property.
-    """
+def test_business_days_signed_via_public_api():
+    """Public `business_days` is signed negative when target after ref; symmetry holds."""
     # Arrange
     policy = BizPolicy()
     target = dt.datetime(2025, 11, 24, 12, 0)
     ref = dt.datetime(2025, 11, 23, 12, 0)
-    b = Biz(target, ref, policy)
+    forward = Biz(ref, target, policy)
+    reverse = Biz(target, ref, policy)
 
     # Act / Assert
-    with pytest.raises(ValueError):
-        _ = b.business_days  # expecting ValueError when target_time > ref_time
+    assert reverse.business_days == pytest.approx(-forward.business_days, rel=1e-9)
 
 
 def test_move_n_days_n_zero_and_early_returns_via_public_api():

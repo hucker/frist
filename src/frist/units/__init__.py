@@ -15,6 +15,7 @@ from ._hour import HourUnit
 from ._minute import MinuteUnit
 from ._month import MonthUnit
 from ._quarter import QuarterUnit
+from ._second import SecondUnit
 from ._week import WeekUnit
 from ._work_day import WorkingDayUnit
 from ._year import YearUnit
@@ -22,6 +23,7 @@ from ._year import YearUnit
 __all__ = [
     "UnitName",
     "MinuteUnit",
+    "SecondUnit",
     "HourUnit",
     "DayUnit",
     "WeekUnit",

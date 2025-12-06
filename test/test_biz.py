@@ -225,28 +225,34 @@ def test_in_working_and_business_days_range_with_holiday():
     assert biz2.biz_day.in_(-2, 0) is False
 
 
-def test_business_days_raises_when_target_after_ref():
-    """business_days() should raise ValueError when target_time > ref_time"""
+def test_business_days_signed_when_target_after_ref():
+    """business_days returns a signed negative value when target_time > ref_time.
+
+    Verifies symmetry: reversing target/ref negates the magnitude.
+    """
     target: dt.datetime = dt.datetime(2025, 1, 5, 12, 0)
     ref: dt.datetime = dt.datetime(2025, 1, 4, 12, 0)
     policy: BizPolicy = BizPolicy()
-    biz: Biz = Biz(target, ref, policy)
 
-    with pytest.raises(ValueError) as exc:
-        _:float = biz.business_days
-    assert "must not be after" in str(exc.value), "business_days should raise on target>ref"
+    forward: Biz = Biz(ref, target, policy)
+    reverse: Biz = Biz(target, ref, policy)
+
+    assert reverse.business_days == approx(-forward.business_days, rel=1e-9)
 
 
-def test_working_days_raises_when_target_after_ref():
-    """working_days() should raise ValueError when target_time > ref_time"""
+def test_working_days_signed_when_target_after_ref():
+    """working_days returns a signed negative value when target_time > ref_time.
+
+    Verifies symmetry: reversing target/ref negates the magnitude.
+    """
     target: dt.datetime = dt.datetime(2025, 1, 5, 12, 0)
     ref: dt.datetime = dt.datetime(2025, 1, 4, 12, 0)
     policy: BizPolicy = BizPolicy()
-    biz: Biz = Biz(target, ref, policy)
 
-    with pytest.raises(ValueError) as exc:
-        _:float = biz.working_days
-    assert "must not be after" in str(exc.value), "working_days should raise on target>ref"
+    forward: Biz = Biz(ref, target, policy)
+    reverse: Biz = Biz(target, ref, policy)
+
+    assert reverse.working_days == approx(-forward.working_days, rel=1e-9)
 
 
 
@@ -300,12 +306,12 @@ def test_work_business_days_holiday() -> None:
 
 
 def test_working_days_start_after_end() -> None:
-    """Biz.working_days returns 0.0 if start_time > end_time."""
+    """Biz.working_days returns signed negative if start_time > end_time."""
     start = dt.datetime(2024, 1, 3, 12, 0, 0)
     end = dt.datetime(2024, 1, 2, 12, 0, 0)
-    biz:Biz = Biz(start, end)
-    with pytest.raises(ValueError, match="must not be after"):
-        _ = biz.working_days
+    forward: Biz = Biz(end, start)
+    reverse: Biz = Biz(start, end)
+    assert reverse.working_days == approx(-forward.working_days, rel=1e-9)
 
 
 def test_biz_timezone_not_supported():
@@ -339,7 +345,7 @@ def test_biz_with_dates():
     (1735689600.0, dt.date(2025, 1, 2), 1.125),  # approx value
     (dt.date(2025, 1, 1), 1735776000.0, 0.875),  # approx value
 ])
-def test_biz_with_mixed_date_types(target, ref, expected):
+def test_biz_with_mixed_date_types(target:dt.date, ref:dt.date, expected:float):
     """Biz correctly handles mixed date/datetime/timestamp inputs."""
     # Arrange & Act
     biz = Biz(target, ref)
@@ -380,3 +386,66 @@ def test_biz_invalid_ref_type():
     """Biz raises TypeError for invalid ref_time type."""
     with pytest.raises(TypeError, match="Unrecognized datetime string format"):
         Biz(dt.datetime(2025, 1, 1), "invalid")  # type: ignore
+
+
+@pytest.mark.parametrize(
+    "start,end,holidays,expected_working,expected_business",
+    [
+        # Same-day partial: 12:00-17:00 is 5/8 = 0.625
+        (
+            dt.datetime(2024, 1, 1, 12, 0),
+            dt.datetime(2024, 1, 1, 17, 0),
+            set[str](),
+            0.625,
+            0.625,
+        ),
+        # Full business day: 9:00-17:00 = 1.0
+        (
+            dt.datetime(2024, 1, 2, 9, 0),
+            dt.datetime(2024, 1, 2, 17, 0),
+            set[str](),
+            1.0,
+            1.0,
+        ),
+        # Holiday case: working counts 1.0, business excludes = 0.0
+        (
+            dt.datetime(2024, 1, 3, 9, 0),
+            dt.datetime(2024, 1, 3, 17, 0),
+            {"2024-01-03"},
+            1.0,
+            0.0,
+        ),
+        # Multi-day span: Jan 1 12:00 -> Jan 4 15:00 = 0.625 + 1 + 1 + 0.75
+        (
+            dt.datetime(2024, 1, 1, 12, 0),
+            dt.datetime(2024, 1, 4, 15, 0),
+            set[str](),
+            0.625 + 1.0 + 1.0 + 0.75,
+            0.625 + 1.0 + 1.0 + 0.75,
+        ),
+    ],
+)
+def test_parametrized_fractional_days_signed(
+    start: dt.datetime,
+    end: dt.datetime,
+    holidays: set[str],
+    expected_working: float,
+    expected_business: float,
+) -> None:
+    """Parameterized fractional days and signed symmetry for working/business days.
+
+    Verifies:
+    - Forward order (start <= end) returns expected positive fractions.
+    - Reverse order (start > end) returns equal magnitude with negative sign.
+    """
+    policy = BizPolicy(holidays=holidays)
+
+    # Forward
+    b_fwd = Biz(start, end, policy)
+    assert b_fwd.working_days == approx(expected_working, rel=1e-9)
+    assert b_fwd.business_days == approx(expected_business, rel=1e-9)
+
+    # Reverse (signed)
+    b_rev = Biz(end, start, policy)
+    assert b_rev.working_days == approx(-expected_working, rel=1e-9)
+    assert b_rev.business_days == approx(-expected_business, rel=1e-9)

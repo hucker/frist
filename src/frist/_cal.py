@@ -16,6 +16,7 @@ from .units import (
     MinuteUnit,
     MonthUnit,
     QuarterUnit,
+    SecondUnit,
     WeekUnit,
     YearUnit,
 )
@@ -182,6 +183,10 @@ class Cal:
         return self.year.in_(-1)
 
     # Cached units lazily created
+
+    @cached_property
+    def second(self) -> SecondUnit:
+        return SecondUnit(self)
 
     @cached_property
     def minute(self) -> MinuteUnit:

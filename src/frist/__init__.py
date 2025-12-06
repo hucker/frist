@@ -32,6 +32,7 @@ from .units import (
     MonthUnit,
     QuarterUnit,
     UnitName,
+    SecondUnit,
     WeekUnit,
     WorkingDayUnit,
     YearUnit,
@@ -48,6 +49,7 @@ __all__ = [
     "BizPolicy",
     # Units re-exported at top-level for convenience
     "UnitName",
+        "SecondUnit",
     "MinuteUnit",
     "HourUnit",
     "DayUnit",

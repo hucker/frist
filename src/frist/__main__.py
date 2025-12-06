@@ -57,6 +57,7 @@ def main() -> None:
     print(f"{'years_precise:':<18} {chrono.age.years_precise:.2f}\n")
 
     print("=== Calendar Aligned Window Checks (Cal) ===")
+    print(f"{'Second in_(-5,0):':<20} {chrono.cal.second.in_(-5, 0):<6}  # Is target 5 sec ago to ref_time?")
     print(f"{'Minute in_(-5,0):':<20} {chrono.cal.minute.in_(-5, 0):<6}  # Is target 5 min ago to ref_time?")
     print(f"{'Hour in_(-1,0):':<20} {chrono.cal.hour.in_(-1, 0):<6}  # Is target 1 hr ago to ref_time?")
     print(f"{'Day in_(-1,1):':<20} {chrono.cal.day.in_(-1, 1):<6}  # Is target day before to day after ref_time?")
