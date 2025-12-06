@@ -9,7 +9,7 @@
 
 [project]
 name = "frist"
-version = "0.17.0"
+version = "0.18.0"
 description = "Calendar-based time window filtering, age calculations, and business logic for dates and times."
 authors = [
     { name = "Chuck Bass", email = "chuck@acrocad.net" }
