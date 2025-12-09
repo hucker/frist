@@ -17,7 +17,8 @@ Follows frist CODESTYLE.md:
 """
 
 import sys
-from frist import Chrono, BizPolicy
+
+from frist import BizPolicy, Chrono
 
 
 def main() -> None:

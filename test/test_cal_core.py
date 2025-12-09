@@ -9,6 +9,9 @@ import pytest
 from frist import Cal, Chrono
 
 
+# This module is part of smoke tests
+pytestmark = pytest.mark.smoke
+
 def test_simple_cal_day_windows() -> None:
 	"""Test Cal: one day apart, check day windows.
 

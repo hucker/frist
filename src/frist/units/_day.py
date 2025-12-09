@@ -24,8 +24,8 @@ class DayUnit(UnitName[CalProtocol]):
         target_date = self._cal.target_dt.date()
 
         # Calculate the date range boundaries
-        start_date: dt.datetime = (self._cal.ref_dt + dt.timedelta(days=start)).date()
-        end_date: dt.datetime = (self._cal.ref_dt + dt.timedelta(days=end)).date()
+        start_date: dt.date = (self._cal.ref_dt + dt.timedelta(days=start)).date()
+        end_date: dt.date = (self._cal.ref_dt + dt.timedelta(days=end)).date()
 
         return in_half_open_date(start_date, target_date, end_date)
 

@@ -11,6 +11,14 @@ from frist._biz import Biz
 
 
 def test_biz_unit_unit_explicit_checks():
+    """
+    Explicit membership checks for Biz unit adapters.
+
+    Verifies that for a Biz instance with target and reference set to a weekday (Friday),
+    each unit namespace (`biz_day`, `work_day`, `fis_qtr`, `fis_year`) returns True for
+    in_(0) and False for in_(-1), confirming correct window membership logic.
+    """
+    
     # Arrange
     # Use a weekday (Friday) so business/working-day checks are True
     ref = dt.datetime(2025, 3, 14, 12, 34, 56)

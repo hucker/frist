@@ -3,10 +3,11 @@ Units package.
 
 This module re-exports unit classes to provide a stable import surface:
 
-(e.g., `from frist.units import DayUnit`). 
+(e.g., `from frist.units import DayUnit` is not required, thus the structure of the 
+package can be changed without affecting imports). 
 """
 
-from ._base import UnitName
+from ._base import Inclusive, UnitName
 from ._biz_day import BizDayUnit
 from ._day import DayUnit
 from ._fiscal_quarter import FiscalQuarterUnit
@@ -34,4 +35,5 @@ __all__ = [
     "WorkingDayUnit",
     "FiscalQuarterUnit",
     "FiscalYearUnit",
+    "Inclusive",
 ]

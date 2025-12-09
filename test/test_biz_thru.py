@@ -15,6 +15,13 @@ BIZ_UNITS = ["biz_day", "work_day", "fis_qtr", "fis_year"]
 
 
 def test_biz_thru_behavior():
+    """
+    Test inclusive `thru` behavior for Biz unit adapters.
+
+    Verifies that for each Biz unit (`biz_day`, `work_day`, `fis_qtr`, `fis_year`),
+    in_(0) returns True and in_(-1) returns False when target and reference are set
+    to a weekday. Confirms correct half-open semantics for current and previous units.
+    """
     # Arrange: choose a weekday so business/working-day checks are True
     ref = dt.datetime(2025, 3, 14, 12, 34, 56)
     biz = Biz(target_dt=ref, ref_dt=ref)

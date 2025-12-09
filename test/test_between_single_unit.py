@@ -12,10 +12,11 @@ import datetime as dt
 import pytest
 
 from frist._frist import Cal
+from frist.units._base import Inclusive
 
 
 @pytest.mark.parametrize("mode", ["both", "left"])
-def test_between_single_unit_maps_to_in_left_both(mode: str) -> None:
+def test_between_single_unit_maps_to_in_left_both(mode: Inclusive) -> None:
     ref = dt.datetime(2025, 11, 20, 12, 0, 0)
     # Choose a target that exactly matches start window
     target = dt.datetime(2025, 11, 20, 12, 0, 0)

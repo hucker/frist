@@ -21,6 +21,14 @@ UNITS = [
 
 @pytest.mark.smoke
 def test_biz_unit_unit_smoke():
+    """
+    Smoke test for Biz unit adapters.
+
+    Verifies that each Biz unit namespace (`biz_day`, `work_day`, `fis_qtr`, `fis_year`)
+    correctly supports in_() for current and previous unit windows.
+
+    Asserts that in_(0) is True for the reference date, and in_(-1) is False for a weekday.
+    """
     # Arrange
     ref = dt.datetime(2025, 3, 15, 12, 34, 56)
     biz = Biz(target_dt=ref, ref_dt=ref)

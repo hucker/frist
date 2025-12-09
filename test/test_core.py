@@ -116,7 +116,7 @@ def test_time_pair_unsupported_type_raises() -> None:
     reference_tim: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)
     # Act & Assert
     with pytest.raises(TypeError):
-        time_pair(start_time=[2024, 1, 1], end_time=reference_tim)
+        time_pair(start_time=[2024, 1, 1], end_time=reference_tim) # type: ignore # Intentional wrong type for test
 
 def test_time_pair_unsupported_string_format_raises() -> None:
     """Test time_pair with unsupported string format raises TypeError."""
@@ -548,7 +548,7 @@ def test_chrono_edge_cases():
     # Very close times (fractional seconds)
     close_time = now + dt.timedelta(microseconds=500000)  # 0.5 seconds later
     chrono_close = Chrono(target_dt=now, ref_dt=close_time)
-    assert chrono_close.age.seconds == pytest.approx(0.5, abs=0.01)
+    assert chrono_close.age.seconds == approx(0.5, abs=0.01)
 
 
 def test_chrono_fiscal_shortcuts():

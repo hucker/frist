@@ -1,12 +1,12 @@
 # `Frist`: Unified Age and Calendar Logic
 
-[![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13%20|%203.14-blue?logo=python&logoColor=white)](https://www.python.org/) [![Coverage](https://img.shields.io/badge/coverage-100%25-green)](https://github.com/hucker/frist/actions) [![Pytest](https://img.shields.io/badge/pytest-100%25%20pass%20%7C%20596%20tests-green?logo=pytest&logoColor=white)](https://docs.pytest.org/en/stable/) [![Ruff](https://img.shields.io/badge/ruff-100%25-green?logo=ruff&logoColor=white)](https://github.com/charliermarsh/ruff) [![Tox](https://img.shields.io/static/v1?label=tox&message=3.10-3.14&color=green&logo=tox&logoColor=white)](https://tox.readthedocs.io/) [![Mypy](https://img.shields.io/static/v1?label=mypy&message=0%20issues&color=green&logo=mypy&logoColor=white)](https://mypy-lang.org/)
+[![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12%20|%203.13%20|%203.14-blue?logo=python&logoColor=white)](https://www.python.org/) [![Coverage](https://img.shields.io/badge/coverage-100%25-green)](https://github.com/hucker/frist/actions) [![Pytest](https://img.shields.io/badge/pytest-100%25%20pass%20%7C%20624%20tests-green?logo=pytest&logoColor=white)](https://docs.pytest.org/en/stable/) [![Ruff](https://img.shields.io/badge/ruff-100%25-green?logo=ruff&logoColor=white)](https://github.com/charliermarsh/ruff) [![Tox](https://img.shields.io/static/v1?label=tox&message=3.10-3.14&color=green&logo=tox&logoColor=white)](https://tox.readthedocs.io/) [![Mypy](https://img.shields.io/static/v1?label=mypy&message=0%20issues&color=green&logo=mypy&logoColor=white)](https://mypy-lang.org/)
 
-`Frist` is a modern Python library designed to make working with time, dates, intervals and business calendars easy using a simple, expressive property-based API. `Frist` provides property-based APIs for `Age`, `Cal` (calendar) and `Biz` (business) objects. The `Age` object answers “How old is this?” for two datetimes (often defaulting the second datetime to “now”), making it useful for file aging, log analysis, or event tracking. The `Cal` object lets you ask “Is this date in a specific window?”—such as today, yesterday, this month, this quarter, or this fiscal year—using "intuitive" (if you can call half-open intervals intuitive) properties for calendar logic. Calendar ranges are aligned to calendar units (minute, hour, day, week, month, quarter, year). Finally, the `Biz` class lets you establish a business policy for workdays, business hours, holidays and fiscal years so you can perform business-calendar-aware windowing for working days and business days. 
+`Frist` is a Python library designed to make working with time, dates, intervals and business calendars easy using a simple, expressive property-based API. `Frist` provides APIs for `Age`, `Cal` (calendar) and `Biz` (business) objects. The `Age` object answers “How old is this?” for two datetimes (often defaulting the second datetime to “now”), making it useful for file aging, log analysis, or event tracking. The `Cal` object lets you ask “Is this date in a specific window?”—such as today, yesterday, this month, this quarter, using "intuitive" (if you can call half-open intervals intuitive) properties for calendar logic. Calendar ranges are aligned to calendar units (minute, hour, day, week, month, quarter, year). Finally, the `Biz` class lets you establish a business policy for workdays, business hours, holidays and fiscal years so you can perform business-calendar-aware windowing for working days and business days.
 
-`Frist` is not a [replacement](https://imgs.xkcd.com/comics/standards_2x.png) for `datetime` or `timedelta` or `dateutil`. Those tools are very good at manipulating dates and times. If the standard library or popular tools meets your needs, keep using them.
+`Frist` is not a [replacement](https://imgs.xkcd.com/comics/standards_2x.png) for `datetime` or `timedelta` or `dateutil`. Those tools are very good at manipulating dates and times. `Frist` has no way to mutate `datetime` objects. Use tools in the standard library for manipulating `datetime`s.
 
-`Frist` calculates the time difference between two `TimeLike` values and exposes the age in the units you care about — with no manual conversion factors. For window checks, you describe the intent once and let `Frist` do the alignment: a single property or method call on any unit (second/minute/hour/day/week/month/quarter/year, plus business/work day and fiscal quarter/year). Edge cases (half‑open boundaries, unit alignment, and business policy rules) are handled for you, so you avoid ad‑hoc math and conditional logic.
+`Frist` calculates the time difference between two `TimeLike` values and exposes the age in the units you care about — with no manual conversion factors or date mutation. For window checks, you describe the intent once and let `Frist` do the alignment: a single property or method call on any unit (second/minute/hour/day/week/month/quarter/year, plus business/work day and fiscal quarter/year). Edge cases (half‑open boundaries, unit alignment, and business policy rules) are handled for you, so you avoid ad‑hoc math and conditional logic.
 
 In practice, this means:
 
@@ -14,42 +14,41 @@ In practice, this means:
 - You avoid conversions like dividing by 60/3600/86400, normalizing timestamps, or rounding at unit edges — the unit adapters align and truncate appropriately.
 - For business calendars, you express relations via explicit windows tied to a `BizPolicy` (e.g., `biz_day.in_(-1, 0)` for “previous business day”), rather than relying on ambiguous shortcuts.
 
-## Math-Free Ages and Windows
-
-Frist is designed so almost never perform any unit conversion, scale factors, time deltas, spans.
-
-
-
-### Signed Business and Working Days
+## Signed Business and Working Days
 
 - `Biz.business_days` and `Biz.working_days` are signed fractional counts.
 - Positive when `target <= ref`; negative when `target > ref` (reversed order).
 - Symmetry holds: reversing `target/ref` yields equal magnitude with opposite sign.
 - Holidays contribute `0.0` to `business_days`; `working_days` counts weekday fractions regardless of holidays.
 - Shortcuts: `is_today` is available; `is_yesterday`/`is_tomorrow` are intentionally unsupported for business/working days. Prefer explicit windows like `in_(-1, 0)` and `in_(1, 2)`.
-(.venv) frist [example/cli]> frist 2024-12-31T01:02:03
+
+## Example Using CLI
+
+```pycon
+(.venv) frist [chore/cleanup]> python src/frist/__main__.py 2025-12-1T12:13:14 2026-01-01T07:00:00     
 
 === frist CLI demo ===
-target_time:       2024-12-31 01:02:03
-reference_time:    2025-12-03 20:22:08.233500
+target_time:       2025-12-01 12:13:14
+reference_time:    2026-01-01 07:00:00
 
 === Age Properties ===
-seconds:           29186405.23
-minutes:           486440.09
-hours:             8107.33
-days:              337.81
-months:            11.10
-years:             0.92
-months_precise:    11.12
-years_precise:     0.93
+seconds:           2659606.00
+minutes:           44326.77
+hours:             738.78
+days:              30.78
+months:            1.01
+years:             0.08
+months_precise:    0.99
+years_precise:     0.08
 
 === Calendar Aligned Window Checks (Cal) ===
+Second in_(-5,0):    0       # Is target 5 sec ago to ref_time?
 Minute in_(-5,0):    0       # Is target 5 min ago to ref_time?
 Hour in_(-1,0):      0       # Is target 1 hr ago to ref_time?
 Day in_(-1,1):       0       # Is target day before to day after ref_time?
 Week in_(-2,0):      0       # Is target 2 weeks ago to ref_time?
-Month in_(-6,0):     0       # Is target 6 months ago to ref_time?
-Quarter in_(-1,1):   0       # Is target 1 qtr ago to qtr after ref_time?
+Month in_(-6,0):     1       # Is target 6 months ago to ref_time?
+Quarter in_(-1,1):   1       # Is target 1 qtr ago to qtr after ref_time?
 Year in_(-3,0):      1       # Is target 3 yrs ago to ref_time?
 
 === Calendar Shortcuts (Cal) ===
@@ -60,28 +59,36 @@ is_this_week:      False
 is_this_month:     False
 is_this_quarter:   False
 is_this_year:      False
-is_last_month:     False
+is_last_month:     True
 is_last_year:      True
 
 === Calendar Info ===
-Minute:            2
-Hour:              1
-Day:               2 (Tuesday)
-Week:              1 (Day: 2)
-Month:             12 (Day: 31)
+Minute:            13
+Hour:              12
+Day:               1 (Monday)
+Week:              49 (Day: 1)
+Month:             12 (Day: 1)
 Quarter:           4 (Q4)
-Year:              2024 (Day: 366)
+Year:              2025 (Day: 335)
 
 === Biz Info ===
-Is Business Day:   True
-Is Working Day:    True
-Work days:         242.00
-Business days:     241.00
+Is Business Day:   True   # Is target a business day
+Is Working Day:    True   # Is target a working day
+Work days:         22.60  # Work Days between target and ref
+Business days:     21.60  # Business Days between target and ref
 Fiscal Quarter:    3 (Q3)
-Fiscal Year:       2024
+Fiscal Year:       2025
+
+=== Biz Windows (explicit in_) ===
+work_day.is_today:     False   # Is the target in the today window
+Work Day in_(-1,0):    0       # Is the target in the 1 working day ago window
+Work Day in_(1,2):     0       # Is the target 1-2 working days in the future
+biz_day.is_today:      False   # Is the target in the today business day
+Biz Day in_(-1,0):     0       # Is the target in the 1 business day ago window
+Biz Day in_(1,2):      0       # Is the target in the 1-2 business days in the future window
 ```
 
-Here is an example of using the properties in a typical function.  This example doesn't really show much gain over using `datetime` though those methods will have you doing a lot of dividing by 60, 3600, 86400 to perform date conversions.
+Here is an example of directly finding the age of a file in days by creating an `Age` object with the modification timestamp of a file.
 
 ```python
 import pathlib
@@ -122,7 +129,7 @@ def copy_last_month_files_to_backup(src: pathlib.Path, backup: pathlib.Path) -> 
                 shutil.move(str(file), str(backup / file.name))
 ```
 
-Below is the `datetime` version where you need to manually manipulate fields in datetime objects and perform tricky boundary checks.  Not terribly difficult, but something you will need to write every time you write such code.  Presumably you might put this in a function that you would find yourself writing over and over again with lots of tricky edge cases.
+Below is the `datetime` version where you need to manually manipulate fields in datetime objects and perform tricky boundary checks.  Not terribly difficult, but something you will need to write every time you write such code.  Presumably you might put this in a function.  If you only have one such function then taking on a dependency might not be worth it...but if you deal with datetimes enough it is likely that most of the calculations will be simple `Frist` properties.
 
 ```python
 import pathlib
@@ -147,14 +154,11 @@ def copy_last_month_files_to_backup(src: pathlib.Path, backup: pathlib.Path) -> 
 
 ## Caveats
 
-- **Fixed-length business days:** Calculations assume standard day lengths; DST transitions
-  are ignored. Fractional-day values always use these standard lengths.
+- **Fixed-length business days:** Calculations assume standard day lengths; DST transitions are ignored. Fractional-day values always use these standard lengths.
 
 - **No timezone support:** All datetimes are treated as naive; timezones are not considered.
 
-- **Fiscal-year and fiscal-quarter logic:** You can set the fiscal year to start on any
-  month. Each fiscal year has four quarters, each 3 months long, with Q1 starting on the
-  first day of the chosen month.
+- **Fiscal-year and fiscal-quarter logic:** You can set the fiscal year to start on any month. Each fiscal year has four quarters, each 3 months long, with Q1 starting on the first day of the chosen month.
 
 - **Precomputed Holidays** The business holiday set is a precomputed list of holidays provided by the business.  It is assumed this list will take care of ALL "movable" holiday calculations and provide a list of days (that should land on working days) that are considered days off.  There is NO calculation involved.  If New Years on a Sunday and you are closed Monday then you need to add the 2nd as a holiday.  These calendars are usually provided by HR or accounting.
 
@@ -169,7 +173,6 @@ The `Age` object answers "How old is X?" for two datetimes (start and end). It e
 - Default behavior: if `end_time` is omitted it defaults to set to `datetime.now()`.
 
 Examples
-
 
 ```python
 # Age and Cal basics without manual math
@@ -207,6 +210,7 @@ Frist emphasizes clarity and correctness by removing the need for ad‑hoc arith
 
 - Explicit windows: Half‑open `in_(start, end)` on units (second/minute/day/...) yields predictable, non‑overlapping ranges.
 - Direct values: Unit adapters expose `val` and `name` so you ask for what you mean (e.g., `cal.second.val`, `cal.day.name`) without conversions.
+- If you need full `datetime` formatting you can directly access the `age.start`/`end_time` or the `cal.target`/`ref_dt` values and use `strftime`.
 - Policy clarity: Business and working day relations are expressed via explicit windows relative to a reference, guided by `BizPolicy`, instead of ambiguous shortcuts.
 
 Examples
@@ -417,7 +421,7 @@ The `months_precise` and `years_precise` properties calculate the `exact` number
 
 ### Cal Object
 
-The Cal object provides a family of `in_*` methods (e.g., `in_days`, `in_months`, `in_years` etc) to check if the target date falls within a calendar window relative to the reference date. These methods use calendar units (not elapsed time) using half-open intervals. The start is inclusive, the end is exclusive. This makes it easy to check if a date is in a specific calendar range (e.g., last week, next month, fiscal quarter) using intuitive, unit-based logic.
+The Cal object provides a family of unit classes, each having an `in_` to check if the target date falls within a calendar window relative to the reference date. These methods use calendar units (not elapsed time) using half-open intervals. The start is inclusive, the end is exclusive. This makes it easy to check if a date is in a specific calendar range (e.g., last week, next month, yesterday, fiscal quarter) using intuitive, unit-based logic. It should be noted that this is fundamentally different than age.
 
  `day.in_(-1)`: Is the target date yesterday?
  `day.in_(-1, 1)`: Is the target date within ±1 calendar day of the reference?
@@ -523,9 +527,7 @@ Shortcuts (convenience boolean properties):
 
 ### Biz Object
 
-The `Biz` object performs business-aware calculations using a `BizPolicy`. It counts
-working days (defined by the policy's workday set) and business days (working days that are not holidays).
-It also computes fractional day contributions using the policy's business hours.
+The `Biz` object performs business-aware calculations using a `BizPolicy`. It counts working days (defined by the policy's workday set) and business days (working days that are not holidays). It also computes fractional day contributions using the policy's business hours.
 
 ***Business days and workdays are tricky to calculate and involve iteration because no/few assumptions can be made about the way the days fall. Normally this isn't a huge deal because the time spans are a few days, not 1000's of days.***
 
@@ -533,16 +535,16 @@ It also computes fractional day contributions using the policy's business hours.
 
 | Property / Attribute | Description                                                         | Return |
 | -------------------- | ------------------------------------------------------------------- | ------ |
-| `biz_policy`         | `BizPolicy` instance used by this Biz                          | `BizPolicy` |
-| `target_dt`        | Target datetime                                                     | `datetime` |
-| `ref_dt`           | Reference datetime                                                  | `datetime` |
+| `biz_policy`         | `BizPolicy` instance used by this Biz                               | `BizPolicy` |
+| `target_dt`          | Target datetime                                                     | `datetime` |
+| `ref_dt`             | Reference datetime                                                  | `datetime` |
 | `holiday`            | True if `target_time` is a holiday                                  | `bool` |
 | `is_workday`         | True if `target_time` falls on a workday                            | `bool` |
 | `is_business_day`    | True if `target_time` is a business day (workday and not holiday)   | `bool` |
 | `working_days`       | Fractional working days between target and ref (ignores holidays)   | `float` |
 | `business_days`      | Fractional business days between target and ref (excludes holidays) | `float` |
 
-| Methods/Accessors                         | Description                                           | Return |
+| Methods/Accessors                        | Description                                           | Return |
 | ---------------------------------------- | ----------------------------------------------------- | ------ |
 | `work_day.in_(start=0, end=None)`        | Range membership by working days (ignores holidays)   | `bool` |
 | `biz_day.in_(start=0, end=None)`         | Range membership by business days (excludes holidays) | `bool` |
@@ -561,7 +563,7 @@ Shortcuts:
 
 ### Chrono Object
 
-In some situations you will need to have all three of these classes together because the filtering you are doing is related to the multiple classes.  The best way to handle this is with the chrono object.  The `Chrono` class initializes all three so you have access to each of the classes, with no race conditions when setting the reference time.
+In some situations you will need to have all three of these classes together because the filtering you are doing is related to multiple types of age and calendar properties.  Use the `Chrono` class for such cases.  The `Chrono` class initializes all three classes with the same reference and target time which can save you from difficult to diagnose race conditions when using the current time as the reference time.
 
 ```python
 # Brief Chrono example: create a Chrono and print Age / Cal / Biz properties
@@ -633,8 +635,7 @@ src\frist\units\_work_day.py            70      0   100%
 src\frist\units\_year.py                23      0   100%
 ```
 
-> Note: running `pytest -m smoke` on the current branch produced ~62% coverage and completed in ~0.46s
-> (test run: `512 passed`).
+> Note: running `pytest -m smoke` on the current branch produced ~80% coverage running 99 tests and completed in ~0.71s
 
 ### Tox
 
@@ -655,16 +656,22 @@ main> mypy src/frist
 Success: no issues found in 10 source files
 ```
 
+### What is Frist?
+
+In German, "Frist" means "deadline," "time limit," or "period" (as in a fixed period of time before something is due or expires). It is commonly used in legal, administrative, and business contexts to refer to a due date or a window of time for completing an action.
+
 ### Notes
 
 This project was developed as learning project using agentic AI. Most of the code was generated from prompts rather that writing code.  It was tricky getting tests implemented correctly. Generally I write a test case and then ask the AI to parameterize it and then I review.  I discovered that I had some code that had a bug in one case and the AI changed the test inputs (added 1) to make the test pass. I find with agentic AI that I spend more time on my testing than on coding, even to the point that I will happily delete a test file and start over if I don't like it.  With manually written code I would be far less inclined to do that.
 
 I think of tests as specifications for the code (sort of like super prompts) that the agents use to generate better code estimates of what you a building. I find it hard to fathom not iterating with with prompts and tests.
 
-I also noted that certain types of refactoring humans are much better at.  I changed the naming convention of some methods and asked the AI to fix it.  Several models couldn't handle it without infinite looping, random (idiotic) indentation and even dumber patch placements, sometimes at the top of the file, others in the middle of methods.  Eventually I just manually refactored the big parts and then it did much better.
+I also noted that certain types of refactoring humans are much better at.  I changed the naming convention of some methods and asked the AI to fix it.  Several models couldn't handle it without infinite looping, random (idiotic) indentation and even dumber patch placements, sometimes at the top of the file, others in the middle of methods.  Eventually I manually refactored the big parts and then it did much better.
 
 ## Development and Testing Notes
 
 While the `frist` library maintains high test coverage (100%) and utilizes property-based testing with Hypothesis, this level of coverage was not a strict requirement for the library's development. Rather, it emerged as part of a learning experience exploring agentic AI capabilities in software testing and quality assurance. The comprehensive test suite demonstrates some possibilities of automated testing tools but is not indicative of typical development practices for this type of utility library.
+
+## Contributions
 
 Contributions are welcome. Please prefer small, reviewable pull requests and include tests that exercise expected behavior and edge cases.

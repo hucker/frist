@@ -11,9 +11,10 @@ Each test is documented with its logic, expected results, and coverage rationale
 
 import datetime as dt
 import itertools
+
 import pytest
 
-from frist import Chrono, BizPolicy, Biz
+from frist import Biz, BizPolicy, Chrono
 
 
 def test_fiscal_year_and_quarter_january_start():
@@ -29,14 +30,14 @@ def test_fiscal_year_and_quarter_january_start():
     biz:Biz = Chrono(target_dt=target_time).biz
     # Assert
     assert biz.fiscal_year == 2024, "Fiscal year should be 2024 for Feb 2024 with January start"
-    assert biz.fiscal_quarter == 1, "Fiscal quarter should be 1 (Jan-Mar) for Feb 2024 with January start"
+    assert biz.fiscal_quarter == 1, "Fiscal qtr should be 1 (Jan-Mar) for Feb 2024 with Jan start"
 
     # Arrange
     target_time = dt.datetime(2024, 4, 1)  # April 2024
     # Act
     biz:Biz = Chrono(target_dt=target_time).biz
     # Assert
-    assert biz.fiscal_quarter == 2, "Fiscal quarter should be 2 (Apr-Jun) for April 2024 with January start"
+    assert biz.fiscal_quarter == 2, "Fiscal qtr should be 2 (Apr-Jun) for April 2024 with Jan start"
 
 
 def test_fiscal_year_and_quarter_april_start():
@@ -57,32 +58,32 @@ def test_fiscal_year_and_quarter_april_start():
     biz:Biz = Chrono(target_dt=target_time, policy=policy).biz
     # Assert
     assert biz.fiscal_year == 2023, "Fiscal year should be 2023 for Mar 2024 with April start"
-    assert biz.fiscal_quarter == 4, "Fiscal quarter should be 4 (Jan-Mar) for Mar 2024 with April start"
+    assert biz.fiscal_quarter == 4, "Fiscal qtr should be 4 (Jan-Mar) for Mar 2024 with April start"
 
     # Act
     target_time = dt.datetime(2024, 4, 1)  # April 2024
     biz = Chrono(target_dt=target_time, policy=policy).biz
     # Assert
     assert biz.fiscal_year == 2024, "Fiscal year should be 2024 for Apr 2024 with April start"
-    assert biz.fiscal_quarter == 1, "Fiscal quarter should be 1 (Apr-Jun) for Apr 2024 with April start"
+    assert biz.fiscal_quarter == 1, "Fiscal qtr should be 1 (Apr-Jun) for Apr 2024 with April start"
 
     # Act
     target_time = dt.datetime(2024, 7, 15)  # July 2024
     biz:Biz = Chrono(target_dt=target_time, policy=policy).biz
     # Assert
-    assert biz.fiscal_quarter == 2, "Fiscal quarter should be 2 (Jul-Sep) for Jul 2024 with April start"
+    assert biz.fiscal_quarter == 2, "Fiscal qtr should be 2 (Jul-Sep) for Jul 2024 with April start"
 
     # Act
     target_time = dt.datetime(2024, 10, 1)  # October 2024
     biz:Biz = Chrono(target_dt=target_time,policy=policy).biz
     # Assert
-    assert biz.fiscal_quarter == 3, "Fiscal quarter should be 3 (Oct-Dec) for Oct 2024 with April start"
+    assert biz.fiscal_quarter == 3, "Fiscal qtr should be 3 (Oct-Dec) for Oct 2024 with April start"
 
     # Act
     target_time = dt.datetime(2025, 1, 1)  # January 2025
     biz:Biz = Chrono(target_dt=target_time,policy=policy).biz
     # Assert
-    assert biz.fiscal_quarter == 4, "Fiscal quarter should be 4 (Jan-Mar) for Jan 2025 with April start"
+    assert biz.fiscal_quarter == 4, "Fiscal qtr should be 4 (Jan-Mar) for Jan 2025 with April start"
 
 
 @pytest.mark.parametrize("fy_start_month", range(1, 13))
@@ -92,13 +93,15 @@ def test_fiscal_year_and_quarter_all_start_months(fy_start_month:int):
     this test iterates through every month in two consecutive years (2024 and 2025).
     For each month, it constructs a Chrono/Cal object and verifies:
 
-    - The fiscal year is correctly calculated: If the month is greater than or equal to the fiscal year start month,
-      the fiscal year should be the current year; otherwise, it should be the previous year.
-    - The fiscal quarter is correctly calculated: Quarters are determined by offsetting the month from the fiscal year start month,
-      dividing by 3, and adding 1 (so each quarter is 3 months, starting from the fiscal year start month).
+    - The fiscal year is correctly calculated: If the month is greater than or equal to the fiscal 
+      year start month, the fiscal year should be the current year; otherwise, it should be the
+      previous year.
+    - The fiscal quarter is correctly calculated: Quarters are determined by offsetting the month 
+      from the fiscal year start month, dividing by 3, and adding 1 (so each quarter is 3 months,
+      starting from the fiscal year start month).
 
-    This ensures that fiscal year and quarter logic is correct for all possible fiscal year start months and for all months in a year,
-    including year boundaries and rollover cases.
+    This ensures that fiscal year and quarter logic is correct for all possible fiscal year start
+    months and for all months in a year, including year boundaries and rollover cases.
     """
     # Arrange
     policy = BizPolicy(fiscal_year_start_month=fy_start_month)

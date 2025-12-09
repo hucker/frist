@@ -7,9 +7,11 @@ Uses non-leap years for month calculations so 14.00 days is exactly half a month
 """
 
 import datetime as dt
+
 import pytest
 
 from frist._age import Age
+
 
 @pytest.mark.parametrize(
     "start, end, expected",

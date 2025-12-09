@@ -37,9 +37,9 @@ def test_is_holiday_typeerror() -> None:
     """
     policy = BizPolicy()
     with pytest.raises(TypeError, match="is_holiday expects str"):
-        policy.is_holiday(12345)
+        policy.is_holiday(12345)  #type: ignore # Intentional wrong type for test
     with pytest.raises(TypeError, match="is_holiday expects str"):
-        policy.is_holiday(["2025-11-13"])
+        policy.is_holiday(["2025-11-13"])  #type: ignore # Intentional wrong type for test
 
 def test_is_workday_typeerror() -> None:
     """
@@ -47,9 +47,9 @@ def test_is_workday_typeerror() -> None:
     """
     policy = BizPolicy()
     with pytest.raises(TypeError, match="is_workday expects int, date, or datetime"):
-        policy.is_workday("not-a-date")
+        policy.is_workday("not-a-date")  #type: ignore # Intentional wrong type for test
     with pytest.raises(TypeError, match="is_workday expects int, date, or datetime"):
-        policy.is_workday([1, 2, 3])
+        policy.is_workday([1, 2, 3])  #type: ignore # Intentional wrong type for test
 
 def test_is_weekend_typeerror() -> None:
     """

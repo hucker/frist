@@ -5,9 +5,14 @@ Tests the Age class as a standalone utility without file dependencies.
 """
 
 import datetime as dt
+
 import pytest
+from pytest import approx
+
 from frist import Age
 
+# This module is part of smoke tests
+pytestmark = pytest.mark.smoke
 
 @pytest.mark.parametrize(
     "start, end, combo_msg, expected_seconds, expected_days",
@@ -309,26 +314,12 @@ def test_invalid_end_type_on_construction() -> None:
         Age(dt.datetime(2020, 1, 1), "not-a-date")  # type: ignore
 
 
-def test_age_with_dates():
-    """Age correctly handles date inputs and calculates 24 hours for one day apart."""
-    # Arrange
-    start_date = dt.date(2025, 1, 1)
-    end_date = dt.date(2025, 1, 2)
-    
-    # Act
-    age = Age(start_date, end_date)
-    
-    # Assert
-    assert age.days == 1.0, "Age should be 1 day for date inputs one day apart"
-    assert age.hours == 24.0, "Age should be 24 hours for date inputs one day apart"
-
-
 @pytest.mark.parametrize("start, end", [
     (dt.date(2025, 1, 1), dt.date(2025, 1, 2)),
     (dt.date(2025, 1, 1), dt.datetime(2025, 1, 2, 0, 0, 0)),
     (dt.datetime(2025, 1, 1, 0, 0, 0), dt.date(2025, 1, 2)),
 ])
-def test_age_with_mixed_date_types(start, end):
+def test_age_with_mixed_date_types(start: dt.date | dt.datetime, end: dt.date | dt.datetime):
     """Age correctly handles mixed date/datetime inputs."""
     # Arrange & Act
     age = Age(start, end)
@@ -377,11 +368,11 @@ def test_age_negative():
     ("minutes", -527040.0),
     ("hours", -8784.0),
     ("days", -366.0),
-    ("weeks", pytest.approx(-52.285714, rel=1e-3)),
-    ("months", pytest.approx(-12.02365, rel=1e-3)),
-    ("years", pytest.approx(-1.00274, rel=1e-3)),
+    ("weeks", approx(-52.285714, rel=1e-3)),
+    ("months",approx(-12.02365, rel=1e-3)),
+    ("years", approx(-1.00274, rel=1e-3)),
 ])
-def test_age_negative_properties(prop, expected):
+def test_age_negative_properties(prop:str, expected):
     """Age properties are negative when start_time > end_time."""
     # Arrange
     start = dt.datetime(2021, 1, 1)
@@ -405,9 +396,9 @@ def test_age_smoke():
         
         # Test positive direction: start to end
         age_positive = Age(start, end)
-        assert age_positive.years_precise == pytest.approx(years, rel=1e-6), f"Failed for {years} years (positive)"
+        assert age_positive.years_precise == approx(years, rel=1e-6), f"Failed for {years} years (positive)"
         
         # Test negative direction: end to start
         age_negative = Age(end, start)
-        assert age_negative.years_precise == pytest.approx(-years, rel=1e-6), f"Failed for {years} years (negative)"
+        assert age_negative.years_precise == approx(-years, rel=1e-6), f"Failed for {years} years (negative)"
 

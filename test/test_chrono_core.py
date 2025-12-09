@@ -396,15 +396,15 @@ def test_chrono_property_integration():
     chrono = Chrono(target_dt=target, ref_dt=ref)
     
     # Age should show about 4 days
-    assert chrono.age.days == pytest.approx(4.0)
+    assert chrono.age.days == approx(4.0)
     
     # Cal should show within same week
     assert chrono.cal.week.in_(0)  # Same week
     assert chrono.cal.day.in_(-4)  # Exactly 4 days ago
     
     # Biz should show business days (assuming standard policy)
-    assert chrono.biz.business_days == pytest.approx(4.0)  # Mon-Thu-Fri
-    assert chrono.biz.working_days == pytest.approx(4.0)  # Same as business days here
+    assert chrono.biz.business_days == approx(4.0)  # Mon-Thu-Fri
+    assert chrono.biz.working_days == approx(4.0)  # Same as business days here
     
     # Fiscal properties
     assert chrono.biz.fiscal_year == 2024  # January 2024
@@ -435,7 +435,7 @@ def test_chrono_edge_cases():
     # Very close times (fractional seconds)
     close_time = now + dt.timedelta(microseconds=500000)  # 0.5 seconds later
     chrono_close = Chrono(target_dt=now, ref_dt=close_time)
-    assert chrono_close.age.seconds == pytest.approx(0.5, abs=0.01)
+    assert chrono_close.age.seconds == approx(0.5, abs=0.01)
 
 
 def test_chrono_fiscal_shortcuts():

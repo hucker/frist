@@ -7,7 +7,7 @@ explicit dates and assert expected fractional sums.
 
 import datetime as dt
 
-import pytest
+from pytest import approx
 
 from frist import Biz, BizPolicy
 
@@ -34,5 +34,5 @@ def test_business_and_working_days_span_weekend() -> None:
     expected: float = 0.875 + 0.75
 
     # Assert
-    assert b.business_days == pytest.approx(expected), f"business_days {b.business_days} != expected {expected}"
-    assert b.working_days == pytest.approx(expected), f"working_days {b.working_days} != expected {expected}"
+    assert b.business_days == approx(expected), f"business_days {b.business_days} != expected {expected}"
+    assert b.working_days == approx(expected), f"working_days {b.working_days} != expected {expected}"

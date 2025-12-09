@@ -7,7 +7,7 @@ Conventions:
 """
 import datetime as dt
 
-import pytest
+from pytest import approx
 
 from frist import Biz, BizPolicy
 
@@ -28,8 +28,8 @@ def test_multi_day_fraction_working_and_business_days() -> None:
     expected: float = 0.625 + 1.0 + 1.0 + 0.75
 
     # Act / Assert
-    assert biz.working_days == pytest.approx(expected, rel=1e-9), "working_days multi-day fraction mismatch"
-    assert biz.business_days == pytest.approx(expected, rel=1e-9), "business_days multi-day fraction mismatch"
+    assert biz.working_days == approx(expected, rel=1e-9), "working_days multi-day fraction mismatch"
+    assert biz.business_days == approx(expected, rel=1e-9), "business_days multi-day fraction mismatch"
 
 
 def test_multi_day_with_middle_holiday() -> None:
@@ -45,8 +45,8 @@ def test_multi_day_with_middle_holiday() -> None:
     expected_business: float = expected_working - 1.0  # Jan 3 becomes 0.0 for business days
 
     # Act / Assert
-    assert biz.working_days == pytest.approx(expected_working, rel=1e-9), "working_days with middle holiday mismatch"
-    assert biz.business_days == pytest.approx(expected_business, rel=1e-9), "business_days with middle holiday mismatch"
+    assert biz.working_days == approx(expected_working, rel=1e-9), "working_days with middle holiday mismatch"
+    assert biz.business_days == approx(expected_business, rel=1e-9), "business_days with middle holiday mismatch"
 
 
 def test_in_working_and_business_days_range_with_holiday() -> None:

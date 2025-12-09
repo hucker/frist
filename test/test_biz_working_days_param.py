@@ -5,6 +5,7 @@ Covers holidays, weekends, and weekdays over a 3-week span.
 import datetime as dt
 
 import pytest
+from pytest import approx
 
 from frist import Biz, BizPolicy
 
@@ -64,9 +65,9 @@ def test_working_and_business_days_param_cases(
     result_business: float = biz.business_days
 
     # Assert
-    assert result_working == pytest.approx(expected_working, rel=1e-6), (
+    assert result_working == approx(expected_working, rel=1e-6), (
         f"{desc} (working): got {result_working}, expected {expected_working}"
     )
-    assert result_business == pytest.approx(expected_business, rel=1e-6), (
+    assert result_business == approx(expected_business, rel=1e-6), (
         f"{desc} (business): got {result_business}, expected {expected_business}"
     )

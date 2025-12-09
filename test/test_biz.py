@@ -12,6 +12,8 @@ from pytest import approx
 
 from frist import Biz, BizPolicy
 
+# This module is part of smoke tests
+pytestmark = pytest.mark.smoke
 
 def test_biz_basic_business_fraction():
     """Biz uses BizPolicy to compute business fractions on a normal business day.
@@ -351,7 +353,7 @@ def test_biz_with_mixed_date_types(target:dt.date, ref:dt.date, expected:float):
     biz = Biz(target, ref)
     
     # Assert
-    assert biz.business_days == pytest.approx(expected, rel=1e-3), f"Business days should be approximately {expected}"
+    assert biz.business_days == approx(expected, rel=1e-3), f"Business days should be approximately {expected}"
 
 
 def test_biz_default_ref_time():

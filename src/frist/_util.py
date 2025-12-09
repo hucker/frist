@@ -10,7 +10,6 @@ All functions follow PEP 8 and Google-style docstrings.
 """
 
 import datetime as dt
-from typing import Any
 
 from ._constants import WEEKDAY_INDEX
 

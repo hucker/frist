@@ -117,7 +117,7 @@ def test_is_business_day_invalid_type():
     "1899-01-01",  # year out of range
     "2100-01-01",  # year out of range
 ])
-def test_is_holiday_valueerror_for_bad_str(bad_str):
+def test_is_holiday_valueerror_for_bad_str(bad_str:str):
     policy = BizPolicy()
     with pytest.raises(ValueError):
         policy.is_holiday(bad_str)

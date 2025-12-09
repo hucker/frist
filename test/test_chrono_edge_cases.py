@@ -16,6 +16,7 @@ Covers:
 import datetime as dt
 
 import pytest
+from pytest import approx
 
 from frist import Chrono
 
@@ -79,7 +80,7 @@ def test_boundary_dates():
     assert actual_year == expected_year, "Year should be 2023"
     assert actual_month == expected_month, "Month should be December"
     assert actual_day == expected_day, "Day should be 31"
-    assert actual_days == pytest.approx(expected_days, abs=1e-4), (
+    assert actual_days == approx(expected_days, abs=1e-4), (
         "Should be very close to 0 days (2 seconds apart)"
     )
     assert actual_seconds == expected_seconds, "Should be exactly 2 seconds apart"
@@ -95,7 +96,7 @@ def test_large_time_differences():
     # Assert
     expected_years: float = 24.0
     actual_years = z.age.years
-    assert actual_years == pytest.approx(expected_years, rel=0.01), (
+    assert actual_years == approx(expected_years, rel=0.01), (
         f"Expected years approx {expected_years}, got {actual_years}"
     )  # type: ignore
 
@@ -254,7 +255,7 @@ def test_end_of_month_year():
         ("2024-01-15T14:30:45Z", dt.datetime(2024, 1, 15, 14, 30, 45)),
     ],
 )
-def test_string_datetime_formats_chrono_parse(string_input, expected_datetime):
+def test_string_datetime_formats_chrono_parse(string_input:str, expected_datetime:dt.datetime):
     """Test that Chrono.parse accepts all supported string datetime formats."""
     # Arrange
     ref_dt = dt.datetime(2024, 1, 16, 12, 0, 0)

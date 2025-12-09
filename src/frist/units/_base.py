@@ -102,8 +102,8 @@ class UnitName(Generic[TCal], ABC):
             adj_start = start + {"both": 0, "left": 0, "right": 1, "neither": 1}[inclusive]
             return self.in_(adj_start, adj_start + 1)
 
-        start_offsets: Mapping[Inclusive, int] = {"both": 0, "left": 0, "right": 1, "neither": 1}
-        end_offsets: Mapping[Inclusive, int] = {"both": 1, "left": 0, "right": 1, "neither": 0}
+        start_offsets: dict[Inclusive, int] = {"both": 0, "left": 0, "right": 1, "neither": 1}
+        end_offsets: dict[Inclusive, int] = {"both": 1, "left": 0, "right": 1, "neither": 0}
 
         if inclusive not in start_offsets:
             raise ValueError(f"Invalid inclusive value: {inclusive!r}")

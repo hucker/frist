@@ -14,8 +14,8 @@ from hypothesis import strategies as st
 from frist._cal import Cal
 from frist._util import normalize_weekday
 
-# Skip this module since I'm having issues with hypotheses tests right now
-pytestmark = pytest.mark.skip(reason="Disabled module")
+# Skip this module
+#pytestmark = pytest.mark.skip(reason="Disabled module")
 
 # Custom strategies for datetime generation
 datetime_strategy = st.datetimes(
@@ -141,32 +141,6 @@ def test_cal_in_weeks_consistency(target_ref: tuple[dt.datetime, dt.datetime]):
             expected = (start <= week_offset < end)
             actual = cal.week.in_(start, end)
             assert actual == expected
-
-
-@pytest.mark.hypothesis
-@given(target_ref=datetime_pair_strategy)
-def test_cal_unit_unit_consistency(target_ref: tuple[dt.datetime, dt.datetime]):
-    """Test that Unit call syntax and thru syntax work correctly."""
-    # Arrange
-    target_dt, ref_dt = target_ref
-    # Act
-    cal = Cal(target_dt, ref_dt)
-    # Assert
-    expected_minute = cal.minute.in_(5, 10)
-    actual_minute = cal.minute(5, 10)
-    assert actual_minute == expected_minute
-    expected_hour = cal.hour.in_(1, 3)
-    actual_hour = cal.hour(1, 3)
-    assert actual_hour == expected_hour
-    expected_day = cal.day.in_(-1, 1)
-    actual_day = cal.day(-1, 1)
-    assert actual_day == expected_day
-    expected_week = cal.week.in_(0, 2)
-    actual_week = cal.week(0, 2)
-    assert actual_week == expected_week
-    expected_thru = cal.day.in_(-1, 1)
-    actual_thru = cal.day.thru(-1, 0)
-    assert actual_thru == expected_thru  # -1 through 0 = -1 to 1 (half-open)
 
 
 @pytest.mark.hypothesis

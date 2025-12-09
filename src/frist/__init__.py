@@ -22,6 +22,7 @@ from ._biz import Biz
 from ._biz_policy import BizPolicy
 from ._cal import Cal
 from ._frist import Chrono
+from ._types import TimeLike, time_pair, to_datetime
 from .units import (
     BizDayUnit,
     DayUnit,
@@ -31,8 +32,8 @@ from .units import (
     MinuteUnit,
     MonthUnit,
     QuarterUnit,
-    UnitName,
     SecondUnit,
+    UnitName,
     WeekUnit,
     WorkingDayUnit,
     YearUnit,
@@ -49,7 +50,7 @@ __all__ = [
     "BizPolicy",
     # Units re-exported at top-level for convenience
     "UnitName",
-        "SecondUnit",
+    "SecondUnit",
     "MinuteUnit",
     "HourUnit",
     "DayUnit",
@@ -61,4 +62,7 @@ __all__ = [
     "WorkingDayUnit",
     "FiscalQuarterUnit",
     "FiscalYearUnit",
+    "TimeLike",
+    "time_pair",
+    "to_datetime",
 ]

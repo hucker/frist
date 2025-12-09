@@ -27,23 +27,23 @@ def to_datetime(val: TimeLike, formats: list[str] | None = None) -> dt.datetime:
     Raises:
         TypeError: If value is not a supported type or unrecognized string format
     """
-    # In order of expected frequency of use
-    if isinstance(val, dt.datetime):
-        return val
-    elif isinstance(val, dt.date):
-        return dt.datetime.combine(val, dt.time(0, 0, 0))
-    elif isinstance(val, (float, int)):
-        return dt.datetime.fromtimestamp(val)
-    elif isinstance(val, str):  # type: ignore # Run time type checker
-        format_list = formats or CHRONO_DATETIME_FORMATS
-        for format in format_list:
-            try:
-                return dt.datetime.strptime(val, format)
-            except ValueError:
-                continue
-        raise TypeError(f"Unrecognized datetime string format: {val}")
-    else:
-        raise TypeError("Value must be datetime, date, float, int, or str")
+    match val:
+        case dt.datetime():
+            return val
+        case dt.date():
+            return dt.datetime.combine(val, dt.time(0, 0, 0))
+        case float() | int():
+            return dt.datetime.fromtimestamp(val)
+        case str():
+            format_list = formats or CHRONO_DATETIME_FORMATS
+            for format in format_list:
+                try:
+                    return dt.datetime.strptime(val, format)
+                except ValueError:
+                    continue
+            raise TypeError(f"Unrecognized datetime string format: {val}")
+        case _:
+            raise TypeError("Value must be datetime, date, float, int, or str")
 
 
 def time_pair(

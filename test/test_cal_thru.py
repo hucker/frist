@@ -4,7 +4,7 @@ Tests verifying inclusive `thru` behavior for Cal units.
 These ensure `ns.thru(start, end)` produces the correct half-open semantics
 by advancing the end by 1 compared to `in_`.
 
-Style: Arrange / Act / Assert (AA) per project `codeguide.md`.
+Style: Arrange / Act / Assert (AA) per project `CODESTYLE.md`.
 """
 
 import datetime as dt
