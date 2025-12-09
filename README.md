@@ -653,7 +653,7 @@ main> tox
 
 ```text
 main> mypy src/frist
-Success: no issues found in 10 source files
+Success: no issues found in 24 source files
 ```
 
 ### What is Frist?
