@@ -8,7 +8,7 @@ import datetime as dt
 import pytest
 
 from frist import Biz, BizPolicy
-from frist.units._base import Inclusive
+from frist.units._base import Inclusive, coerce_inclusive
 
 
 @pytest.fixture()
@@ -38,13 +38,14 @@ def test_work_day_between_single_unit_mapping(
     b = Biz(target, ref_dt, policy_standard)
 
     # Map expected per inclusive to canonical in_ calls
-    if inclusive == "both":
+    inc = coerce_inclusive(inclusive)
+    if inc is Inclusive.BOTH:
         # in_(0, 1)
         assert b.work_day.between(0, None, inclusive) == b.work_day.in_(0, 1)
-    elif inclusive == "left":
+    elif inc is Inclusive.LEFT:
         # in_(0, 1)
         assert b.work_day.between(0, None, inclusive) == b.work_day.in_(0, 1)
-    elif inclusive == "right":
+    elif inc is Inclusive.RIGHT:
         # start shifted by +1, end+1 -> in_(1, 2)
         assert b.work_day.between(0, None, inclusive) == b.work_day.in_(1, 2)
     else:  # neither
@@ -67,7 +68,8 @@ def test_work_day_between_multi_day_span(
     # Target on Thursday; test window spanning start=0..end=1 relative to ref Thursday.
     target = dt.datetime(2025, 1, 16, 10, 0)
     b = Biz(target, ref_dt, policy_standard)
-    if inclusive == "neither":
+    inc = coerce_inclusive(inclusive)
+    if inc is Inclusive.NEITHER:
         with pytest.raises(ValueError):
             b.work_day.between(0, 1, inclusive)
     else:
@@ -84,9 +86,10 @@ def test_biz_day_between_single_unit_mapping_observes_holiday(
 
     # For business day, membership should reflect holiday exclusion
     # Single-unit mapping expectations still hold, but results differ because target is a holiday
-    if inclusive in {"both", "left"}:
+    inc = coerce_inclusive(inclusive)
+    if inc in {Inclusive.BOTH, Inclusive.LEFT}:
         assert b.biz_day.between(0, None, inclusive) == b.biz_day.in_(0, 1)
-    elif inclusive == "right":
+    elif inc is Inclusive.RIGHT:
         assert b.biz_day.between(0, None, inclusive) == b.biz_day.in_(1, 2)
     else:  # neither
         assert b.biz_day.between(0, None, inclusive) == b.biz_day.in_(1, 2)

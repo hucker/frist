@@ -291,6 +291,41 @@ Cal(dt.datetime(2025, 11, 24), ref).week.in_(1, 2)
 Cal(dt.datetime(2025, 11, 20, 13), ref).hour.in_(-1, 0)
 ```
 
+### Boundary Inclusivity and `between()`
+
+In addition to the canonical `in_(start, end)` half-open windows, Frist provides a convenience
+`between(start, end, inclusive)` helper on unit adapters that lets you specify which boundaries
+should be considered inclusive before converting the request to a half-open interval.
+
+- `inclusive` accepts the values `"both"`, `"left"`, `"right"`, and `"neither"`.
+- For backwards compatibility, strings are accepted (e.g. `"left"`), but a runtime-friendly
+    enum is also available for stronger typing and editor support: `Inclusive` (see examples).
+
+Behavior (single-unit shorthand `end=None`):
+- `both` / `left` -> window maps to `[start, start+1)`
+- `right` / `neither` -> window maps to `[start+1, start+2)`
+
+Examples
+
+```python
+from frist import Cal
+from frist.units._base import Inclusive
+import datetime as dt
+
+ref = dt.datetime(2025, 11, 20, 12, 0, 0)
+target = dt.datetime(2025, 11, 20, 12, 0, 0)
+c = Cal(target_dt=target, ref_dt=ref)
+
+# Prefer the enum for clarity (strings are still accepted)
+assert c.hour.between(0, None, Inclusive.LEFT) == c.hour.in_(0, 1)
+assert c.hour.between(0, None, "right") == c.hour.in_(1, 2)
+
+# Biz example
+from frist import Biz, BizPolicy
+policy = BizPolicy(workdays=[0,1,2,3,4])
+ b = Biz(target, ref, policy)
+assert b.work_day.between(0, None, Inclusive.BOTH) == b.work_day.in_(0, 1)
+```
 ---
 
 ## Biz

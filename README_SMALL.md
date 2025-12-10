@@ -80,6 +80,18 @@ assert c.year.val == 2025
 - Predictable: half-open prevents boundary overlap.
 - Unit values: `cal.day.val` (ISO weekday 1..7), `cal.day.name` (e.g., "Thursday").
 
+Note on boundary inclusivity:
+
+You can also use `between(start, end, inclusive)` to specify which boundaries are
+inclusive before the library converts to half-open form. The `inclusive` argument
+accepts the strings `"both"`, `"left"`, `"right"`, and `"neither"`, or you can
+prefer the runtime-friendly enum `Inclusive` (importable from `frist.units._base`).
+
+```python
+from frist.units._base import Inclusive
+assert c.hour.between(0, None, Inclusive.LEFT) == c.hour.in_(0, 1)
+```
+
 ## 3) Business vs Working — signed fractional counts
 
 Why: Get policy-aware fractional days with direction. Reverse order returns the negative.

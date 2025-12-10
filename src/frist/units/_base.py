@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import datetime as dt
 from abc import ABC, abstractmethod
-from collections.abc import Mapping
-from typing import Generic, Literal, Protocol, TypeVar
+from enum import Enum
+from typing import Generic, Protocol, TypeVar
 
 
 class CalProtocol(Protocol):
@@ -44,8 +44,34 @@ class CalProtocol(Protocol):
 # This improves IDE hints and catches misuse (e.g., calling biz-only methods on Cal).
 TCal = TypeVar("TCal", bound=CalProtocol)
 
-# Constrained literal type for boundary inclusivity in `between()`
-Inclusive = Literal["both", "left", "right", "neither"]
+# Runtime enum for boundary inclusivity in `between()`.
+class Inclusive(str, Enum):
+    """Literal-like enum for window boundary inclusivity.
+
+    Values: "both", "left", "right", "neither".
+    """
+
+    BOTH = "both"
+    LEFT = "left"
+    RIGHT = "right"
+    NEITHER = "neither"
+
+
+# Runtime tuple of allowed values (useful for error messages/validation)
+INCLUSIVE_VALUES: tuple[str, ...] = tuple(m.value for m in Inclusive)
+
+
+def coerce_inclusive(value: Inclusive | str) -> Inclusive:
+    """Coerce a string or Inclusive into an `Inclusive` enum.
+
+    Raises ValueError for invalid inputs.
+    """
+    if isinstance(value, Inclusive):
+        return value
+    try:
+        return Inclusive(value)
+    except ValueError as exc:
+        raise ValueError(f"Invalid inclusive value: {value!r}. Valid: {INCLUSIVE_VALUES}") from exc
 
 
 class UnitName(Generic[TCal], ABC):
@@ -83,7 +109,7 @@ class UnitName(Generic[TCal], ABC):
         self,
         start: int = 0,
         end: int | None = None,
-        inclusive: Inclusive = "both",
+        inclusive: Inclusive | str = Inclusive.BOTH,
     ) -> bool:
         """Window membership with configurable boundary inclusivity.
 
@@ -98,18 +124,27 @@ class UnitName(Generic[TCal], ABC):
                 - When `end is None`, it returns a single-unit window shifted by inclusivity:
                     `adj_start = start + start_offsets[inclusive]` and `adj_end = adj_start + 1`.
         """
+        inc = coerce_inclusive(inclusive)
+
+        start_offsets: dict[Inclusive, int] = {
+            Inclusive.BOTH: 0,
+            Inclusive.LEFT: 0,
+            Inclusive.RIGHT: 1,
+            Inclusive.NEITHER: 1,
+        }
+        end_offsets: dict[Inclusive, int] = {
+            Inclusive.BOTH: 1,
+            Inclusive.LEFT: 0,
+            Inclusive.RIGHT: 1,
+            Inclusive.NEITHER: 0,
+        }
+
         if end is None:
-            adj_start = start + {"both": 0, "left": 0, "right": 1, "neither": 1}[inclusive]
+            adj_start = start + start_offsets[inc]
             return self.in_(adj_start, adj_start + 1)
 
-        start_offsets: dict[Inclusive, int] = {"both": 0, "left": 0, "right": 1, "neither": 1}
-        end_offsets: dict[Inclusive, int] = {"both": 1, "left": 0, "right": 1, "neither": 0}
-
-        if inclusive not in start_offsets:
-            raise ValueError(f"Invalid inclusive value: {inclusive!r}")
-
-        adj_start = start + start_offsets[inclusive]
-        adj_end = end + end_offsets[inclusive]
+        adj_start = start + start_offsets[inc]
+        adj_end = end + end_offsets[inc]
         return self.in_(adj_start, adj_end)
 
     def thru(self, start: int = 0, end: int | None = None) -> bool:
