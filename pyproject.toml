@@ -1,11 +1,6 @@
-#[tool.pytest.ini_options]
-# Enforce consistent branch coverage across all test runs
-# NOTE: This section already exists elsewhere in pyproject; to avoid
-# duplicate table declaration errors, keep a single definition.
-# If not present, uncomment the block below.
-#addopts = "--cov=src --cov-branch"
-
-# Coverage configuration is defined elsewhere; avoid duplicate tables.
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "frist"
@@ -23,28 +18,21 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
-# Add runtime dependencies
+# Runtime dependencies: the only third-party import in src/frist is dateutil.
 dependencies = [
     "python-dateutil",
-    # Existing dependencies
-    "pytest",
-    "pytest-cov",
-    "pytest-xdist",
-    "mypy",
-    "hypothesis==6.100.*",
-    "types-python-dateutil"
 ]
 
-
-# frist has no runtime dependencies
-[project.optional-dependencies]
+# Development tooling (PEP 735). Installed by `uv sync`; never part of the
+# published wheel metadata.
+[dependency-groups]
 dev = [
     "pytest",
     "pytest-cov",
     "pytest-xdist",
     "mypy",
     "hypothesis==6.100.*",
-    "types-python-dateutil"
+    "types-python-dateutil",
 ]
 
 [project.scripts]
