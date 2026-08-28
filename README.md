@@ -168,8 +168,10 @@ def copy_last_month_files_to_backup(src: pathlib.Path, backup: pathlib.Path) -> 
 
 The `Age` object answers "How old is X?" for two datetimes (start and end). It exposes common elapsed-time metrics as properties so you can write intent‑revealing one‑liners.
 
-- Purpose: elapsed / duration properties (seconds, minutes, hours, days, weeks, months, years).
-- Special: `months_precise` and `years_precise` compute calendar-accurate values; `parse()` converts human-friendly duration strings to seconds.
+- Purpose: elapsed / duration properties (microseconds, milliseconds, seconds, minutes, hours, days, weeks, months, years).
+- Special: `months_precise` and `years_precise` compute calendar-accurate values; `parse()` converts human-friendly duration strings (including `"100ms"`) to seconds.
+- Durations: `Age.from_seconds()` / `Age.from_timedelta()` build a bare duration with no real endpoints, so a measurement like "80 ms" never has to be faked with two timestamps.
+- Formatting: `format()` picks a unit from a threshold table — `Age.AGE_UNITS` (humanize-style rounding, the default) or `Age.DURATION_UNITS` (clock boundaries for measurements) — and `now=` collapses anything younger than a threshold you choose to `"now"`.
 - Default behavior: if `end_time` is omitted it defaults to set to `datetime.now()`.
 
 Examples
@@ -429,6 +431,8 @@ All Frist classes accept flexible time inputs through the `TimeLike` type, which
 
 | Property         | Description                                               |
 | ---------------- | --------------------------------------------------------- |
+| `microseconds`   | Age in microseconds                                       |
+| `milliseconds`   | Age in milliseconds                                       |
 | `seconds`        | Age in seconds                                            |
 | `minutes`        | Age in minutes                                            |
 | `hours`          | Age in hours                                              |
@@ -448,7 +452,45 @@ All Frist classes accept flexible time inputs through the `TimeLike` type, which
 | Method                                      | Description                 |
 | ------------------------------------------- | --------------------------- |
 | `set_times(start_time=None, end_time=None)` | Update start/end times (accepts TimeLike inputs) |
-| `parse(age_str)`                            | Parse age string to seconds |
+| `parse(age_str)`                            | Parse age string to seconds (`"5m"`, `"1.5h"`, `"100ms"`, `"250 us"`) |
+| `from_seconds(seconds)`                     | Class method: a bare duration of N seconds (fractional and negative OK) |
+| `from_timedelta(delta)`                     | Class method: a bare duration from a `datetime.timedelta` |
+| `format(units=None, fmt=..., now=None, now_text="now")` | Render in the most appropriate unit; see below |
+
+| Class attribute  | Description                                               |
+| ---------------- | --------------------------------------------------------- |
+| `AGE_UNITS`      | Default `format()` table: humanize thresholds (45 s / 45 min / 22 h / 26 d / 11 mo), then years |
+| `DURATION_UNITS` | Measurement table: clock boundaries (1000 / 1000 / 60 / 60 / 24), days unbounded |
+
+#### Formatting ages and durations
+
+`format()` walks a table of `(threshold, unit_name, getter)` rows and reports the first row whose value is below its threshold. Two tables ship with `Age` and differ only in *rounding policy*: an age is coarse by nature ("about 10 minutes ago"), a duration is a measurement ("1.50 seconds") that gets compared across runs.
+
+```python
+from frist import Age
+
+# "How old is this file?" -- humanize-style rounding, 46 s already reads as minutes
+Age(mtime).format()                                    # "0.77 minutes"
+
+# "How long did that take?" -- clock boundaries, days never roll over into years
+Age.from_seconds(46).format(units=Age.DURATION_UNITS)  # "46.00 seconds"
+Age.from_seconds(0.08).format(units=Age.DURATION_UNITS)  # "80.00 milliseconds"
+
+# `now` is a threshold *you* choose, because it depends on what is being aged:
+Age(mtime).format(now=10)             # "now" for anything under 10 s (a number is seconds)
+Age(last_byte).format(now="100ms")    # a string carries its own unit (via Age.parse)
+Age(mtime).format(now="1.1 min", now_text="just now")
+```
+
+To use your own labels, rebuild a table from the shipped one rather than restating the thresholds:
+
+```python
+short = {"seconds": "s", "minutes": "min", "hours": "hr", "days": "day", "months": "mo"}
+units = [(t, short[u], g) for t, u, g in Age.AGE_UNITS]
+Age(mtime).format(units=units, fmt="{value:.0f} {unit}")   # "10 min"
+```
+
+`from_seconds` / `from_timedelta` anchor both endpoints at a fixed naive datetime (2000-01-01); the elapsed-time properties and `format()` are unaffected, while `months_precise` / `years_precise` are measured from that anchor. This avoids `Age(0, seconds)`, which routes through `datetime.fromtimestamp` (local-time dependent, and negative values raise on Windows).
 
 The `months_precise` and `years_precise` properties calculate the `exact` number of calendar months or years between two dates, accounting for the actual length of each month and year. Unlike the approximate versions (which use averages like 30.44 days/month or 365.25 days/year), these properties provide results that match real-world calendar boundaries. They are more intuitively correct but are slower to compute since the first and last month/year need to be handled differently.  Basically, Feb 1 to Feb 28 (non leap year) is 1.0 precise months long, while Jan 1 to Jan31 is also 1 precise month long. And Jan 1 to Feb 14 is 1.5 precise months.  For years it is similar but the effect is smaller.  The 365 days in 2021 is 1 precise year as are the 366 days in 2024.
 

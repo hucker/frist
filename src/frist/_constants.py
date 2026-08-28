@@ -10,6 +10,8 @@ SECONDS_PER_MINUTE: Final[int] = 60
 SECONDS_PER_HOUR: Final[int] = 3600
 SECONDS_PER_DAY: Final[int] = 86400
 SECONDS_PER_WEEK: Final[int] = 604800  # 7 * 24 * 60 * 60
+MILLISECONDS_PER_SECOND: Final[int] = 1000
+MICROSECONDS_PER_SECOND: Final[int] = 1_000_000
 
 # Advanced time constants for age calculations
 DAYS_PER_MONTH: Final[float] = 30.44  # Average days per month
@@ -48,6 +50,8 @@ __all__ = [
     "SECONDS_PER_HOUR",
     "SECONDS_PER_DAY",
     "SECONDS_PER_WEEK",
+    "MILLISECONDS_PER_SECOND",
+    "MICROSECONDS_PER_SECOND",
     "DAYS_PER_MONTH",
     "DAYS_PER_YEAR",
     "SECONDS_PER_MONTH",

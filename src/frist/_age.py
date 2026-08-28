@@ -5,13 +5,17 @@ Handles age calcs in various time units, supports both file-based and standalone
 """
 
 import datetime as dt
+import math
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
+from typing import ClassVar, TypeAlias
 
 from ._constants import (
     DAYS_PER_MONTH,
     DAYS_PER_WEEK,
     DAYS_PER_YEAR,
+    MICROSECONDS_PER_SECOND,
+    MILLISECONDS_PER_SECOND,
     SECONDS_PER_DAY,
     SECONDS_PER_HOUR,
     SECONDS_PER_MINUTE,
@@ -20,6 +24,11 @@ from ._constants import (
     SECONDS_PER_YEAR,
 )
 from ._types import TimeLike, time_pair
+
+# One row of a unit table for ``Age.format``: (threshold, unit_name, getter).
+# ``format`` walks the rows in order and reports the first whose getter value
+# satisfies ``abs(value) < threshold``.
+UnitRow: TypeAlias = tuple[float, str, Callable[["Age"], float]]
 
 
 class Age:
@@ -32,16 +41,26 @@ class Age:
           for start and end times.
         - Uses a configurable BizPolicy for business calendar logic (workdays, holidays,
           business hours).
-        - Provides properties for age in seconds, minutes, hours, days, weeks, months,
-          years, and fractional working days.
+        - Provides properties for age in microseconds, milliseconds, seconds, minutes,
+          hours, days, weeks, months, years, and fractional working days.
         - Allows updating start and end times via the `set_times` method (kwargs-only,
           preserves previous values if None).
+        - Represents bare durations (no real endpoints) via ``from_seconds`` and
+          ``from_timedelta``.
+        - Formats itself in the most appropriate unit via ``format``, using either the
+          ``AGE_UNITS`` table (humanize-style rounding, the default) or the
+          ``DURATION_UNITS`` table (clock boundaries, for measurements), with an
+          optional ``now`` threshold.
 
     Initialization:
         Age(start_time, end_time=None, formats=None)
         - start_time: TimeLike (dt.datetime, dt.date, float, int, or str) (required)
         - end_time: TimeLike or None (defaults to now)
         - formats: list[str] or None (custom datetime formats for string parsing)
+
+        Age.from_seconds(seconds) / Age.from_timedelta(delta)
+        - A duration with no meaningful start/end; both are synthesized from a fixed
+          naive anchor (2000-01-01) so the Unix epoch and local timezone never matter.
 
     Updating times:
         age.set_times(start_time=..., end_time=...)
@@ -62,6 +81,35 @@ class Age:
           calendar policies and update patterns.
     """
 
+    # Naive anchor used by ``from_seconds`` / ``from_timedelta``.  A bare duration has
+    # no wall-clock endpoints, so one is invented here instead of routing numbers
+    # through ``datetime.fromtimestamp`` (local-time dependent, and negative
+    # timestamps raise OSError on Windows).
+    _DURATION_ANCHOR: ClassVar[dt.datetime] = dt.datetime(2000, 1, 1)
+
+    # Default table for ``format``: "how old is X?" rounding, with thresholds taken
+    # from the humanize library (45 s / 45 min / 22 h / 26 d / 11 mo).  Anything past
+    # the last row is reported in ``years_precise``.
+    AGE_UNITS: ClassVar[tuple[UnitRow, ...]] = (
+        (45, "seconds", lambda age: age.seconds),
+        (45, "minutes", lambda age: age.minutes),
+        (22, "hours", lambda age: age.hours),
+        (26, "days", lambda age: age.days),
+        (11, "months", lambda age: age.months_precise),
+    )
+
+    # Measurement table for ``format``: clock boundaries (1000 / 1000 / 60 / 60 / 24)
+    # so 46 s reads "46.00 seconds", never "0.77 minutes".  The final row is
+    # unbounded, so long durations stay in days rather than falling through to years.
+    DURATION_UNITS: ClassVar[tuple[UnitRow, ...]] = (
+        (1000, "microseconds", lambda age: age.microseconds),
+        (1000, "milliseconds", lambda age: age.milliseconds),
+        (60, "seconds", lambda age: age.seconds),
+        (60, "minutes", lambda age: age.minutes),
+        (24, "hours", lambda age: age.hours),
+        (math.inf, "days", lambda age: age.days),
+    )
+
     def __init__(
         self,
         start_time: TimeLike,
@@ -74,6 +122,50 @@ class Age:
                                                                          end_time=end_time, 
                                                                          formats__=formats)
 
+
+    @classmethod
+    def from_timedelta(cls, delta: dt.timedelta) -> "Age":
+        """
+        Build an Age representing a bare duration.
+
+        A duration has no meaningful start or end, so both are synthesized from a fixed
+        naive anchor (2000-01-01 00:00).  Elapsed-time properties (``seconds``,
+        ``hours``, ``days``, ...) and ``format`` behave exactly as for any other Age;
+        the calendar-aware ``months_precise`` / ``years_precise`` are measured from
+        that anchor.  Negative deltas are allowed and yield negative ages.
+
+        Args:
+            delta: The duration to represent.
+
+        Returns:
+            Age: An Age whose ``seconds`` equals ``delta.total_seconds()``.
+
+        Example:
+            Age.from_timedelta(dt.timedelta(milliseconds=80)).format(units=Age.DURATION_UNITS)
+            # "80.00 milliseconds"
+        """
+        return cls(cls._DURATION_ANCHOR, cls._DURATION_ANCHOR + delta)
+
+    @classmethod
+    def from_seconds(cls, seconds: float) -> "Age":
+        """
+        Build an Age representing a bare duration of ``seconds`` seconds.
+
+        See ``from_timedelta`` for the anchoring rules.  Unlike ``Age(0, seconds)``,
+        this never touches the Unix epoch or the local timezone, so sub-second and
+        negative values work on every platform.  Resolution is one microsecond
+        (``datetime.timedelta``'s).
+
+        Args:
+            seconds: Duration in seconds; may be fractional or negative.
+
+        Returns:
+            Age: An Age whose ``seconds`` equals the argument.
+
+        Example:
+            Age.from_seconds(90).format(units=Age.DURATION_UNITS)  # "1.50 minutes"
+        """
+        return cls.from_timedelta(dt.timedelta(seconds=seconds))
 
     @staticmethod
     def _next_month_year(year: int, month: int) -> tuple[int, int]:
@@ -100,6 +192,16 @@ class Age:
     def seconds(self) -> float:
         """Get age in seconds."""
         return (self.end_time - self.start_time).total_seconds()
+
+    @property
+    def milliseconds(self) -> float:
+        """Get age in milliseconds."""
+        return self.seconds * MILLISECONDS_PER_SECOND
+
+    @property
+    def microseconds(self) -> float:
+        """Get age in microseconds."""
+        return self.seconds * MICROSECONDS_PER_SECOND
 
     @property
     def minutes(self) -> float:
@@ -166,7 +268,8 @@ class Age:
         next_year, next_month = self._next_month_year(start.year, start.month)
         start_month_end = dt.datetime(next_year, next_month, 1)
         first_month_seconds = (start_month_end - start).total_seconds()
-        total_start_month_seconds = (start_month_end - dt.datetime(start.year, start.month, 1)).total_seconds()
+        start_month_begin = dt.datetime(start.year, start.month, 1)
+        total_start_month_seconds = (start_month_end - start_month_begin).total_seconds()
         first_month_fraction = first_month_seconds / total_start_month_seconds
 
         # Last month fraction
@@ -175,7 +278,9 @@ class Age:
         last_month_end = dt.datetime(next_year, next_month, 1)
         last_month_seconds = (end - last_month_start).total_seconds()
         total_last_month_seconds = (last_month_end - last_month_start).total_seconds()
-        last_month_fraction = last_month_seconds / total_last_month_seconds if last_month_seconds > 0 else 0.0
+        last_month_fraction = (
+            last_month_seconds / total_last_month_seconds if last_month_seconds > 0 else 0.0
+        )
 
         # Count full months in between
         full_months = 0
@@ -238,26 +343,42 @@ class Age:
 
     def format(
         self,
-        units: list[tuple[float, str, Callable[["Age"], float]]] | None = None,
+        units: Sequence[UnitRow] | None = None,
         fmt: str = "{value:.2f} {unit}",
+        now: int | float | str | None = None,
+        now_text: str = "now",
     ) -> str:
         """
         Return age in the most appropriate units, with customizable unit names and formatting.
 
         Args:
-            units: List of tuples (threshold, unit_name, getter) to control units and thresholds.
-                If None, uses default table.
-                You can override formatting by passing a single tuple with a very large threshold.
-            fmt: Format string for output. Default is "{value:.2f} {unit}".
+            units: Sequence of (threshold, unit_name, getter) rows controlling units and
+                thresholds; the first row whose getter value satisfies
+                ``abs(value) < threshold`` wins.  Defaults to ``Age.AGE_UNITS``
+                (humanize-style rounding).  ``Age.DURATION_UNITS`` gives clock-boundary
+                rounding for measurements.  If no row matches, the age is reported in
+                ``years_precise``.  A single row with a huge threshold overrides all
+                formatting.
+            fmt: Format string for output, receiving ``value`` and ``unit``.
+                Default is "{value:.2f} {unit}".
+            now: Optional "close enough to now" threshold.  A number is seconds; a string
+                carries its own unit and is parsed by ``Age.parse`` ("10 s", "1.1 min",
+                "100ms").  When ``abs(self.seconds)`` is below it, ``now_text`` is
+                returned instead of a formatted value.  The right threshold depends on
+                what is being aged (10 s for files, 100 ms for serial traffic), so
+                there is no default.
+            now_text: Text returned when the ``now`` threshold applies.
 
         Example:
             age.format()  # "3.25 hours"
             age.format(fmt="{value:.0f}{unit}", units=[...])  # "3h"
+            age.format(now="10 s")  # "now" while under 10 seconds old
+            Age.from_seconds(0.08).format(units=Age.DURATION_UNITS)  # "80.00 milliseconds"
             # Override all formatting:
             age.format(units=[(1e20, "custom:", lambda self: self.seconds)], fmt="{value} {unit}")
 
         Note:
-            Unit transition thresholds are inspired by the `humanize` Python library:
+            Default unit transition thresholds are inspired by the `humanize` Python library:
             https://github.com/jmoiron/humanize/blob/main/src/humanize/time.py
             - Seconds → Minutes: 45 seconds
             - Minutes → Hours: 45 minutes
@@ -265,17 +386,12 @@ class Age:
             - Days → Months: 26 days
             - Months → Years: 11 months
         """
-        # Thresholds and transitions inspired by humanize (see note above)
-        default_units: list[tuple[float, str, Callable[[Age], float]]] = [
-            (45, "seconds", lambda self: self.seconds),
-            (45, "minutes", lambda self: self.minutes),
-            (22, "hours", lambda self: self.hours),
-            (26, "days", lambda self: self.days),
-            (11, "months", lambda self: self.months_precise),
-        ]
-        units = units or default_units
+        if now is not None:
+            now_limit: float = Age.parse(now) if isinstance(now, str) else float(now)
+            if abs(self.seconds) < now_limit:
+                return now_text
 
-        for threshold, unit, getter in units:
+        for threshold, unit, getter in units or self.AGE_UNITS:
             value = getter(self)
             if abs(value) < threshold:
                 return fmt.format(value=value, unit=unit)
@@ -295,6 +411,8 @@ class Age:
             "1w" -> 604800 seconds (1 week)
             "2months" -> 5260032 seconds (2 months)
             "1 y" -> 31557600 seconds (1 year)
+            "100ms" -> 0.1 seconds (100 milliseconds)
+            "250 us" -> 0.00025 seconds (250 microseconds)
         """
         age_str = age_str.strip().lower()
         # Handle plain numbers (seconds), including negatives
@@ -311,7 +429,15 @@ class Age:
         unit: str = match.group(2).lower()
 
         # Define multipliers (convert to seconds)
-        unit_multipliers = {
+        unit_multipliers: dict[str, float] = {
+            "us": 1 / MICROSECONDS_PER_SECOND,
+            "usec": 1 / MICROSECONDS_PER_SECOND,
+            "microsecond": 1 / MICROSECONDS_PER_SECOND,
+            "microseconds": 1 / MICROSECONDS_PER_SECOND,
+            "ms": 1 / MILLISECONDS_PER_SECOND,
+            "msec": 1 / MILLISECONDS_PER_SECOND,
+            "millisecond": 1 / MILLISECONDS_PER_SECOND,
+            "milliseconds": 1 / MILLISECONDS_PER_SECOND,
             "s": 1,
             "sec": 1,
             "second": 1,
