@@ -11,8 +11,8 @@ import datetime as dt
 
 from dateutil.rrule import FR, MO, MONTHLY, SA, SU, TH, TU, WE, rrule
 
-from ._base import UnitName, CalProtocol
 from .._util import in_half_open, normalize_weekday
+from ._base import CalProtocol, UnitName
 
 
 class MonthUnit(UnitName[CalProtocol]):

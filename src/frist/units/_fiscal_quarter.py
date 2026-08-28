@@ -6,9 +6,10 @@ using the provided policy.
 """
 from __future__ import annotations
 
-from .._util import in_half_open
 from .._biz_policy import BizPolicy
+from .._util import in_half_open
 from ._base import CalProtocol, UnitName
+
 
 def _fiscal_year(dt_, fy_start_month: int) -> int:
     return dt_.year if dt_.month >= fy_start_month else dt_.year - 1

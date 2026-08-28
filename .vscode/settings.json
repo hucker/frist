@@ -8,7 +8,15 @@
     "workbench.colorCustomizations": {
         "activityBar.background": "#322E16",
         "titleBar.activeBackground": "#46401F",
-        "titleBar.activeForeground": "#FBFAF5"
+        "titleBar.activeForeground": "#FBFAF5",
+        "titleBar.inactiveBackground": "#45401F",
+        "titleBar.inactiveForeground": "#FBFAF6",
+        "statusBar.background": "#45401F",
+        "statusBar.foreground": "#FBFAF6",
+        "statusBar.debuggingBackground": "#45401F",
+        "statusBar.debuggingForeground": "#FBFAF6",
+        "statusBar.noFolderBackground": "#45401F",
+        "statusBar.noFolderForeground": "#FBFAF6"
     },
     "cSpell.words": [
         "addopts",

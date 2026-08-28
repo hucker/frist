@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import datetime as dt
 
-from ._base import UnitName, CalProtocol
 from .._util import in_half_open_date
+from ._base import CalProtocol, UnitName
 
 
 class DayUnit(UnitName[CalProtocol]):
