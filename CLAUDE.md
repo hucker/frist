@@ -6,7 +6,7 @@
 
 - Pure-Python library in `src/frist` (setuptools, src layout).  The public API is `__all__` in `src/frist/__init__.py`: `Chrono`, `Age`, `Cal`, `Biz`, `BizPolicy`, the unit classes, `TimeLike`, `time_pair`, `to_datetime`.  `Inclusive` is exported from `frist.units`, not from the top level.
 - `__version__` in `src/frist/__init__.py` must match `version` in `pyproject.toml`.
-- One runtime dependency, `python-dateutil` (only `dateutil.rrule`, in `src/frist/units/_month.py`).  Supported Pythons: 3.10 to 3.14 (the tox envlist).
+- One runtime dependency, `python-dateutil` (only `dateutil.rrule`, in `src/frist/units/_month.py`).  Supported Pythons: 3.11 to 3.15 (the tox envlist); the dev venv is 3.15 (`.python-version`).
 - CLI: `frist <date> [<date>]`, also `python -m frist`.  `src/frist/__main__.py` is excluded from coverage.
 - Docs: `README.md` is the reference (long), `README_SMALL.md` the five-minute quick start, `docs/parallel-test.md` covers pytest-xdist.
 - The git remote is named `frist`, not `origin`: `git push frist <branch>`.
@@ -106,8 +106,6 @@ git config alias.fblame 'blame --ignore-revs-file .git-blame-ignore-revs'
 
 Listed so a session does not fix them mid-task.  Remove an item when a branch resolves it.
 
-- `pyproject.toml` points at a `LICENSE` file that does not exist.  Planned: `chore/build-py311-315`.
-- `requires-python` is `>=3.10` while current python-dateutil (4.0) and hypothesis need 3.11.  Same branch.
 - `ty check src test` reports 45 diagnostics: 40 `unused-type-ignore-comment` (the pragmas mypy needs), 5 `invalid-argument-type`, 2 `int`.  Reconcile with a `[tool.ty.rules]` setting or crcglot's dual pragma before gating on ty.
 - No CI workflow, although the README coverage badge links to GitHub Actions.
 - No CHANGELOG; release history lives in commit messages.

@@ -720,12 +720,12 @@ src\frist\units\_year.py                23      0   100%
 
 ```text
 main> tox
-  py310: OK (5.11=setup[3.24]+cmd[1.87] seconds)
-  py311: OK (6.46=setup[3.89]+cmd[2.57] seconds)
-  py312: OK (7.01=setup[4.65]+cmd[2.36] seconds)
-  py313: OK (6.67=setup[4.37]+cmd[2.30] seconds)
-  py314: OK (6.04=setup[4.27]+cmd[1.77] seconds)
-  congratulations :) (32.91 seconds)
+  py311: OK (19.89=setup[2.41]+cmd[17.48] seconds)
+  py312: OK (21.86=setup[2.88]+cmd[18.99] seconds)
+  py313: OK (18.57=setup[3.26]+cmd[15.31] seconds)
+  py314: OK (11.92=setup[2.73]+cmd[9.19] seconds)
+  py315: OK (10.80=setup[2.86]+cmd[7.94] seconds)
+  congratulations :) (83.21 seconds)
 ```
 
 ### Mypy
