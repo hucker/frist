@@ -156,9 +156,9 @@ def copy_last_month_files_to_backup(src: pathlib.Path, backup: pathlib.Path) -> 
 
 ## Caveats
 
-- **Fixed-length business days:** Calculations assume standard day lengths; DST transitions are ignored. Fractional-day values always use these standard lengths.
+- **Civil time:** frist works in wall-clock time. Calendar questions (`Cal`, `Biz`) are answered in the wall clock of the inputs, so a day is a day even when a DST change makes it 23 or 25 hours long, and business-day fractions use the policy's standard hours. Naive datetimes are wall-clock readings, and `Age` reports the elapsed time between two of them in that same wall clock.
 
-- **No timezone support:** All datetimes are treated as naive; timezones are not considered.
+- **Instants:** timezone-aware datetimes (both in the same zone), POSIX timestamps and an omitted end time (now) are instants, and `Age` measures the true elapsed time between them, including across a DST change. The DST rules come from the IANA database through `zoneinfo`; frist carries none of its own. Mixing a naive value with an aware one, or two different zones, raises `ValueError`.
 
 - **Fiscal-year and fiscal-quarter logic:** You can set the fiscal year to start on any month. Each fiscal year has four quarters, each 3 months long, with Q1 starting on the first day of the chosen month.
 
@@ -173,6 +173,7 @@ The `Age` object answers "How old is X?" for two datetimes (start and end). It e
 - Purpose: elapsed / duration properties (microseconds, milliseconds, seconds, minutes, hours, days, weeks, months, years).
 - Special: `months_precise` and `years_precise` compute calendar-accurate values; `parse()` converts human-friendly duration strings (including `"100ms"`) to seconds.
 - Durations: `Age.from_seconds()` / `Age.from_timedelta()` build a bare duration with no real endpoints, so a measurement like "80 ms" never has to be faked with two timestamps.
+- Instants: timezone-aware datetimes and POSIX timestamps are measured as instants, exact across DST changes; naive datetimes are wall-clock readings (see Caveats).
 - Formatting: `format()` picks the unit from a threshold table. The default, `Age.PLURAL_UNITS`, only moves to a unit once two of it have elapsed, so you never read "1.00 days". `Age.AGE_UNITS` rounds like humanize and `Age.DURATION_UNITS` uses clock boundaries for measurements. `now=` collapses anything younger than a threshold you choose to `"now"`.
 - Default behavior: if `end_time` is omitted it defaults to set to `datetime.now()`.
 
@@ -415,7 +416,7 @@ Here is a brief overview of the various classes that make up `Frist`.
 
 All Frist classes accept flexible time inputs through the `TimeLike` type, which supports:
 
-- `datetime` objects (timezone-naive only)
+- `datetime` objects (naive, or timezone-aware when both values share a zone)
 - `date` objects (converted to `datetime` with 00:00:00 time)
 - `float`/`int` values (interpreted as POSIX timestamps)
 - `str` values in supported formats:

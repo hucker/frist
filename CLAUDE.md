@@ -14,7 +14,7 @@
 ## Domain invariants (never break silently)
 
 - Windows are half-open, `[start, end)`.  `between()` with `Inclusive` is the explicit escape hatch for other inclusivity.
-- Naive datetimes only.  No timezone or DST handling; holidays are precomputed in `BizPolicy`.
+- Civil time.  `Cal` and `Biz` answer in the wall clock of the inputs; naive datetimes are wall-clock readings; `Age` measures true elapsed time when both endpoints are instants (aware datetimes in one zone, POSIX timestamps, `now`).  DST rules come from `zoneinfo`, never from frist.  Holidays are precomputed in `BizPolicy`.
 - `Age`, `Cal` and `Biz` never mutate the datetimes they are given.
 - `Age.from_seconds` / `Age.from_timedelta` build bare durations anchored at 2000-01-01, never through `datetime.fromtimestamp`.
 - `Age.PLURAL_UNITS` (the default: a unit is used only once two of it have elapsed), `Age.AGE_UNITS` and `Age.DURATION_UNITS` are public `(threshold, unit_name, getter)` tables; `format()` walks them in order.

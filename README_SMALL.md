@@ -118,7 +118,7 @@ assert rev.working_days == -fwd.working_days
 ## Common Inputs (TimeLike)
 
 - Accepts: `datetime`, `date`, `int/float` timestamps, and ISO strings.
-- Naive datetimes: no timezone handling (keep both values in the same zone).
+- Civil time: naive datetimes are wall-clock readings. Timezone-aware datetimes (same zone) and POSIX timestamps are instants, so `Age` is exact across DST changes for them.
 - Hint: fractional seconds on timestamps are handled as microseconds.
 
 ## Recap — what to remember
