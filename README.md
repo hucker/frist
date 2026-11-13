@@ -174,7 +174,7 @@ The `Age` object answers "How old is X?" for two datetimes (start and end). It e
 - Special: `months_precise` and `years_precise` compute calendar-accurate values; `parse()` converts human-friendly duration strings (including `"100ms"`) to seconds.
 - Durations: `Age.from_seconds()` / `Age.from_timedelta()` build a bare duration with no real endpoints, so a measurement like "80 ms" never has to be faked with two timestamps.
 - Instants: timezone-aware datetimes and POSIX timestamps are measured as instants, exact across DST changes; naive datetimes are wall-clock readings (see Caveats).
-- Formatting: `format()` picks the unit from a threshold table. The default, `Age.PLURAL_UNITS`, only moves to a unit once two of it have elapsed, so you never read "1.00 days". `Age.AGE_UNITS` rounds like humanize and `Age.DURATION_UNITS` uses clock boundaries for measurements. `now=` collapses anything younger than a threshold you choose to `"now"`.
+- Formatting: `format()` picks the unit from a threshold table. The default, `Age.PLURAL_UNITS`, only moves to a unit once two of it have elapsed, so you never read "1.00 days". `Age.AGE_UNITS` rounds like humanize and `Age.DURATION_UNITS` uses clock boundaries for measurements. `now=` collapses anything younger than a threshold you choose to `"now"`, and `style="compact"` prints short labels (`30h`, `2mo`).
 - Default behavior: if `end_time` is omitted it defaults to set to `datetime.now()`.
 
 Examples
@@ -455,16 +455,17 @@ All Frist classes accept flexible time inputs through the `TimeLike` type, which
 | Method                                      | Description                 |
 | ------------------------------------------- | --------------------------- |
 | `set_times(start_time=None, end_time=None)` | Update start/end times (accepts TimeLike inputs) |
-| `parse(age_str)`                            | Parse age string to seconds (`"5m"`, `"1.5h"`, `"100ms"`, `"250 us"`) |
+| `parse(age_str)`                            | Parse age string to seconds (`"5m"`, `"1.5h"`, `"100ms"`, `"250 us"`, `"2mo"`) |
 | `from_seconds(seconds)`                     | Class method: a bare duration of N seconds (fractional and negative OK) |
 | `from_timedelta(delta)`                     | Class method: a bare duration from a `datetime.timedelta` |
-| `format(units=None, fmt=..., now=None, now_text="now")` | Render in the most appropriate unit; see below |
+| `format(units=None, fmt=None, now=None, now_text="now", style="verbose")` | Render in the most appropriate unit, with full names or compact labels; see below |
 
 | Class attribute  | Description                                               |
 | ---------------- | --------------------------------------------------------- |
 | `PLURAL_UNITS`   | Default `format()` table: moves to a unit once two of it have elapsed (2 min / 2 h / 48 h / 2 w / 2 mo / 2 y), so the value is never 1.x |
 | `AGE_UNITS`      | Humanize-style table: thresholds 45 s / 45 min / 22 h / 26 d / 11 mo, then years |
 | `DURATION_UNITS` | Measurement table: clock boundaries (1000 / 1000 / 60 / 60 / 24), days unbounded |
+| `COMPACT_LABELS` | Short labels for `style="compact"`: us / ms / s / m / h / d / w / mo / y |
 
 #### Formatting ages and durations
 
@@ -491,14 +492,16 @@ Age(last_byte).format(now="100ms")  # a string carries its own unit (via Age.par
 Age(mtime).format(now="1.1 min", now_text="just now")
 ```
 
-To use your own labels, rebuild a table from the shipped one rather than restating the thresholds:
+For a short form, `style="compact"` prints the labels in `Age.COMPACT_LABELS` with no decimals and no space, the convention Twitter, Reddit and `kubectl` use. `Age.parse` reads the result back. Your own `fmt` still applies if you pass one:
 
 ```python
-short = {"seconds": "s", "minutes": "min", "hours": "hr", "days": "day", "weeks": "wk"}
-short |= {"months": "mo", "years": "yr"}
-units = [(t, short[u], g) for t, u, g in Age.PLURAL_UNITS]
-Age(mtime).format(units=units, fmt="{value:.0f} {unit}")  # "10 min"
+Age.from_seconds(30 * 3600).format(style="compact")  # "30h"
+Age.from_seconds(61 * 86400).format(style="compact")  # "2mo"
+Age.from_seconds(0.08).format(units=Age.DURATION_UNITS, style="compact")  # "80ms"
+Age(mtime).format(style="compact", fmt="{value:.1f} {unit}")  # "46.0 s"
 ```
+
+For labels of your own, rebuild a table from the shipped one rather than restating the thresholds: `[(t, my_labels[u], g) for t, u, g in Age.PLURAL_UNITS]`.
 
 Below two seconds `PLURAL_UNITS` has no smaller unit, so "1.50 seconds" can still appear. Use `DURATION_UNITS` for sub-second measurements.
 

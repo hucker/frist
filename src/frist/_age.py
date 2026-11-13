@@ -48,6 +48,8 @@ class Age:
           elapsed, so a value is never 1.x), ``AGE_UNITS`` (humanize-style rounding) or
           ``DURATION_UNITS`` (clock boundaries, for measurements), with an optional
           ``now`` threshold.
+        - Prints either the full unit names (``style="verbose"``, the default) or the short
+          labels in ``COMPACT_LABELS`` (``style="compact"``: "30h", "13d", "2mo").
 
     Initialization:
         Age(start_time, end_time=None, formats=None)
@@ -120,6 +122,24 @@ class Age:
         (24, "hours", lambda age: age.hours),
         (math.inf, "days", lambda age: age.days),
     )
+
+    # Output styles for ``format``.  Verbose prints the table's unit names with two
+    # decimals; compact prints the short labels below with no decimals and no space,
+    # the convention Twitter, Reddit and kubectl use ("30h", "13d", "2mo").  ``parse``
+    # reads every compact label back.
+    VERBOSE_FMT: ClassVar[str] = "{value:.2f} {unit}"
+    COMPACT_FMT: ClassVar[str] = "{value:.0f}{unit}"
+    COMPACT_LABELS: ClassVar[dict[str, str]] = {
+        "microseconds": "us",
+        "milliseconds": "ms",
+        "seconds": "s",
+        "minutes": "m",
+        "hours": "h",
+        "days": "d",
+        "weeks": "w",
+        "months": "mo",
+        "years": "y",
+    }
 
     def __init__(
         self,
@@ -387,9 +407,10 @@ class Age:
     def format(
         self,
         units: Sequence[UnitRow] | None = None,
-        fmt: str = "{value:.2f} {unit}",
+        fmt: str | None = None,
         now: int | float | str | None = None,
         now_text: str = "now",
+        style: str = "verbose",
     ) -> str:
         """
         Return age in the most appropriate units, with customizable unit names and formatting.
@@ -403,8 +424,9 @@ class Age:
                 ``Age.DURATION_UNITS`` clock-boundary rounding for measurements.  If no
                 row matches, the age is reported in ``years_precise``.  A single row
                 with a huge threshold overrides all formatting.
-            fmt: Format string for output, receiving ``value`` and ``unit``.
-                Default is "{value:.2f} {unit}".
+            fmt: Format string for output, receiving ``value`` and ``unit``.  Defaults to
+                ``VERBOSE_FMT`` ("{value:.2f} {unit}") or, for the compact style,
+                ``COMPACT_FMT`` ("{value:.0f}{unit}").
             now: Optional "close enough to now" threshold.  A number is seconds; a string
                 carries its own unit and is parsed by ``Age.parse`` ("10 s", "1.1 min",
                 "100ms").  When ``abs(self.seconds)`` is below it, ``now_text`` is
@@ -412,9 +434,13 @@ class Age:
                 what is being aged (10 s for files, 100 ms for serial traffic), so
                 there is no default.
             now_text: Text returned when the ``now`` threshold applies.
+            style: ``"verbose"`` (the default) prints the table's unit names; ``"compact"``
+                prints the short labels in ``COMPACT_LABELS`` ("30h", "13d", "2mo") and,
+                unless ``fmt`` is given, no decimals and no space.
 
         Example:
             age.format()  # "3.25 hours"
+            age.format(style="compact")  # "3h"
             Age.from_seconds(30 * 3600).format()  # "30.00 hours", not "1.25 days"
             age.format(fmt="{value:.0f}{unit}", units=[...])  # "3h"
             age.format(now="10 s")  # "now" while under 10 seconds old
@@ -430,6 +456,12 @@ class Age:
             thresholds of the `humanize` library (45 s / 45 min / 22 h / 26 d / 11 mo):
             https://github.com/jmoiron/humanize/blob/main/src/humanize/time.py
         """
+        if style not in ("verbose", "compact"):
+            raise ValueError(f"unknown style {style!r}; use 'verbose' or 'compact'")
+        if fmt is None:
+            fmt = self.VERBOSE_FMT if style == "verbose" else self.COMPACT_FMT
+        labels: dict[str, str] = self.COMPACT_LABELS if style == "compact" else {}
+
         if now is not None:
             now_limit: float = Age.parse(now) if isinstance(now, str) else float(now)
             if abs(self.seconds) < now_limit:
@@ -438,9 +470,9 @@ class Age:
         for threshold, unit, getter in units or self.PLURAL_UNITS:
             value = getter(self)
             if abs(value) < threshold:
-                return fmt.format(value=value, unit=unit)
+                return fmt.format(value=value, unit=labels.get(unit, unit))
         value = self.years_precise
-        return fmt.format(value=value, unit="years")
+        return fmt.format(value=value, unit=labels.get("years", "years"))
 
     @staticmethod
     def parse(age_str: str) -> float:
@@ -454,6 +486,7 @@ class Age:
             "3d" -> 259200 seconds (3 days)
             "1w" -> 604800 seconds (1 week)
             "2months" -> 5260032 seconds (2 months)
+            "2mo" -> 5260032 seconds (2 months, the compact label)
             "1 y" -> 31557600 seconds (1 year)
             "100ms" -> 0.1 seconds (100 milliseconds)
             "250 us" -> 0.00025 seconds (250 microseconds)
@@ -500,6 +533,7 @@ class Age:
             "w": SECONDS_PER_WEEK,
             "week": SECONDS_PER_WEEK,
             "weeks": SECONDS_PER_WEEK,
+            "mo": SECONDS_PER_MONTH,
             "month": SECONDS_PER_MONTH,
             "months": SECONDS_PER_MONTH,
             "y": SECONDS_PER_YEAR,
