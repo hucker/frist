@@ -337,14 +337,13 @@ def test_age_with_mixed_date_types(start: dt.date | dt.datetime, end: dt.date | 
     assert age.hours == 24.0, "Age should be 24 hours for inputs one day apart"
 
 
-def test_age_timezone_not_supported():
-    """Age raises for timezone-aware datetimes (handled in time_pair)."""
+def test_age_timezone_rules():
+    """Age takes now in an aware start's zone, and rejects mixed naive/aware pairs."""
     # Arrange
     tz_dt = dt.datetime(2025, 1, 1, tzinfo=dt.UTC)
 
     # Act & Assert
-    with pytest.raises(ValueError, match="timezone mismatch"):
-        Age(tz_dt)
+    assert Age(tz_dt).end_time.tzinfo is dt.UTC, "default end should be now in the start's zone"
 
     with pytest.raises(ValueError, match="timezone mismatch"):
         Age(dt.datetime(2025, 1, 1), tz_dt)

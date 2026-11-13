@@ -67,7 +67,10 @@ class Age:
     Note:
         - All calculations use full datetimes (date and time); dates are converted to
           datetimes at midnight.
-        - Timezones are not supported.
+        - Civil time: naive datetimes are wall-clock readings.  Timezone-aware datetimes
+          (both in the same zone), POSIX timestamps and ``now`` are instants, so the
+          elapsed-time properties are exact across DST changes for them.  Calendar
+          fractions (``months_precise`` / ``years_precise``) follow the wall clock.
         - Age is immutable: build a new one to change its endpoints.
     """
 
@@ -129,6 +132,7 @@ class Age:
         self._start_time, self._end_time = time_pair(
             start_time=start_time, end_time=end_time, formats__=formats
         )
+        self._elapsed_seconds: float = self._elapsed(start_time, end_time)
 
     @classmethod
     def from_timedelta(cls, delta: dt.timedelta) -> Self:
@@ -191,10 +195,36 @@ class Age:
 
     # Note: Age is immutable; no state mutation methods are provided.
 
+    def _elapsed(self, start_in: TimeLike, end_in: TimeLike | None) -> float:
+        """
+        Elapsed seconds between the endpoints, as given to the constructor.
+
+        True elapsed time when both endpoints are instants: timezone-aware datetimes
+        (``timestamp()`` honours the zone's UTC offsets and ``fold``), or a POSIX
+        timestamp paired with a timestamp or with ``now``.  A naive datetime is a
+        wall-clock reading, so a pair involving one is a wall-clock difference; across
+        a DST change that differs from real time by the shifted hour.
+        """
+        start, end = self._start_time, self._end_time
+        if start.tzinfo is not None and end.tzinfo is not None:
+            return end.timestamp() - start.timestamp()
+        if isinstance(start_in, int | float) and (
+            end_in is None or isinstance(end_in, int | float)
+        ):
+            end_ts = end.timestamp() if end_in is None else float(end_in)
+            return end_ts - float(start_in)
+        return (end - start).total_seconds()
+
     @property
     def seconds(self) -> float:
-        """Get age in seconds."""
-        return (self.end_time - self.start_time).total_seconds()
+        """
+        Get age in seconds.
+
+        True elapsed time when both endpoints are instants (timezone-aware datetimes,
+        POSIX timestamps, ``now``); a wall-clock difference when a naive datetime is
+        involved.
+        """
+        return self._elapsed_seconds
 
     @property
     def milliseconds(self) -> float:
@@ -258,27 +288,28 @@ class Age:
         if start == end:
             return 0.0
 
+        tz = start.tzinfo
         # If start and end are in the same month
         if start.year == end.year and start.month == end.month:
-            month_start = dt.datetime(start.year, start.month, 1)
+            month_start = dt.datetime(start.year, start.month, 1, tzinfo=tz)
             next_year, next_month = self._next_month_year(start.year, start.month)
-            month_end = dt.datetime(next_year, next_month, 1)
+            month_end = dt.datetime(next_year, next_month, 1, tzinfo=tz)
             total_seconds = (month_end - month_start).total_seconds()
             interval_seconds = (end - start).total_seconds()
             return scale * (interval_seconds / total_seconds)
 
         # First month fraction
         next_year, next_month = self._next_month_year(start.year, start.month)
-        start_month_end = dt.datetime(next_year, next_month, 1)
+        start_month_end = dt.datetime(next_year, next_month, 1, tzinfo=tz)
         first_month_seconds = (start_month_end - start).total_seconds()
-        start_month_begin = dt.datetime(start.year, start.month, 1)
+        start_month_begin = dt.datetime(start.year, start.month, 1, tzinfo=tz)
         total_start_month_seconds = (start_month_end - start_month_begin).total_seconds()
         first_month_fraction = first_month_seconds / total_start_month_seconds
 
         # Last month fraction
-        last_month_start = dt.datetime(end.year, end.month, 1)
+        last_month_start = dt.datetime(end.year, end.month, 1, tzinfo=tz)
         next_year, next_month = self._next_month_year(end.year, end.month)
-        last_month_end = dt.datetime(next_year, next_month, 1)
+        last_month_end = dt.datetime(next_year, next_month, 1, tzinfo=tz)
         last_month_seconds = (end - last_month_start).total_seconds()
         total_last_month_seconds = (last_month_end - last_month_start).total_seconds()
         last_month_fraction = (
@@ -320,23 +351,32 @@ class Age:
             start, end = end, start
             scale = -1.0
 
+        tz = start.tzinfo
+
         def _fractional_days(dt1: dt.datetime, dt2: dt.datetime) -> float:
             """Calculate fractional days between two datetimes."""
             return (dt2 - dt1).total_seconds() / (24 * 3600)
 
         # Same year: fraction only
         if start.year == end.year:
-            days_in_year = (dt.datetime(start.year + 1, 1, 1) - dt.datetime(start.year, 1, 1)).days
+            days_in_year = (
+                dt.datetime(start.year + 1, 1, 1, tzinfo=tz)
+                - dt.datetime(start.year, 1, 1, tzinfo=tz)
+            ).days
             return scale * (_fractional_days(start, end) / days_in_year)
 
         # First year fraction
-        end_of_first_yr = dt.datetime(start.year, 12, 31, 23, 59, 59)
-        days_in_first_yr = (dt.datetime(start.year + 1, 1, 1) - dt.datetime(start.year, 1, 1)).days
+        end_of_first_yr = dt.datetime(start.year, 12, 31, 23, 59, 59, tzinfo=tz)
+        days_in_first_yr = (
+            dt.datetime(start.year + 1, 1, 1, tzinfo=tz) - dt.datetime(start.year, 1, 1, tzinfo=tz)
+        ).days
         first_year_fraction = _fractional_days(start, end_of_first_yr) / days_in_first_yr
 
         # Last year fraction
-        start_of_last_year = dt.datetime(end.year, 1, 1)
-        days_in_last_year = (dt.datetime(end.year + 1, 1, 1) - dt.datetime(end.year, 1, 1)).days
+        start_of_last_year = dt.datetime(end.year, 1, 1, tzinfo=tz)
+        days_in_last_year = (
+            dt.datetime(end.year + 1, 1, 1, tzinfo=tz) - dt.datetime(end.year, 1, 1, tzinfo=tz)
+        ).days
         last_year_fraction = _fractional_days(start_of_last_year, end) / days_in_last_year
 
         # Full years in between

@@ -324,12 +324,11 @@ def test_working_days_start_after_end() -> None:
     assert reverse.working_days == approx(-forward.working_days, rel=1e-9)
 
 
-def test_biz_timezone_not_supported():
-    """Biz raises for timezone-aware datetimes (handled in time_pair)."""
+def test_biz_timezone_rules():
+    """Biz takes now in an aware target's zone, and rejects mixed naive/aware pairs."""
     tz_dt = dt.datetime(2025, 1, 1, tzinfo=dt.UTC)
 
-    with pytest.raises(ValueError, match="timezone mismatch"):
-        Biz(tz_dt)
+    assert Biz(tz_dt).ref_dt.tzinfo is dt.UTC, "default ref should be now in the target's zone"
 
     with pytest.raises(ValueError, match="timezone mismatch"):
         Biz(dt.datetime(2025, 1, 1), tz_dt)

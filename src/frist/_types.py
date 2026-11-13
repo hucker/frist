@@ -22,7 +22,9 @@ def to_datetime(val: TimeLike, formats: list[str] | None = None) -> dt.datetime:
                 If None, uses default CHRONO_DATETIME_FORMATS.
 
     Returns:
-        datetime: Converted datetime object
+        datetime: Converted datetime object.  A POSIX timestamp becomes a naive local
+            datetime (``datetime.fromtimestamp``); ``Age`` still measures elapsed time
+            between timestamps exactly, from the numbers themselves.
 
     Raises:
         TypeError: If value is not a supported type or unrecognized string format
@@ -58,7 +60,8 @@ def time_pair(
     Accepts start_time and end_time as keyword arguments, which may be datetime objects,
     POSIX timestamps (float or int), strings in allowed formats, or None.
     Converts timestamps and strings to datetime objects.
-    If end_time is None, defaults to cur time. If start_time is None, raises TypeError.
+    If end_time is None, defaults to now, taken in start_time's zone when start_time is
+    timezone-aware.  If start_time is None, raises TypeError.
     The allowed string formats are defined in _constants.py and can be overridden.
 
     Args:
@@ -89,7 +92,7 @@ def time_pair(
     normalized_end_time: dt.datetime
 
     if end_time is None:
-        normalized_end_time = dt.datetime.now()
+        normalized_end_time = dt.datetime.now(tz=normalized_start_time.tzinfo)
     else:
         normalized_end_time = to_datetime(end_time, formats)
     # Ensure timezone compatibility: both naive or both aware with identical tzinfo

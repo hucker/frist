@@ -53,8 +53,6 @@ class Biz:
         self.cal_policy: BizPolicy = policy or BizPolicy()
 
         # Normalize and validate timezone compatibility via centralized utility
-        if ref_dt is None:
-            ref_dt = dt.datetime.now()
         self._target_dt, self._ref_dt = time_pair(
             start_time=target_dt,
             end_time=ref_dt,

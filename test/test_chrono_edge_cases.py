@@ -161,7 +161,7 @@ def test_microsecond_precision():
 
 
 def test_timezone_aware_naive():
-    """Test timezone awareness for naive and aware datetimes in Chrono."""
+    """Chrono keeps a naive target naive, takes now in an aware target's zone, rejects mixes."""
     # Arrange
     naive_dt = dt.datetime(2024, 1, 1, 12, 0, 0)
     aware_dt = dt.datetime(2024, 1, 1, 12, 0, 0, tzinfo=dt.UTC)
@@ -171,9 +171,13 @@ def test_timezone_aware_naive():
     expected_tzinfo = None
     actual_tzinfo = z_naive.target_dt.tzinfo
     assert actual_tzinfo is expected_tzinfo, "Expected tzinfo to be None for naive datetime"
-    # Timezone-aware datetimes should raise due to tz mismatch handled in time_pair
+    # An aware target gets its default reference (now) in the same zone
+    z_aware = Chrono(target_dt=aware_dt)
+    assert z_aware.target_dt.tzinfo is dt.UTC, "Expected the aware target to keep its zone"
+    assert z_aware.ref_dt.tzinfo is dt.UTC, "Expected the default ref to be now in that zone"
+    # Mixing naive and aware is still a mismatch, handled in time_pair
     with pytest.raises(ValueError, match="timezone mismatch"):
-        Chrono(target_dt=aware_dt)
+        Chrono(target_dt=aware_dt, ref_dt=naive_dt)
 
 
 def test_invalid_input():
