@@ -80,7 +80,23 @@ class Chrono:
         # be up to you to ensure the same reference time.  This could make VERY hard to find bugs
         # if the reference time for the two objects occurred across a hour/day/month/quarter/year
         # boundary.
-        self._age: Age = Age(self.target_dt, self.ref_dt)
+        # Age measures instants as instants (see Age._elapsed).  A timestamp target must
+        # reach Age as a number, not as the naive local datetime time_pair made of it,
+        # or a DST change in the local zone would shift its elapsed time by an hour.
+        # The reference stays the one value shared with Cal and Biz: the number it was
+        # given as, or the timestamp of the shared "now", so age.end_time == ref_dt.
+        self._age: Age
+        if isinstance(target_dt, int | float):
+            age_ref: TimeLike
+            if isinstance(ref_dt, int | float):
+                age_ref = ref_dt
+            elif ref_dt is None:
+                age_ref = self.ref_dt.timestamp()
+            else:
+                age_ref = self.ref_dt
+            self._age = Age(target_dt, age_ref)
+        else:
+            self._age = Age(self.target_dt, self.ref_dt)
         self._cal: Cal = Cal(self.target_dt, self.ref_dt)
 
         # Biz gets the policy since that is how it figures things out.

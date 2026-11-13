@@ -136,6 +136,29 @@ def test_chrono_with_aware_target_and_default_ref() -> None:
     )
 
 
+def test_chrono_timestamp_target_measures_an_instant() -> None:
+    """Chrono hands a timestamp target to Age as a number, so .age agrees with Age(ts, ts)."""
+    # Arrange
+    start_ts = FALL_START.timestamp()
+    end_ts = FALL_END.timestamp()
+    # Act
+    chrono = Chrono(target_dt=start_ts, ref_dt=end_ts)
+    # Assert
+    assert chrono.age.hours == 14.0, f"Expected 14.0 h through Chrono, got {chrono.age.hours}"
+    assert chrono.age.end_time == chrono.ref_dt, "Age and Cal/Biz must share the reference time"
+
+
+def test_chrono_timestamp_target_with_default_ref_measures_to_now() -> None:
+    """Chrono(target_dt=ts) keeps one shared 'now' and still measures elapsed time to it."""
+    # Arrange
+    an_hour_ago = time.time() - 3600
+    # Act
+    chrono = Chrono(target_dt=an_hour_ago)
+    # Assert
+    assert 3600 <= chrono.age.seconds < 3605, f"Expected about 3600 s, got {chrono.age.seconds}"
+    assert chrono.age.end_time == chrono.ref_dt, "Age and Cal/Biz must share the reference time"
+
+
 def test_from_seconds_is_unaffected() -> None:
     """Bare durations keep exact arithmetic."""
     # Act
