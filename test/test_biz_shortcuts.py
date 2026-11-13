@@ -9,6 +9,7 @@ Shortcuts covered:
 - Fiscal: is_last_fiscal_quarter / is_this_fiscal_quarter / is_next_fiscal_quarter
           is_last_fiscal_year / is_this_fiscal_year / is_next_fiscal_year
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -16,14 +17,21 @@ import datetime as dt
 from frist import Biz, BizPolicy
 
 
-def _check_five_biz(prop: str, ref: dt.datetime, policy: BizPolicy,
-                    dt_below: dt.datetime, dt_on_lower: dt.datetime,
-                    dt_above_lower: dt.datetime, dt_on_upper: dt.datetime,
-                    dt_above_upper: dt.datetime) -> None:
+def _check_five_biz(
+    prop: str,
+    ref: dt.datetime,
+    policy: BizPolicy,
+    dt_below: dt.datetime,
+    dt_on_lower: dt.datetime,
+    dt_above_lower: dt.datetime,
+    dt_on_upper: dt.datetime,
+    dt_above_upper: dt.datetime,
+) -> None:
     """Assert five-case expectations for Biz(...).{prop} given `ref` and `policy`.
 
     Uses `getattr(Biz(t, ref, policy), prop)` to evaluate the boolean.
     """
+
     # Arrange & Act
     def actual(t: dt.datetime) -> bool:
         return getattr(Biz(t, ref, policy), prop)
@@ -35,23 +43,17 @@ def _check_five_biz(prop: str, ref: dt.datetime, policy: BizPolicy,
         actual(dt_on_lower),
         actual(dt_above_lower),
         actual(dt_on_upper),
-        actual(dt_above_upper)
+        actual(dt_above_upper),
     ]
-    assert actuals[0] is expected[0], (
-        f"{prop}: below-lower should be False ({dt_below})"
-    )
-    assert actuals[1] is expected[1], (
-        f"{prop}: on-lower should be True ({dt_on_lower})"
-    )
+    assert actuals[0] is expected[0], f"{prop}: below-lower should be False ({dt_below})"
+    assert actuals[1] is expected[1], f"{prop}: on-lower should be True ({dt_on_lower})"
     assert actuals[2] is expected[2], (
         f"{prop}: above-lower (interior) should be True ({dt_above_lower})"
     )
     assert actuals[3] is expected[3], (
         f"{prop}: on-upper should be False (exclusive) ({dt_on_upper})"
     )
-    assert actuals[4] is expected[4], (
-        f"{prop}: above-upper should be False ({dt_above_upper})"
-    )
+    assert actuals[4] is expected[4], f"{prop}: above-upper should be False ({dt_above_upper})"
 
 
 def test_day_shortcuts_five_cases() -> None:
@@ -68,18 +70,28 @@ def test_day_shortcuts_five_cases() -> None:
     dt_on_lower = dt.datetime.combine(lower_date, dt.time(12, 0))
     dt_above_lower = dt.datetime.combine(lower_date, dt.time(18, 0))
     dt_on_upper = dt.datetime.combine(upper_date, dt.time(12, 0))
-    dt_above_upper = dt.datetime.combine(
-        upper_date + dt.timedelta(days=1), dt.time(12, 0)
-    )
+    dt_above_upper = dt.datetime.combine(upper_date + dt.timedelta(days=1), dt.time(12, 0))
     # Act & Assert
     # Act & Assert
     _check_five_biz(
-        "is_business_day_today", ref, policy,
-        dt_below, dt_on_lower, dt_above_lower, dt_on_upper, dt_above_upper
+        "is_business_day_today",
+        ref,
+        policy,
+        dt_below,
+        dt_on_lower,
+        dt_above_lower,
+        dt_on_upper,
+        dt_above_upper,
     )
     _check_five_biz(
-        "is_workday_today", ref, policy,
-        dt_below, dt_on_lower, dt_above_lower, dt_on_upper, dt_above_upper
+        "is_workday_today",
+        ref,
+        policy,
+        dt_below,
+        dt_on_lower,
+        dt_above_lower,
+        dt_on_upper,
+        dt_above_upper,
     )
 
 

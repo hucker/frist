@@ -4,6 +4,7 @@ Minute unit adapter for `Cal`.
 Provides `.in_(offset)` and related helpers to test minute-aligned half-open
 windows relative to a reference datetime. Delegates to `Cal` implementation.
 """
+
 from __future__ import annotations
 
 import datetime as dt

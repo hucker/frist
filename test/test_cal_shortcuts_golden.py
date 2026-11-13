@@ -1,6 +1,7 @@
 """
 Golden (expected) results for Cal shortcut behaviors.
 """
+
 import datetime as dt
 
 import pytest
@@ -20,17 +21,17 @@ REF = dt.datetime(2025, 1, 13, 12, 0)  # Monday, Jan 13 2025 (week starts Monday
         ("is_yesterday", dt.datetime(2025, 1, 12, 9, 0), True),
         ("is_tomorrow", dt.datetime(2025, 1, 14, 9, 0), True),
         # week shortcuts (ref week = 2025-01-13..2025-01-19)
-        ("is_last_week", dt.datetime(2025, 1, 6, 0, 0), True),   # previous week
-        ("is_this_week", dt.datetime(2025, 1, 15, 0, 0), True),   # same week
-        ("is_next_week", dt.datetime(2025, 1, 20, 0, 0), True),   # next week
+        ("is_last_week", dt.datetime(2025, 1, 6, 0, 0), True),  # previous week
+        ("is_this_week", dt.datetime(2025, 1, 15, 0, 0), True),  # same week
+        ("is_next_week", dt.datetime(2025, 1, 20, 0, 0), True),  # next week
         # month shortcuts (ref month = Jan 2025)
         ("is_last_month", dt.datetime(2024, 12, 15, 0, 0), True),
         ("is_this_month", dt.datetime(2025, 1, 5, 0, 0), True),
         ("is_next_month", dt.datetime(2025, 2, 10, 0, 0), True),
         # quarter shortcuts (Q1=Jan-Mar for calendar quarters)
         ("is_last_quarter", dt.datetime(2024, 11, 15, 0, 0), True),  # Q4 2024
-        ("is_this_quarter", dt.datetime(2025, 2, 1, 0, 0), True),    # Q1 2025
-        ("is_next_quarter", dt.datetime(2025, 4, 1, 0, 0), True),    # Q2 2025
+        ("is_this_quarter", dt.datetime(2025, 2, 1, 0, 0), True),  # Q1 2025
+        ("is_next_quarter", dt.datetime(2025, 4, 1, 0, 0), True),  # Q2 2025
         # year shortcuts
         ("is_last_year", dt.datetime(2024, 6, 1, 0, 0), True),
         ("is_this_year", dt.datetime(2025, 7, 1, 0, 0), True),
@@ -102,17 +103,21 @@ def test_unit_call_and_thru() -> None:
     assert w_ns.between(0) is True
     assert w_ns.thru(0) is True
 
-@pytest.mark.parametrize("inclusive, expected", [
-    # For offset -2, -1, 0, 1, 2 with window (-1, 1)
-    # "both": [-1, 0, 1] are inside
-    ("both", [False, True, True, True, False]),
-    # "left": [-1, 0] are inside
-    ("left", [False, True, True, False, False]),
-    # "right": [0, 1] are inside
-    ("right", [False, False, True, True, False]),
-    # "neither": [0] is inside
-    ("neither", [False, False, True, False, False]),
-])
+
+@pytest.mark.parametrize(
+    "inclusive, expected",
+    [
+        # For offset -2, -1, 0, 1, 2 with window (-1, 1)
+        # "both": [-1, 0, 1] are inside
+        ("both", [False, True, True, True, False]),
+        # "left": [-1, 0] are inside
+        ("left", [False, True, True, False, False]),
+        # "right": [0, 1] are inside
+        ("right", [False, False, True, True, False]),
+        # "neither": [0] is inside
+        ("neither", [False, False, True, False, False]),
+    ],
+)
 def test_between_edges_and_inside(inclusive: str, expected: list[bool]) -> None:
     """
     Test Cal.day.between for all inclusivity options, with offsets:

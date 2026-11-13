@@ -5,6 +5,7 @@ These include:
 - constructing `Cal` with numeric timestamps and invalid types raising TypeError
 - verifying `is_*` shortcut properties delegate to `in_*` methods
 """
+
 import datetime as dt
 
 import pytest
@@ -24,7 +25,7 @@ def test_cal_init_numeric_and_typeerror() -> None:
     """Test Cal initialization with numeric timestamps and invalid types."""
     # Arrange
     ref = dt.datetime(2025, 3, 15, 12, 0, 0)
-    
+
     # Act & Assert
     # numeric timestamp (int)
     ts = int(ref.timestamp())
@@ -45,7 +46,7 @@ def test_cal_shortcut_properties_delegate_to_methods() -> None:
     """Test that Cal shortcut properties delegate to in_() methods correctly."""
     # Arrange
     ref = dt.datetime(2025, 4, 10, 12, 0, 0)
-    
+
     # Act
     # choose a target equal to ref for 'this' shortcuts
     c = Cal(target_dt=ref, ref_dt=ref)

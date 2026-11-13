@@ -4,6 +4,7 @@ Working-day unit adapter for `Biz`.
 Provides `.in_(offset)` for policy-defined workdays (ignores holidays). Range
 logic implemented here using the provided policy.
 """
+
 from __future__ import annotations
 
 import datetime as dt

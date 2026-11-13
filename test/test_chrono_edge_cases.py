@@ -109,9 +109,7 @@ def test_parse_edge_cases():
     # Assert
     expected_year = 2038
     actual_year = z.target_dt.year
-    assert actual_year >= expected_year, (
-        f"Expected year >= {expected_year}, got {actual_year}"
-    )
+    assert actual_year >= expected_year, f"Expected year >= {expected_year}, got {actual_year}"
 
     # Act & Assert
     with pytest.raises(ValueError):
@@ -121,9 +119,7 @@ def test_parse_edge_cases():
     z_ws = Chrono.parse("  2024-01-01  ")
     expected_year = 2024
     actual_year = z_ws.target_dt.year
-    assert actual_year == expected_year, (
-        f"Expected year {expected_year}, got {actual_year}"
-    )
+    assert actual_year == expected_year, f"Expected year {expected_year}, got {actual_year}"
 
 
 def test_min_max_datetime():
@@ -139,12 +135,8 @@ def test_min_max_datetime():
     expected_max = max_dt
     actual_min = z_min.target_dt
     actual_max = z_max.target_dt
-    assert actual_min == expected_min, (
-        f"Expected min datetime {expected_min}, got {actual_min}"
-    )
-    assert actual_max == expected_max, (
-        f"Expected max datetime {expected_max}, got {actual_max}"
-    )
+    assert actual_min == expected_min, f"Expected min datetime {expected_min}, got {actual_min}"
+    assert actual_max == expected_max, f"Expected max datetime {expected_max}, got {actual_max}"
 
 
 def test_microsecond_precision():
@@ -178,9 +170,7 @@ def test_timezone_aware_naive():
     # Assert
     expected_tzinfo = None
     actual_tzinfo = z_naive.target_dt.tzinfo
-    assert actual_tzinfo is expected_tzinfo, (
-        "Expected tzinfo to be None for naive datetime"
-    )
+    assert actual_tzinfo is expected_tzinfo, "Expected tzinfo to be None for naive datetime"
     # Timezone-aware datetimes should raise due to tz mismatch handled in time_pair
     with pytest.raises(ValueError, match="timezone mismatch"):
         Chrono(target_dt=aware_dt)
@@ -255,7 +245,7 @@ def test_end_of_month_year():
         ("2024-01-15T14:30:45Z", dt.datetime(2024, 1, 15, 14, 30, 45)),
     ],
 )
-def test_string_datetime_formats_chrono_parse(string_input:str, expected_datetime:dt.datetime):
+def test_string_datetime_formats_chrono_parse(string_input: str, expected_datetime: dt.datetime):
     """Test that Chrono.parse accepts all supported string datetime formats."""
     # Arrange
     ref_dt = dt.datetime(2024, 1, 16, 12, 0, 0)
@@ -266,9 +256,5 @@ def test_string_datetime_formats_chrono_parse(string_input:str, expected_datetim
     expected_ref = ref_dt
     actual_target = chrono.target_dt
     actual_ref = chrono.ref_dt
-    assert actual_target == expected_target, (
-        f"Chrono.parse failed to parse {string_input}"
-    )
-    assert actual_ref == expected_ref, (
-        f"Reference time should be preserved for {string_input}"
-    )
+    assert actual_target == expected_target, f"Chrono.parse failed to parse {string_input}"
+    assert actual_ref == expected_ref, f"Reference time should be preserved for {string_input}"

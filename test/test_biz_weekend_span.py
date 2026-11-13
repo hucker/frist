@@ -23,7 +23,7 @@ def test_business_and_working_days_span_weekend() -> None:
 
     # Arrange
     target: dt.datetime = dt.datetime(2025, 6, 6, 10, 0)  # Friday 2025-06-06 10:00
-    ref: dt.datetime = dt.datetime(2025, 6, 9, 15, 0)     # Monday 2025-06-09 15:00
+    ref: dt.datetime = dt.datetime(2025, 6, 9, 15, 0)  # Monday 2025-06-09 15:00
 
     policy: BizPolicy = BizPolicy()  # defaults: Mon-Fri workdays, 09:00-17:00
 
@@ -34,5 +34,9 @@ def test_business_and_working_days_span_weekend() -> None:
     expected: float = 0.875 + 0.75
 
     # Assert
-    assert b.business_days == approx(expected), f"business_days {b.business_days} != expected {expected}"
-    assert b.working_days == approx(expected), f"working_days {b.working_days} != expected {expected}"
+    assert b.business_days == approx(expected), (
+        f"business_days {b.business_days} != expected {expected}"
+    )
+    assert b.working_days == approx(expected), (
+        f"working_days {b.working_days} != expected {expected}"
+    )

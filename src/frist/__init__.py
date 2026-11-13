@@ -7,7 +7,7 @@ Provides robust tools for:
     - Fiscal year/quarter logic and holiday detection
     - Flexible datetime parsing and normalization
 
-Designed for use in any Python project requiring advanced datetime analysis, 
+Designed for use in any Python project requiring advanced datetime analysis,
 not limited to file operations.
 
 Exports:
@@ -17,6 +17,7 @@ Exports:
     Biz       -- Business logic including fiscal year/quarter and holidays
     BizPolicy -- Configurable calendar policies (fiscal year start, holidays)
 """
+
 from ._age import Age
 from ._biz import Biz
 from ._biz_policy import BizPolicy

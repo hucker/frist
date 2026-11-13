@@ -4,6 +4,7 @@ Year unit adapter for `Cal`.
 Provides `.in_(offset)` checks for calendar year half-open windows, forwarding
 to `Cal`.
 """
+
 from __future__ import annotations
 
 from .._util import in_half_open

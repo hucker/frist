@@ -1,7 +1,7 @@
 """
 Business calendar policy module for frist.
 
-Defines the CalendarPolicy dataclass, which centralizes fiscal year, workdays, business 
+Defines the CalendarPolicy dataclass, which centralizes fiscal year, workdays, business
 ours, and holiday logic for business calendar calculations.
 All date and time logic is property-based and configurable for flexible business rules.
 """
@@ -13,48 +13,48 @@ from dataclasses import dataclass, field
 @dataclass
 class BizPolicy:
     """
-        Centralized business calendar policy for fiscal years, workdays, 
-        business hours, and holidays.
+    Centralized business calendar policy for fiscal years, workdays,
+    business hours, and holidays.
 
-        This dataclass holds the business rules used across the library. It is
-        intentionally lightweight and designed to be easy to customize for different
-        organizations. Typical attributes you may override are:
+    This dataclass holds the business rules used across the library. It is
+    intentionally lightweight and designed to be easy to customize for different
+    organizations. Typical attributes you may override are:
 
-        - `fiscal_year_start_month` (int): month number 1..12 that defines the start
-            of the fiscal year.
-        - `workdays` (list[int]): weekday indices (Monday=0 .. Sunday=6) considered
-            workdays by the policy.
-        - `start_of_business` / `end_of_business` (datetime.time): business hours
-            used to compute fractional business/working-day values.
-        - `holidays` (set[str]): set of ISO date strings (YYYY-MM-DD) marking
-            non-business days.
+    - `fiscal_year_start_month` (int): month number 1..12 that defines the start
+        of the fiscal year.
+    - `workdays` (list[int]): weekday indices (Monday=0 .. Sunday=6) considered
+        workdays by the policy.
+    - `start_of_business` / `end_of_business` (datetime.time): business hours
+        used to compute fractional business/working-day values.
+    - `holidays` (set[str]): set of ISO date strings (YYYY-MM-DD) marking
+        non-business days.
 
-        The class provides convenience methods such as `is_workday`, `is_business_day`,
-        `is_holiday`, and `business_day_fraction` that encapsulate these rules. Use
-        this object when calling policy-aware helpers (for example `Biz`) so you can
-        centralize and test business-specific behavior in one place.
+    The class provides convenience methods such as `is_workday`, `is_business_day`,
+    `is_holiday`, and `business_day_fraction` that encapsulate these rules. Use
+    this object when calling policy-aware helpers (for example `Biz`) so you can
+    centralize and test business-specific behavior in one place.
     """
 
     fiscal_year_start_month: int = 1
-    workdays: list[int] = field(default_factory=lambda: [0, 1, 2, 3, 4]) # Mon=0...Fri=4
+    workdays: list[int] = field(default_factory=lambda: [0, 1, 2, 3, 4])  # Mon=0...Fri=4
     start_of_business: dt.time = dt.time(9, 0)
     end_of_business: dt.time = dt.time(17, 0)
-    holidays: set[str] = field(default_factory=set) # type: ignore[assignment]
-    
+    holidays: set[str] = field(default_factory=set)  # type: ignore[assignment]
+
     def __post_init__(self):
         if not (1 <= self.fiscal_year_start_month <= 12):
             fysm = self.fiscal_year_start_month
             raise ValueError(f"fiscal_year_start_month must be in 1..12, got {fysm}")
-        if not isinstance(self.workdays, list): # type: ignore # Run time type checker
+        if not isinstance(self.workdays, list):  # type: ignore # Run time type checker
             raise TypeError("workdays must be a list")
         if not (0 <= len(self.workdays) <= 7):
             raise ValueError(f"workdays must have 0 to 7 values, got {len(self.workdays)}")
         for wd in self.workdays:
-            if not isinstance(wd, int) or not (0 <= wd <= 6): # type: ignore # Run time type checker
+            if not isinstance(wd, int) or not (0 <= wd <= 6):  # type: ignore # Run time type checker
                 raise ValueError(f"workdays must contain only integers 0..6, got {wd}")
-        if not isinstance(self.holidays, set): # type: ignore # Run time type checker
+        if not isinstance(self.holidays, set):  # type: ignore # Run time type checker
             raise TypeError("holidays must be a set")
-   
+
     def is_weekend(self, value: int | dt.date | dt.datetime) -> bool:
         """
         Return True if the given date or datetime is not a workday.
@@ -68,7 +68,6 @@ class BizPolicy:
         else:
             raise TypeError("is_weekend expects int, date, or datetime")
         return not self.is_workday(weekday)
-
 
     def is_workday(self, value: int | dt.date | dt.datetime) -> bool:
         """
@@ -89,11 +88,11 @@ class BizPolicy:
         given that business days are workdays that are not holidays.
         Accepts datetime.date, datetime.datetime.
         """
-        if isinstance(value, (dt.date, dt.datetime)): # type: ignore # Run time type checker
+        if isinstance(value, (dt.date, dt.datetime)):  # type: ignore # Run time type checker
             weekday = value.weekday()
         else:
             raise TypeError("is_business_day expects date, or datetime")
-        
+
         return weekday in self.workdays and not self.is_holiday(value)
 
     def is_business_time(self, time: dt.time) -> bool:
@@ -103,20 +102,19 @@ class BizPolicy:
         """
         return self.start_of_business <= time < self.end_of_business
 
-
     def valid_date_str(self, date_str: str) -> bool:
         """
         Validate that date_str is in YYYY-MM-DD format with valid ranges.
 
         Range = 1900 - 2099
         """
-        if not isinstance(date_str, str): # type: ignore # Run time type checker
+        if not isinstance(date_str, str):  # type: ignore # Run time type checker
             return False
         try:
             date_obj = dt.date.fromisoformat(date_str)
         except (ValueError, TypeError):
             return False
-        return 1900 <= date_obj.year <= 2099        
+        return 1900 <= date_obj.year <= 2099
 
     def is_holiday(self, value: str | dt.date | dt.datetime) -> bool:
         """
@@ -137,7 +135,7 @@ class BizPolicy:
             )
         elif isinstance(value, dt.datetime):
             date_str = value.strftime("%Y-%m-%d")
-        elif isinstance(value, dt.date): # type:ignore # Run time type checker
+        elif isinstance(value, dt.date):  # type:ignore # Run time type checker
             date_str = value.strftime("%Y-%m-%d")
         else:
             raise TypeError(
@@ -146,7 +144,7 @@ class BizPolicy:
                 f"{type(value).__name__}"
             )
         return date_str in self.holidays
-    
+
     def business_day_fraction(self, dt_obj: dt.datetime) -> float:
         """
         Return the fraction of the business day completed at the given datetime.
@@ -161,22 +159,22 @@ class BizPolicy:
         Returns:
             float: Fraction of business day completed (0.0 to 1.0)
         """
-        
+
         weekday = dt_obj.weekday()
         date_str = dt_obj.strftime("%Y-%m-%d")
-        
+
         if self.is_holiday(date_str) or not self.is_workday(weekday):
             return 0.0
-        
-        start:dt.time = self.start_of_business
-        end:dt.time = self.end_of_business
+
+        start: dt.time = self.start_of_business
+        end: dt.time = self.end_of_business
         time = dt_obj.time()
-        start_dt:dt.datetime = dt.datetime.combine(dt_obj.date(), start)
-        end_dt:dt.datetime = dt.datetime.combine(dt_obj.date(), end)
-        current_dt:dt.datetime = dt.datetime.combine(dt_obj.date(), time)
-        total_seconds:float = (end_dt - start_dt).total_seconds()
-        current_seconds:float = (current_dt - start_dt).total_seconds()
-        
+        start_dt: dt.datetime = dt.datetime.combine(dt_obj.date(), start)
+        end_dt: dt.datetime = dt.datetime.combine(dt_obj.date(), end)
+        current_dt: dt.datetime = dt.datetime.combine(dt_obj.date(), time)
+        total_seconds: float = (end_dt - start_dt).total_seconds()
+        current_seconds: float = (current_dt - start_dt).total_seconds()
+
         if current_seconds <= 0:
             return 0.0
         if current_seconds >= total_seconds:

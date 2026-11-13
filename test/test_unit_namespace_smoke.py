@@ -14,7 +14,7 @@ from frist._cal import Cal
 
 UNITS = [
     "minute",
-    "hour", 
+    "hour",
     "day",
     "week",
     "month",
@@ -22,9 +22,10 @@ UNITS = [
     "year",
 ]
 
+
 @pytest.mark.smoke
 def test_unit_unit_smoke():
-    """Smoke test for compact unit 
+    """Smoke test for compact unit
 
     Verifies that each compact supports call/slice/thru sugar.
     """

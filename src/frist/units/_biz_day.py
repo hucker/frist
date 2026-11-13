@@ -4,6 +4,7 @@ Business-day unit adapter for `Biz`.
 Implements `.in_(offset)` range checks for policy-aware business days (workday
 and not holiday) using the provided policy. Does not delegate back to `Biz`.
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -103,7 +104,6 @@ class BizDayUnit(DayUnit):
             "Unsupported on business days: weekends/holidays break contiguity. "
             "Use explicit window checks via in_(start, end), e.g., in_(1, 2)."
         )
-
 
     def business_days(self) -> float:
         """Signed fractional business days between target_dt and ref_dt per policy.

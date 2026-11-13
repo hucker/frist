@@ -95,6 +95,7 @@ import pathlib
 import shutil
 from frist import Age
 
+
 def move_old_files_to_backup(src: pathlib.Path, backup: pathlib.Path, days: int = 3) -> None:
     """
     Move all files older than `days` from src to backup using frist for age calculation.
@@ -118,13 +119,14 @@ import pathlib
 import shutil
 from frist import Cal
 
+
 def copy_last_month_files_to_backup(src: pathlib.Path, backup: pathlib.Path) -> None:
     """
     Copy all files from last month (relative to now) to the backup folder using frist Cal window logic.
     """
     for file in src.iterdir():
         if file.is_file():
-            cal = Cal(target_dt=file.stat().st_mtime)  #end time omitted defaults to 'now'
+            cal = Cal(target_dt=file.stat().st_mtime)  # end time omitted defaults to 'now'
             if cal.month.in_(-1, 0):  # last month to the current month window
                 shutil.move(str(file), str(backup / file.name))
 ```
@@ -225,7 +227,7 @@ ref = dt.datetime(2025, 12, 5, 12, 0, 10, 0)
 
 # Second-aligned window: start inclusive, end exclusive
 Cal(dt.datetime(2025, 12, 5, 12, 0, 9, 500000), ref).second.in_(-2, 1)  # True
-Cal(dt.datetime(2025, 12, 5, 12, 0, 11, 0), ref).second.in_(-2, 1)      # False
+Cal(dt.datetime(2025, 12, 5, 12, 0, 11, 0), ref).second.in_(-2, 1)  # False
 
 # Values without conversions
 Cal(dt.datetime(2025, 12, 5, 12, 0, 9, 500000), ref).second.val  # 9
@@ -343,9 +345,9 @@ Example:
 ```pycon
 >>> from frist import Biz, BizPolicy
 >>> import datetime as dt
->>> policy = BizPolicy(workdays={0,1,2,3,4}, holidays={"2025-12-25"})
->>> start = dt.datetime(2025,12,24,9,0)
->>> end   = dt.datetime(2025,12,26,17,0)
+>>> policy = BizPolicy(workdays={0, 1, 2, 3, 4}, holidays={"2025-12-25"})
+>>> start = dt.datetime(2025, 12, 24, 9, 0)
+>>> end = dt.datetime(2025, 12, 26, 17, 0)
 >>> b = Biz(start, end, policy)
 >>> b.working_days
 3.0      # counts Wed/Thu/Fri as workdays (holidays ignored)
@@ -470,15 +472,15 @@ All Frist classes accept flexible time inputs through the `TimeLike` type, which
 from frist import Age
 
 # "How old is this file?" -- humanize-style rounding, 46 s already reads as minutes
-Age(mtime).format()                                    # "0.77 minutes"
+Age(mtime).format()  # "0.77 minutes"
 
 # "How long did that take?" -- clock boundaries, days never roll over into years
 Age.from_seconds(46).format(units=Age.DURATION_UNITS)  # "46.00 seconds"
 Age.from_seconds(0.08).format(units=Age.DURATION_UNITS)  # "80.00 milliseconds"
 
 # `now` is a threshold *you* choose, because it depends on what is being aged:
-Age(mtime).format(now=10)             # "now" for anything under 10 s (a number is seconds)
-Age(last_byte).format(now="100ms")    # a string carries its own unit (via Age.parse)
+Age(mtime).format(now=10)  # "now" for anything under 10 s (a number is seconds)
+Age(last_byte).format(now="100ms")  # a string carries its own unit (via Age.parse)
 Age(mtime).format(now="1.1 min", now_text="just now")
 ```
 
@@ -487,7 +489,7 @@ To use your own labels, rebuild a table from the shipped one rather than restati
 ```python
 short = {"seconds": "s", "minutes": "min", "hours": "hr", "days": "day", "months": "mo"}
 units = [(t, short[u], g) for t, u, g in Age.AGE_UNITS]
-Age(mtime).format(units=units, fmt="{value:.0f} {unit}")   # "10 min"
+Age(mtime).format(units=units, fmt="{value:.0f} {unit}")  # "10 min"
 ```
 
 `from_seconds` / `from_timedelta` anchor both endpoints at a fixed naive datetime (2000-01-01); the elapsed-time properties and `format()` are unaffected, while `months_precise` / `years_precise` are measured from that anchor. This avoids `Age(0, seconds)`, which routes through `datetime.fromtimestamp` (local-time dependent, and negative values raise on Windows).

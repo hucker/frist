@@ -5,6 +5,7 @@ Handles month-aligned half-open windows and related helpers. Internals leverage
 calendar boundaries; external recurrence utilities (e.g., `dateutil.rrule`) may
 be used by `Cal` for robust month computations.
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -42,9 +43,8 @@ class MonthUnit(UnitName[CalProtocol]):
         rrule_weekday = weekday_map[weekday_num]
 
         month_start: dt.datetime = dt.datetime(ref_date.year, ref_date.month, 1)
-        month_end: dt.datetime = (
-            dt.datetime(ref_date.year, ref_date.month + 1, 1)
-            - dt.timedelta(days=1)
+        month_end: dt.datetime = dt.datetime(ref_date.year, ref_date.month + 1, 1) - dt.timedelta(
+            days=1
         )
 
         rule = rrule(

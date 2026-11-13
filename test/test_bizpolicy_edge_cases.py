@@ -24,8 +24,7 @@ def test_fiscal_boundary_crossing() -> None:
     actual_fiscal_year_june = chrono_june.biz.fiscal_year
     actual_fiscal_quarter_june = chrono_june.biz.fiscal_quarter
     assert actual_fiscal_year_june == expected_fiscal_year_june, (
-        f"Expected fiscal year {expected_fiscal_year_june} for June, "
-        f"got {actual_fiscal_year_june}"
+        f"Expected fiscal year {expected_fiscal_year_june} for June, got {actual_fiscal_year_june}"
     )
     assert actual_fiscal_quarter_june == expected_fiscal_quarter_june, (
         f"Expected fiscal quarter {expected_fiscal_quarter_june} for June, "
@@ -41,8 +40,7 @@ def test_fiscal_boundary_crossing() -> None:
     actual_fiscal_year_july = chrono_july.biz.fiscal_year
     actual_fiscal_quarter_july = chrono_july.biz.fiscal_quarter
     assert actual_fiscal_year_july == expected_fiscal_year_july, (
-        f"Expected fiscal year {expected_fiscal_year_july} for July, "
-        f"got {actual_fiscal_year_july}"
+        f"Expected fiscal year {expected_fiscal_year_july} for July, got {actual_fiscal_year_july}"
     )
     assert actual_fiscal_quarter_july == expected_fiscal_quarter_july, (
         f"Expected fiscal quarter {expected_fiscal_quarter_july} for July, "

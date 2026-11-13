@@ -1,4 +1,3 @@
-
 """
 Constants used throughout the frist package.
 """
@@ -28,20 +27,34 @@ MONTHS_PER_YEAR: Final[int] = 12
 
 # Unified weekday mapping: all supported names/abbreviations to weekday index
 WEEKDAY_INDEX: Final[dict[str, int]] = {
-    "monday": 0, "mon": 0, "mo": 0,
-    "tuesday": 1, "tue": 1, "tu": 1,
-    "wednesday": 2, "wed": 2, "we": 2,
-    "thursday": 3, "thu": 3, "th": 3,
-    "friday": 4, "fri": 4, "fr": 4,
-    "saturday": 5, "sat": 5, "sa": 5,
-    "sunday": 6, "sun": 6, "su": 6,
+    "monday": 0,
+    "mon": 0,
+    "mo": 0,
+    "tuesday": 1,
+    "tue": 1,
+    "tu": 1,
+    "wednesday": 2,
+    "wed": 2,
+    "we": 2,
+    "thursday": 3,
+    "thu": 3,
+    "th": 3,
+    "friday": 4,
+    "fri": 4,
+    "fr": 4,
+    "saturday": 5,
+    "sat": 5,
+    "sa": 5,
+    "sunday": 6,
+    "sun": 6,
+    "su": 6,
 }
 
 
 CHRONO_DATETIME_FORMATS: list[str] = [
     "%Y-%m-%d %H:%M:%S",  # "YYYY-MM-DD HH:MM:SS" e.g. 2023-12-25 14:30:00
-    "%Y-%m-%d",           # "YYYY-MM-DD"            e.g. 2023-12-25
-    "%Y-%m-%dT%H:%M:%S",   # ISO 8601 (datetime)     e.g. 2023-12-25T14:30:00
+    "%Y-%m-%d",  # "YYYY-MM-DD"            e.g. 2023-12-25
+    "%Y-%m-%dT%H:%M:%S",  # ISO 8601 (datetime)     e.g. 2023-12-25T14:30:00
     "%Y-%m-%dT%H:%M:%SZ",  # ISO 8601 (UTC/Z)        e.g. 2023-12-25T14:30:00Z
 ]
 
@@ -62,5 +75,3 @@ __all__ = [
     "WEEKDAY_INDEX",
     "CHRONO_DATETIME_FORMATS",
 ]
-
-

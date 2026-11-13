@@ -4,6 +4,7 @@ Hour unit adapter for `Cal`.
 Provides `.in_(offset)` and helpers for hour-aligned half-open windows relative
 to the reference datetime. Delegates to `Cal` implementation.
 """
+
 from __future__ import annotations
 
 import datetime as dt

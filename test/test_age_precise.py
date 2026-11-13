@@ -24,10 +24,15 @@ from frist._constants import DAYS_PER_MONTH
             dt.datetime(2019, 7, 1),
             dt.datetime(2020, 7, 1),
             (
-                (dt.datetime(2019, 12, 31, 23, 59, 59) - dt.datetime(2019, 7, 1)).total_seconds() / (24 * 3600)
+                (dt.datetime(2019, 12, 31, 23, 59, 59) - dt.datetime(2019, 7, 1)).total_seconds()
+                / (24 * 3600)
                 / 365
             )
-            + ((dt.datetime(2020, 7, 1) - dt.datetime(2020, 1, 1)).total_seconds() / (24 * 3600) / 366),
+            + (
+                (dt.datetime(2020, 7, 1) - dt.datetime(2020, 1, 1)).total_seconds()
+                / (24 * 3600)
+                / 366
+            ),
         ),
         # Multiple years, includes leap
         # Edge: start/end same day
@@ -47,7 +52,7 @@ def test_years_precise(start: dt.datetime, end: dt.datetime, expected: float) ->
     # Act
     actual = age.years_precise
     # Assert
-    assert pytest.approx(actual, 1e-6) == expected, ( # type: ignore
+    assert pytest.approx(actual, 1e-6) == expected, (  # type: ignore
         f"years_precise: expected {expected}, got {actual}"
     )  # type: ignore
 
@@ -81,7 +86,7 @@ def test_months_precise(start: dt.datetime, end: dt.datetime, expected: float) -
     # Act
     actual = age.months_precise
     # Assert
-    assert pytest.approx(actual, 1e-6) == expected, ( # type: ignore
+    assert pytest.approx(actual, 1e-6) == expected, (  # type: ignore
         f"months_precise: expected {expected}, got {actual}"
     )  # type: ignore
 
@@ -114,12 +119,8 @@ def test_months_property_normalized_lengths_all_months() -> None:
     }
 
     # This equality should work even with sets of floats since the rations are exactly the same
-    assert expected == actual, (
-        f"Expected normalized month lengths {expected}, got {actual}"
-    )
-    assert DAYS_PER_MONTH == 30.44, (
-        f"DAYS_PER_MONTH should be 30.44, got {DAYS_PER_MONTH}"
-    )
+    assert expected == actual, f"Expected normalized month lengths {expected}, got {actual}"
+    assert DAYS_PER_MONTH == 30.44, f"DAYS_PER_MONTH should be 30.44, got {DAYS_PER_MONTH}"
 
 
 @pytest.mark.parametrize(
@@ -158,6 +159,7 @@ def test_months_precise_same_month(
         f"months_precise (same month): expected {expected}, got {actual}"
     )
 
+
 def test_months_precise_start_equals_end() -> None:
     """
     Test months_precise returns 0.0 when start == end.
@@ -166,9 +168,7 @@ def test_months_precise_start_equals_end() -> None:
     end: dt.datetime = dt.datetime(2023, 5, 1, 12, 0)
     age: Age = Age(start, end)
     actual = age.months_precise
-    assert actual == 0.0, (
-        f"months_precise: expected 0.0 when start == end, got {actual}"
-    )
+    assert actual == 0.0, f"months_precise: expected 0.0 when start == end, got {actual}"
 
 
 def test_years_precise_same_year() -> None:
@@ -183,7 +183,7 @@ def test_years_precise_same_year() -> None:
     expected = (end - start).total_seconds() / (24 * 3600) / days_in_year
     assert pytest.approx(actual, 1e-6) == expected, (  # type: ignore
         f"years_precise (same year): expected {expected}, got {actual}"
-    )  
+    )
 
 
 def test_next_month_year_rollover() -> None:
@@ -214,8 +214,6 @@ def test_months_precise_february_non_leap(end_day: int, expected: float) -> None
     start: dt.datetime = dt.datetime(2023, 2, 1)
     end: dt.datetime = dt.datetime(2023, 2, end_day)
     age: Age = Age(start, end)
-    actual = pytest.approx(age.months_precise, 0.01) # type: ignore
+    actual = pytest.approx(age.months_precise, 0.01)  # type: ignore
 
-    assert actual == expected, (
-        f"months_precise (Feb non-leap): expected {expected}, got {actual}"
-    )
+    assert actual == expected, f"months_precise (Feb non-leap): expected {expected}, got {actual}"

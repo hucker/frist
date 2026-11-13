@@ -5,6 +5,7 @@ empty windows validation, and boundary microsecond handling.
 
 Style: AAA (Arrange-Act-Assert) with explicit expected/actual naming where helpful.
 """
+
 import datetime as dt
 
 import pytest

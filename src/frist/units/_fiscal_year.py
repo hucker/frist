@@ -4,6 +4,7 @@ Fiscal year unit adapter for `Biz`.
 Implements `.in_(offset)` checks for fiscal years computed from policy start
 month using the provided policy.
 """
+
 from __future__ import annotations
 
 from .._biz_policy import BizPolicy

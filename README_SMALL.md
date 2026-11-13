@@ -23,15 +23,15 @@ import datetime as dt
 age = Age(dt.datetime(2025, 1, 1), dt.datetime(2025, 1, 4, 12))
 
 # Common properties
-assert age.days == 3.5           # 3 days + 12 hours
-assert age.hours == 84.0         # 3.5 * 24
-assert age.minutes == 5040.0     # 84 * 60
+assert age.days == 3.5  # 3 days + 12 hours
+assert age.hours == 84.0  # 3.5 * 24
+assert age.minutes == 5040.0  # 84 * 60
 assert age.seconds == 302_400.0  # 5040 * 60
 
 # Calendar-aware options
-assert age.weeks == 0.5 + 2.5/7  # illustrative (fractional weeks)
-assert age.months_precise > 0    # uses actual month lengths
-assert age.years_precise > 0     # uses actual year length
+assert age.weeks == 0.5 + 2.5 / 7  # illustrative (fractional weeks)
+assert age.months_precise > 0  # uses actual month lengths
+assert age.years_precise > 0  # uses actual year length
 ```
 
 - Properties: `seconds`, `minutes`, `hours`, `days`, `weeks`, `months`, `years`.
@@ -50,27 +50,27 @@ c = Cal(target_dt=dt.datetime(2025, 1, 2, 12), ref_dt=dt.datetime(2025, 1, 4, 12
 assert c.day.in_(-2, 0) is True  # Jan 2 within [Jan 2, Jan 4)
 
 # Multiple time scales
-assert c.second.in_(0) in (True, False)   # second-level window
-assert c.minute.in_(0) in (True, False)   # minute-level window
-assert c.hour.in_(0)   in (True, False)   # hour-level window
-assert c.day.in_(0)    in (True, False)   # day-level window
-assert c.week.in_(0)   in (True, False)   # week-level window
-assert c.month.in_(0)  in (True, False)   # month-level window
+assert c.second.in_(0) in (True, False)  # second-level window
+assert c.minute.in_(0) in (True, False)  # minute-level window
+assert c.hour.in_(0) in (True, False)  # hour-level window
+assert c.day.in_(0) in (True, False)  # day-level window
+assert c.week.in_(0) in (True, False)  # week-level window
+assert c.month.in_(0) in (True, False)  # month-level window
 assert c.quarter.in_(0) in (True, False)  # quarter-level window
-assert c.year.in_(0)   in (True, False)   # year-level window
+assert c.year.in_(0) in (True, False)  # year-level window
 
 # Unit values and names (at target: 2025-01-02 12:00)
-assert c.second.val == 0          # second is 00
-assert c.minute.val == 0          # minute is 00
-assert c.hour.val == 12           # hour is 12
+assert c.second.val == 0  # second is 00
+assert c.minute.val == 0  # minute is 00
+assert c.hour.val == 12  # hour is 12
 
-assert c.day.val == 4             # ISO weekday: Thursday = 4
+assert c.day.val == 4  # ISO weekday: Thursday = 4
 assert c.day.name == "Thursday"
 
-assert c.month.val == 1           # January = 1
+assert c.month.val == 1  # January = 1
 assert c.month.name == "January"
 
-assert c.quarter.val == 1         # Q1
+assert c.quarter.val == 1  # Q1
 assert c.quarter.name == "Q1"
 
 assert c.year.val == 2025
@@ -89,6 +89,7 @@ prefer the runtime-friendly enum `Inclusive` (importable from `frist.units._base
 
 ```python
 from frist.units._base import Inclusive
+
 assert c.hour.between(0, None, Inclusive.LEFT) == c.hour.in_(0, 1)
 ```
 

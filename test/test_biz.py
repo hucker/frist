@@ -1,4 +1,4 @@
-﻿"""Comprehensive tests for `Biz` behavior.
+"""Comprehensive tests for `Biz` behavior.
 
 This module exercises `Biz` calculations including `working_days`,
 `business_days`, range membership helpers, and fiscal helpers. Tests
@@ -14,6 +14,7 @@ from frist import Biz, BizPolicy
 
 # This module is part of smoke tests
 pytestmark = pytest.mark.smoke
+
 
 def test_biz_basic_business_fraction():
     """Biz uses BizPolicy to compute business fractions on a normal business day.
@@ -38,7 +39,9 @@ def test_biz_basic_business_fraction():
     # business_days() between 10:00 and 17:00 should be 7/8 = 0.875
     assert biz.business_days == approx(0.875, rel=1e-6), "business_days fraction mismatch"
     # working_days should match business_days when no holiday present
-    assert biz.working_days == approx(biz.business_days, rel=1e-6), "working_days should equal business_days when no holidays"
+    assert biz.working_days == approx(biz.business_days, rel=1e-6), (
+        "working_days should equal business_days when no holidays"
+    )
 
 
 def test_biz_holiday_affects_business_but_not_working():
@@ -59,10 +62,14 @@ def test_biz_holiday_affects_business_but_not_working():
     assert biz.is_business_day is False, "Holiday should not be a business day"
 
     # business_days should be zero for a holiday spanning the full business day
-    assert biz.business_days == approx(0.0, rel=1e-6), "business_days should be 0.0 for a full-day holiday"
+    assert biz.business_days == approx(0.0, rel=1e-6), (
+        "business_days should be 0.0 for a full-day holiday"
+    )
 
     # working_days ignores holidays and counts the business-hours fraction
-    assert biz.working_days == approx(1.0, rel=1e-6), "working_days should reflect weekday fraction regardless of holiday"
+    assert biz.working_days == approx(1.0, rel=1e-6), (
+        "working_days should reflect weekday fraction regardless of holiday"
+    )
 
 
 def test_in_business_and_working_days_ranges():
@@ -257,7 +264,6 @@ def test_working_days_signed_when_target_after_ref():
     assert reverse.working_days == approx(-forward.working_days, rel=1e-9)
 
 
-
 def test_working_days_basic_weekday() -> None:
     """Biz.working_days returns 1.0 for a full weekday."""
     start = dt.datetime(2024, 1, 2, 0, 0, 0)  # Tuesday
@@ -289,7 +295,7 @@ def test_working_days_partial_day() -> None:
 def test_working_days_multiple_days() -> None:
     """Biz.working_days sums multiple weekdays, skips weekends."""
     start = dt.datetime(2024, 1, 5, 12, 0, 0)  # Friday noon
-    end = dt.datetime(2024, 1, 8, 12, 0, 0)    # Monday noon
+    end = dt.datetime(2024, 1, 8, 12, 0, 0)  # Monday noon
     biz = Biz(start, end)
     # Friday: half day, Saturday/Sunday: 0, Monday: half day
     expected = 0.5 + 0.5
@@ -319,10 +325,10 @@ def test_working_days_start_after_end() -> None:
 def test_biz_timezone_not_supported():
     """Biz raises for timezone-aware datetimes (handled in time_pair)."""
     tz_dt = dt.datetime(2025, 1, 1, tzinfo=dt.timezone.utc)
-    
+
     with pytest.raises(ValueError, match="timezone mismatch"):
         Biz(tz_dt)
-    
+
     with pytest.raises(ValueError, match="timezone mismatch"):
         Biz(dt.datetime(2025, 1, 1), tz_dt)
 
@@ -332,49 +338,56 @@ def test_biz_with_dates():
     # Arrange
     target_date = dt.date(2025, 1, 1)  # Assuming Jan 1 is a business day
     ref_date = dt.date(2025, 1, 2)
-    
+
     # Act
     biz = Biz(target_date, ref_date)
-    
+
     # Assert
     assert biz.business_days == 1.0, "Business days should be 1.0 for date inputs one day apart"
 
 
-@pytest.mark.parametrize("target, ref, expected", [
-    (dt.date(2025, 1, 1), dt.date(2025, 1, 2), 1.0),
-    (dt.date(2025, 1, 1), dt.datetime(2025, 1, 2, 0, 0, 0), 1.0),
-    (dt.datetime(2025, 1, 1, 0, 0, 0), dt.date(2025, 1, 2), 1.0),
-    (1735689600.0, dt.date(2025, 1, 2), 1.125),  # approx value
-    (dt.date(2025, 1, 1), 1735776000.0, 0.875),  # approx value
-])
-def test_biz_with_mixed_date_types(target:dt.date, ref:dt.date, expected:float):
+@pytest.mark.parametrize(
+    "target, ref, expected",
+    [
+        (dt.date(2025, 1, 1), dt.date(2025, 1, 2), 1.0),
+        (dt.date(2025, 1, 1), dt.datetime(2025, 1, 2, 0, 0, 0), 1.0),
+        (dt.datetime(2025, 1, 1, 0, 0, 0), dt.date(2025, 1, 2), 1.0),
+        (1735689600.0, dt.date(2025, 1, 2), 1.125),  # approx value
+        (dt.date(2025, 1, 1), 1735776000.0, 0.875),  # approx value
+    ],
+)
+def test_biz_with_mixed_date_types(target: dt.date, ref: dt.date, expected: float):
     """Biz correctly handles mixed date/datetime/timestamp inputs."""
     # Arrange & Act
     biz = Biz(target, ref)
-    
+
     # Assert
-    assert biz.business_days == approx(expected, rel=1e-3), f"Business days should be approximately {expected}"
+    assert biz.business_days == approx(expected, rel=1e-3), (
+        f"Business days should be approximately {expected}"
+    )
 
 
 def test_biz_default_ref_time():
     """Biz uses current time as default ref_time when not provided."""
     # Arrange
     target = dt.datetime(2025, 1, 1, 12, 0, 0)
-    
+
     # Act
     biz = Biz(target)
-    
+
     # Assert
     now = dt.datetime.now()
-    assert (now - biz.ref_dt).total_seconds() < 3.0, "Reference time should be close to current time"
+    assert (now - biz.ref_dt).total_seconds() < 3.0, (
+        "Reference time should be close to current time"
+    )
 
 
 def test_biz_with_timestamps():
     """Biz handles float/int timestamps."""
     target_ts = 1735689600.0  # Jan 1, 2025 00:00 UTC
-    ref_ts = 1735776000.0     # Jan 2, 2025 00:00 UTC
+    ref_ts = 1735776000.0  # Jan 2, 2025 00:00 UTC
     biz: Biz = Biz(target_ts, ref_ts)
-    
+
     assert biz.business_days == 1.0
 
 

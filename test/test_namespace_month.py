@@ -29,9 +29,9 @@ def test_month_unit_in_impl_basic():
     [
         (dt.datetime(2024, 3, 1), 2024 * 12 + 3, "Mar/2024 should be 2024*12+3"),
         (dt.datetime(2024, 12, 31), 2024 * 12 + 12, "Dec/2024 should be 2024*12+12"),
-    ]
+    ],
 )
-def test_month_unit_month_index(dt_value:dt.datetime, expected:int, msg:str):
+def test_month_unit_month_index(dt_value: dt.datetime, expected: int, msg: str):
     """
     Parametrized test for _month_index, including assert message.
     """

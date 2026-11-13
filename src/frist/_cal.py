@@ -1,4 +1,3 @@
-
 """
 Calendar-based time window filtering for frist package.
 
@@ -41,19 +40,15 @@ class Cal:
             formats__=formats,
         )
 
-
     @property
     def target_dt(self) -> dt.datetime:
         """Get the target datetime."""
         return self._target_dt
-    
+
     @property
     def ref_dt(self) -> dt.datetime:
         """Get the reference datetime."""
         return self._ref_dt
-    
-
-
 
     # Shortcuts for common calendar windows
 
@@ -92,7 +87,7 @@ class Cal:
         Shortcut: equivalent to calling self.in_weeks(-1).
         """
         return self.week.in_(-1)
-    
+
     @property
     def is_this_week(self) -> bool:
         """Return True if target is in the same week as the reference.
@@ -117,6 +112,7 @@ class Cal:
         Shortcut: equivalent to calling self.in_months(-1).
         """
         return self.month.in_(-1)
+
     @property
     def is_this_month(self) -> bool:
         """Return True if target is in the same calendar month as the reference.

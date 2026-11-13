@@ -18,15 +18,12 @@ from frist._util import in_half_open
         # integers
         (1, 1, 2, True),
         (1, 2, 2, False),  # value == end -> excluded
-
         # floats (and int/float mixing)
         (0.0, 0.5, 1.0, True),
         (0, 1.0, 1.0, False),
-
         # dates
         (dt.date(2025, 1, 1), dt.date(2025, 1, 1), dt.date(2025, 1, 2), True),
         (dt.date(2025, 1, 1), dt.date(2025, 1, 2), dt.date(2025, 1, 2), False),
-
         # datetimes (time-of-day within same calendar window)
         (
             dt.datetime(2025, 1, 1, 0, 0),
@@ -40,12 +37,10 @@ from frist._util import in_half_open
             dt.datetime(2025, 1, 2, 0, 0),
             False,
         ),
-
         # tuples (lexicographic ordering)
         ((2025, 1), (2025, 1), (2025, 2), True),
         ((2025, 1), (2025, 2), (2025, 2), False),
     ],
-
 )
 def test_in_half_open_various_types(start: Any, value: Any, end: Any, expected: bool) -> None:
     """Verify in_half_open works for ints, floats, date, datetime and tuple types."""

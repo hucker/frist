@@ -19,6 +19,7 @@ def make_policy():
         holidays={"2025-11-13", "2025-12-25"},
     )
 
+
 @pytest.mark.parametrize(
     "input_value,expected",
     [
@@ -28,7 +29,7 @@ def make_policy():
         (dt.date(2025, 11, 15), True),  # Saturday
         (dt.date(2025, 11, 13), False),  # Thursday
         (dt.datetime(2025, 11, 16, 10, 0), True),  # Sunday
-    ]
+    ],
 )
 def test_is_weekend(input_value: int | dt.date | dt.datetime, expected: bool) -> None:
     """
@@ -41,6 +42,7 @@ def test_is_weekend(input_value: int | dt.date | dt.datetime, expected: bool) ->
     # Assert
     assert result is expected, f"is_weekend({input_value!r}) expected {expected}, got {result}"
 
+
 @pytest.mark.parametrize(
     "input_value,expected",
     [
@@ -50,7 +52,7 @@ def test_is_weekend(input_value: int | dt.date | dt.datetime, expected: bool) ->
         (dt.date(2025, 11, 15), False),  # Saturday
         (dt.datetime(2025, 11, 13, 10, 0), True),  # Thursday
         (dt.datetime(2025, 11, 15, 10, 0), False),  # Saturday
-    ]
+    ],
 )
 def test_is_workday(input_value: int | dt.date | dt.datetime, expected: bool) -> None:
     """
@@ -63,6 +65,7 @@ def test_is_workday(input_value: int | dt.date | dt.datetime, expected: bool) ->
     # Assert
     assert result is expected, f"is_workday({input_value!r}) expected {expected}, got {result}"
 
+
 @pytest.mark.parametrize(
     "input_time,expected",
     [
@@ -71,7 +74,7 @@ def test_is_workday(input_value: int | dt.date | dt.datetime, expected: bool) ->
         (dt.time(8, 59), False),
         (dt.time(17, 0), False),
         (dt.time(18, 0), False),
-    ]
+    ],
 )
 def test_is_business_time(input_time: dt.time, expected: bool) -> None:
     """
@@ -84,6 +87,7 @@ def test_is_business_time(input_time: dt.time, expected: bool) -> None:
     # Assert
     assert result is expected, f"is_business_time({input_time!r}) expected {expected}, got {result}"
 
+
 @pytest.mark.parametrize(
     "input_value,expected",
     [
@@ -93,7 +97,7 @@ def test_is_business_time(input_time: dt.time, expected: bool) -> None:
         ("2025-01-01", False),
         (dt.date(2025, 1, 1), False),
         (dt.datetime(2025, 1, 1, 0, 0), False),
-    ]
+    ],
 )
 def test_is_holiday(input_value: str | dt.date | dt.datetime, expected: bool) -> None:
     """
@@ -106,6 +110,7 @@ def test_is_holiday(input_value: str | dt.date | dt.datetime, expected: bool) ->
     # Assert
     assert result is expected, f"is_holiday({input_value!r}) expected {expected}, got {result}"
 
+
 def test_is_holiday_typeerror() -> None:
     """
     Test BizPolicy.is_holiday raises TypeError for invalid input types.
@@ -114,7 +119,8 @@ def test_is_holiday_typeerror() -> None:
     policy = make_policy()
     # Act & Assert
     with pytest.raises(TypeError):
-        policy.is_holiday(12345) #type: ignore # Intentional wrong type for test
+        policy.is_holiday(12345)  # type: ignore # Intentional wrong type for test
+
 
 @pytest.mark.parametrize(
     "dt_obj,expected",
@@ -133,7 +139,7 @@ def test_is_holiday_typeerror() -> None:
         (dt.datetime(2025, 11, 14, 17, 0), 1.0),
         # After business hours
         (dt.datetime(2025, 11, 14, 18, 0), 1.0),
-    ]
+    ],
 )
 def test_business_day_fraction(dt_obj: dt.datetime, expected: float) -> None:
     """
@@ -145,13 +151,14 @@ def test_business_day_fraction(dt_obj: dt.datetime, expected: float) -> None:
     result = policy.business_day_fraction(dt_obj)
     # Assert
     if expected == 0.5:
-        assert pytest.approx(result, 0.01) == expected, (           # type: ignore
+        assert pytest.approx(result, 0.01) == expected, (  # type: ignore
             f"business_day_fraction({dt_obj!r}) expected approx {expected}, got {result}"
         )
     else:
         assert result == expected, (
             f"business_day_fraction({dt_obj!r}) expected {expected}, got {result}"
         )
+
 
 @pytest.mark.parametrize(
     "start_of_business,end_of_business,dt_obj,expected",
@@ -160,7 +167,7 @@ def test_business_day_fraction(dt_obj: dt.datetime, expected: float) -> None:
         (dt.time(9, 0), dt.time(9, 0), dt.datetime(2025, 11, 14, 9, 0), 0.0),
         # Negative-length business day
         (dt.time(17, 0), dt.time(9, 0), dt.datetime(2025, 11, 14, 10, 0), 0.0),
-    ]
+    ],
 )
 def test_business_day_fraction_edge(
     start_of_business: dt.time, end_of_business: dt.time, dt_obj: dt.datetime, expected: float

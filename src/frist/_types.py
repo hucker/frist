@@ -62,7 +62,7 @@ def time_pair(
     The allowed string formats are defined in _constants.py and can be overridden.
 
     Args:
-        start_time (datetime | date | float | int | str): 
+        start_time (datetime | date | float | int | str):
         end_time (datetime | float | int | str | None):  If None, defaults to now.
         formats__ (list[str], optional): List of datetime formats for string parsing.
 

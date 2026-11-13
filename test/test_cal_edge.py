@@ -4,7 +4,6 @@ Edge-case tests for Cal, focusing on boundaries and inclusive semantics.
 Follows CODESTYLE: AAA comments and explicit expected/actual assertions.
 """
 
- 
 import datetime as dt
 
 import pytest
@@ -18,20 +17,43 @@ from frist._util import normalize_weekday
     "spec,expected",
     [
         # Full names
-        ("monday", 0), ("tuesday", 1), ("wednesday", 2), ("thursday", 3),
-        ("friday", 4), ("saturday", 5), ("sunday", 6),
+        ("monday", 0),
+        ("tuesday", 1),
+        ("wednesday", 2),
+        ("thursday", 3),
+        ("friday", 4),
+        ("saturday", 5),
+        ("sunday", 6),
         # 3-letter abbreviations
-        ("mon", 0), ("tue", 1), ("wed", 2), ("thu", 3),
-        ("fri", 4), ("sat", 5), ("sun", 6),
+        ("mon", 0),
+        ("tue", 1),
+        ("wed", 2),
+        ("thu", 3),
+        ("fri", 4),
+        ("sat", 5),
+        ("sun", 6),
         # 2-letter abbreviations
-        ("mo", 0), ("tu", 1), ("we", 2), ("th", 3),
-        ("fr", 4), ("sa", 5), ("su", 6),
+        ("mo", 0),
+        ("tu", 1),
+        ("we", 2),
+        ("th", 3),
+        ("fr", 4),
+        ("sa", 5),
+        ("su", 6),
         # Pandas style
-        ("w-mon", 0), ("w-tue", 1), ("w-wed", 2), ("w-thu", 3),
-        ("w-fri", 4), ("w-sat", 5), ("w-sun", 6),
+        ("w-mon", 0),
+        ("w-tue", 1),
+        ("w-wed", 2),
+        ("w-thu", 3),
+        ("w-fri", 4),
+        ("w-sat", 5),
+        ("w-sun", 6),
         # Case insensitivity
-        ("MONDAY", 0), ("Mon", 0), ("W-SUN", 6), ("thU", 3),
-    ]
+        ("MONDAY", 0),
+        ("Mon", 0),
+        ("W-SUN", 6),
+        ("thU", 3),
+    ],
 )
 def test_weekday_normalization(spec: str, expected: int) -> None:
     """Test normalize_weekday exhaustively for all supported formats.
@@ -203,10 +225,7 @@ def test_cal_future_windows() -> None:
 
 @pytest.mark.parametrize(
     "bad_spec",
-    [
-        "nonday", "w-xyz", "abc", "", "w-", "mond", "tues", "w-funday",
-        "noday", "funday", "w-xday"
-    ]
+    ["nonday", "w-xyz", "abc", "", "w-", "mond", "tues", "w-funday", "noday", "funday", "w-xday"],
 )
 def test_normalize_weekday_invalid(bad_spec: str) -> None:
     # Arrange & Act & Assert
@@ -244,10 +263,12 @@ def test_normalize_weekday_error_with_detailed_message():
 def test_cal_type_checking_imports():
     # Arrange
     import frist._cal as cal_module
+
     # Assert
     assert hasattr(cal_module, "Cal"), "_cal module should have 'Cal'"
     assert hasattr(cal_module, "TYPE_CHECKING"), "_cal module should have 'TYPE_CHECKING'"
     from typing import TYPE_CHECKING
+
     assert TYPE_CHECKING is False, "TYPE_CHECKING should be False at runtime"
 
 
@@ -278,7 +299,6 @@ def test_in_months_edge_cases():
 """
 Edge case and parameterized tests for Cal and related calendar logic.
 """
-
 
 
 # ...tests will be moved here...

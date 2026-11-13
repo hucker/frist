@@ -42,15 +42,13 @@ from frist._age import Age
         # Negative interval (should use same logic)
         (dt.datetime(2023, 1, 2), dt.datetime(2023, 1, 1), "-1.00 days"),
         (dt.datetime(2023, 2, 15), dt.datetime(2023, 1, 1), "-1.50 months"),
-    ]
+    ],
 )
-def test_age_format_default(
-    start: dt.datetime, end: dt.datetime, expected: str
-) -> None:
+def test_age_format_default(start: dt.datetime, end: dt.datetime, expected: str) -> None:
     """
     Test Age.format() with default formatting and thresholds, including decimals.
-    
-    NOTE: 
+
+    NOTE:
 
     """
     # Arrange
@@ -59,6 +57,7 @@ def test_age_format_default(
     actual = age.format()
     # Assert
     assert actual == expected, f"Expected '{expected}', got '{actual}'"
+
 
 def test_age_format_custom_units() -> None:
     """Test Age.format() with custom units and formatting, including decimals."""

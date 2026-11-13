@@ -4,6 +4,7 @@ Second unit adapter for `Cal`.
 Provides `.in_(offset)` to test second-aligned half-open windows relative to
 the reference datetime.
 """
+
 from __future__ import annotations
 
 import datetime as dt

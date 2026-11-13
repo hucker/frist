@@ -14,6 +14,7 @@ from frist import Age
 # This module is part of smoke tests
 pytestmark = pytest.mark.smoke
 
+
 @pytest.mark.parametrize(
     "start, end, combo_msg, expected_seconds, expected_days",
     [
@@ -98,7 +99,7 @@ def test_age_fractional_calculations():
     assert age.minutes == 720.0
     assert age.hours == 12.0
     assert age.days == 0.5
-    assert age.weeks == pytest.approx(0.5 / 7.0) # type: ignore
+    assert age.weeks == pytest.approx(0.5 / 7.0)  # type: ignore
 
 
 def test_age_parse_static_method():
@@ -218,9 +219,7 @@ def test_age_negative_time_difference():
     ],
 )
 def test_age_parse_with_spaces_and_negatives(
-    number: float,
-    unit: str,
-    expected_seconds: float
+    number: float, unit: str, expected_seconds: float
 ) -> None:
     # Arrange
     patterns = [
@@ -242,7 +241,8 @@ def test_age_init_invalid_start_type() -> None:
     Act & Assert: TypeError is raised
     """
     with pytest.raises(TypeError, match="Unrecognized datetime string format"):
-        Age("not-a-date") # type: ignore # Exception expected
+        Age("not-a-date")  # type: ignore # Exception expected
+
 
 def test_age_init_invalid_end_type() -> None:
     """Arrange, Act, Assert
@@ -250,7 +250,8 @@ def test_age_init_invalid_end_type() -> None:
     Act & Assert: TypeError is raised
     """
     with pytest.raises(TypeError, match="Unrecognized datetime string format"):
-        Age(dt.datetime.now(), "not-a-date") # type: ignore # Exception expected
+        Age(dt.datetime.now(), "not-a-date")  # type: ignore # Exception expected
+
 
 def test_age_parse_invalid_format() -> None:
     """Arrange, Act, Assert
@@ -259,6 +260,7 @@ def test_age_parse_invalid_format() -> None:
     """
     with pytest.raises(ValueError, match="Invalid age format"):
         Age.parse("bad-format")
+
 
 def test_age_parse_unknown_unit() -> None:
     """Arrange, Act, Assert
@@ -276,6 +278,7 @@ def test_age_end_time_defaults_to_now() -> None:
     Assert: Age end_time is close to now
     """
     import time
+
     start = dt.datetime.now()
     age = Age(start)
     # Sleep briefly to ensure a measurable age
@@ -284,16 +287,17 @@ def test_age_end_time_defaults_to_now() -> None:
     assert (now - age.end_time).total_seconds() < 0.1, "end_time should default to current time"
     assert age.end_time >= start, "end_time should be after start_time"
 
+
 @pytest.mark.smoke
 def test_age_with_dates():
     """Age correctly handles date inputs and calculates 24 hours for one day apart."""
     # Arrange
     start_date = dt.date(2025, 1, 1)
     end_date = dt.date(2025, 1, 2)
-    
+
     # Act
     age = Age(start_date, end_date)
-    
+
     # Assert
     assert age.days == 1.0, "Age should be 1 day for date inputs one day apart"
     assert age.hours == 24.0, "Age should be 24 hours for date inputs one day apart"
@@ -306,6 +310,7 @@ def test_invalid_start_type_on_construction() -> None:
     with pytest.raises(TypeError, match="Unrecognized datetime string format"):
         Age("not-a-date", dt.datetime(2021, 1, 1))  # type: ignore
 
+
 def test_invalid_end_type_on_construction() -> None:
     """
     Invalid end_time type raises TypeError during construction.
@@ -314,16 +319,19 @@ def test_invalid_end_type_on_construction() -> None:
         Age(dt.datetime(2020, 1, 1), "not-a-date")  # type: ignore
 
 
-@pytest.mark.parametrize("start, end", [
-    (dt.date(2025, 1, 1), dt.date(2025, 1, 2)),
-    (dt.date(2025, 1, 1), dt.datetime(2025, 1, 2, 0, 0, 0)),
-    (dt.datetime(2025, 1, 1, 0, 0, 0), dt.date(2025, 1, 2)),
-])
+@pytest.mark.parametrize(
+    "start, end",
+    [
+        (dt.date(2025, 1, 1), dt.date(2025, 1, 2)),
+        (dt.date(2025, 1, 1), dt.datetime(2025, 1, 2, 0, 0, 0)),
+        (dt.datetime(2025, 1, 1, 0, 0, 0), dt.date(2025, 1, 2)),
+    ],
+)
 def test_age_with_mixed_date_types(start: dt.date | dt.datetime, end: dt.date | dt.datetime):
     """Age correctly handles mixed date/datetime inputs."""
     # Arrange & Act
     age = Age(start, end)
-    
+
     # Assert
     assert age.days == 1.0, "Age should be 1 day for inputs one day apart"
     assert age.hours == 24.0, "Age should be 24 hours for inputs one day apart"
@@ -333,14 +341,14 @@ def test_age_timezone_not_supported():
     """Age raises for timezone-aware datetimes (handled in time_pair)."""
     # Arrange
     tz_dt = dt.datetime(2025, 1, 1, tzinfo=dt.timezone.utc)
-    
+
     # Act & Assert
     with pytest.raises(ValueError, match="timezone mismatch"):
         Age(tz_dt)
-    
+
     with pytest.raises(ValueError, match="timezone mismatch"):
         Age(dt.datetime(2025, 1, 1), tz_dt)
-    
+
     # Also ensure constructing with mixed tz raises
     with pytest.raises(ValueError, match="timezone mismatch"):
         Age(dt.datetime(2020, 1, 1), tz_dt)
@@ -351,10 +359,10 @@ def test_age_negative():
     # Arrange
     start = dt.datetime(2021, 1, 1)
     end = dt.datetime(2020, 1, 1)
-    
+
     # Act
     age = Age(start, end)
-    
+
     # Assert
     assert age.days == -366.0, "Age should be -366 days (2020 was a leap year)"
     assert age.seconds == -31622400.0, "Age should be -31622400 seconds"
@@ -363,24 +371,27 @@ def test_age_negative():
     assert age.weeks < 0, "Age weeks should be negative"
 
 
-@pytest.mark.parametrize("prop, expected", [
-    ("seconds", -31622400.0),
-    ("minutes", -527040.0),
-    ("hours", -8784.0),
-    ("days", -366.0),
-    ("weeks", approx(-52.285714, rel=1e-3)),
-    ("months",approx(-12.02365, rel=1e-3)),
-    ("years", approx(-1.00274, rel=1e-3)),
-])
-def test_age_negative_properties(prop:str, expected):
+@pytest.mark.parametrize(
+    "prop, expected",
+    [
+        ("seconds", -31622400.0),
+        ("minutes", -527040.0),
+        ("hours", -8784.0),
+        ("days", -366.0),
+        ("weeks", approx(-52.285714, rel=1e-3)),
+        ("months", approx(-12.02365, rel=1e-3)),
+        ("years", approx(-1.00274, rel=1e-3)),
+    ],
+)
+def test_age_negative_properties(prop: str, expected):
     """Age properties are negative when start_time > end_time."""
     # Arrange
     start = dt.datetime(2021, 1, 1)
     end = dt.datetime(2020, 1, 1)
-    
+
     # Act
     age = Age(start, end)
-    
+
     # Assert
     assert getattr(age, prop) == expected, f"Age {prop} should be {expected} for negative duration"
 
@@ -389,16 +400,19 @@ def test_age_smoke():
     """Smoke test for Age class instantiation and basic properties."""
     # Arrange
     start = dt.datetime(2023, 1, 1, 0, 0, 0)
-    
+
     # Act & Assert: Test years_precise increments correctly for 1-20 years
     for years in range(1, 21):  # 1 to 20 years
         end = start.replace(year=start.year + years)
-        
+
         # Test positive direction: start to end
         age_positive = Age(start, end)
-        assert age_positive.years_precise == approx(years, rel=1e-6), f"Failed for {years} years (positive)"
-        
+        assert age_positive.years_precise == approx(years, rel=1e-6), (
+            f"Failed for {years} years (positive)"
+        )
+
         # Test negative direction: end to start
         age_negative = Age(end, start)
-        assert age_negative.years_precise == approx(-years, rel=1e-6), f"Failed for {years} years (negative)"
-
+        assert age_negative.years_precise == approx(-years, rel=1e-6), (
+            f"Failed for {years} years (negative)"
+        )

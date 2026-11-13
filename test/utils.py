@@ -14,7 +14,9 @@ def approx_val(expected: Number, *, rel: float = 1e-6, abs: float | None = None)
     return pytest.approx(expected, rel=rel)
 
 
-def assert_approx(actual: Number, expected: Number, *, rel: float = 1e-6, abs: float | None = None) -> None:
+def assert_approx(
+    actual: Number, expected: Number, *, rel: float = 1e-6, abs: float | None = None
+) -> None:
     """Assert that `actual` approximately equals `expected` within tolerance.
 
     This keeps the assertion at the top-level in tests simple and avoids

@@ -2,7 +2,6 @@
 Utility tests for helpers and normalization in frist.
 """
 
-
 import datetime as dt
 
 from frist._util import in_half_open, in_half_open_date, in_half_open_dt

@@ -19,6 +19,7 @@ UNITS = [
     "fis_year",
 ]
 
+
 @pytest.mark.smoke
 def test_biz_unit_unit_smoke():
     """

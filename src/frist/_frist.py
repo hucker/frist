@@ -63,32 +63,27 @@ class Chrono:
             >>> Chrono(target_dt=datetime(2024, 5, 1), policy=BizPolicy(fiscal_year_start_month=4))
             >>> Chrono(target_dt="2024-05-01", formats=["%Y-%m-%d"])
         """
-        
+
         # Normalize target and reference so we get clean  datetime objects
-        target,ref = time_pair(start_time=target_dt, 
-                                                   end_time=ref_dt, 
-                                                   formats__=formats) 
+        target, ref = time_pair(start_time=target_dt, end_time=ref_dt, formats__=formats)
 
         # This keeps the typechecker happy
-        self.target_dt:dt.datetime = target
-        self.ref_dt:dt.datetime = ref
+        self.target_dt: dt.datetime = target
+        self.ref_dt: dt.datetime = ref
 
         # Forward the policy to both objects
         self.policy: BizPolicy = policy or BizPolicy()
 
-        # Now we have synchronized reference times with no possibility of the reference time being 
-        # different in the case that now() is used in both cases.  If you didn't do this it would 
-        # be up to you to ensure the same reference time.  This could make VERY hard to find bugs 
-        # if the reference time for the two objects occurred across a hour/day/month/quarter/year 
+        # Now we have synchronized reference times with no possibility of the reference time being
+        # different in the case that now() is used in both cases.  If you didn't do this it would
+        # be up to you to ensure the same reference time.  This could make VERY hard to find bugs
+        # if the reference time for the two objects occurred across a hour/day/month/quarter/year
         # boundary.
         self._age: Age = Age(self.target_dt, self.ref_dt)
         self._cal: Cal = Cal(self.target_dt, self.ref_dt)
 
         # Biz gets the policy since that is how it figures things out.
-        self._biz: Biz = Biz(target_dt=self.target_dt, 
-                             ref_dt=self.ref_dt, 
-                             policy=self.policy)
-        
+        self._biz: Biz = Biz(target_dt=self.target_dt, ref_dt=self.ref_dt, policy=self.policy)
 
     @property
     def age(self) -> Age:
@@ -104,14 +99,16 @@ class Chrono:
     def biz(self) -> Biz:
         """Return the Biz object for this Chrono."""
         return self._biz
-    
+
     @property
     def timestamp(self) -> float:
         """Get the raw timestamp for target_time."""
         return self.target_dt.timestamp()
 
     @staticmethod
-    def parse(time_str: str, reference_time: TimeLike | None = None, policy: BizPolicy | None = None):
+    def parse(
+        time_str: str, reference_time: TimeLike | None = None, policy: BizPolicy | None = None
+    ):
         """
         Parse a time string and return a Chrono object.
 

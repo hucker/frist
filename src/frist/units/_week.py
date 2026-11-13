@@ -4,6 +4,7 @@ Week unit adapter for `Cal`.
 Provides `.in_(offset)` checks using calendar-aligned week boundaries (default
 start Monday) with half-open semantics. Delegates to `Cal`.
 """
+
 from __future__ import annotations
 
 import datetime as dt

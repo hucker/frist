@@ -25,19 +25,25 @@ def test_working_days_fraction_edges_via_public_api():
     target = dt.datetime(2025, 11, 21, 9, 0)
     ref = dt.datetime(2025, 11, 21, 17, 0)
     b = Biz(target, ref, policy)
-    assert b.working_days == approx(1.0), "working_days should be 1.0 for full business day (start->end)"
+    assert b.working_days == approx(1.0), (
+        "working_days should be 1.0 for full business day (start->end)"
+    )
 
     # Act / Assert - Case B: same calendar day, at/after business end -> 0.0
     target = dt.datetime(2025, 11, 21, 17, 0)
     ref = dt.datetime(2025, 11, 21, 20, 0)
     b = Biz(target, ref, policy)
-    assert b.working_days == approx(0.0), "working_days should be 0.0 when target at/after business end"
+    assert b.working_days == approx(0.0), (
+        "working_days should be 0.0 when target at/after business end"
+    )
 
     # Act / Assert - Case C: span across two consecutive business days (Thu -> Fri)
     target = dt.datetime(2025, 11, 20, 12, 0)  # Thursday
-    ref = dt.datetime(2025, 11, 21, 12, 0)     # Friday
+    ref = dt.datetime(2025, 11, 21, 12, 0)  # Friday
     b = Biz(target, ref, policy)
-    assert b.working_days == approx(1.0, rel=1e-3), "working_days spanning two business days should total ~1.0"
+    assert b.working_days == approx(1.0, rel=1e-3), (
+        "working_days spanning two business days should total ~1.0"
+    )
 
 
 def test_business_days_signed_via_public_api():
@@ -67,8 +73,12 @@ def test_move_n_days_n_zero_and_early_returns_via_public_api():
     target = dt.datetime(2025, 11, 20, 10, 0)  # Thursday (workday)
     ref = dt.datetime(2025, 11, 20, 10, 0)
     b = Biz(target, ref, pol2)
-    assert b.biz_day.in_(0) is True, "in_business_days(0) should be True when target==ref and not a holiday"
-    assert b.work_day.in_(0) is True, "in_working_days(0) should be True when target==ref and is a workday"
+    assert b.biz_day.in_(0) is True, (
+        "in_business_days(0) should be True when target==ref and not a holiday"
+    )
+    assert b.work_day.in_(0) is True, (
+        "in_working_days(0) should be True when target==ref and is a workday"
+    )
 
     # Act / Assert - business_days False when target is a holiday
     target_hol = dt.datetime(2025, 11, 21, 10, 0)
@@ -80,4 +90,6 @@ def test_move_n_days_n_zero_and_early_returns_via_public_api():
     target_weekend = dt.datetime(2025, 11, 23, 10, 0)
     ref_weekend = dt.datetime(2025, 11, 23, 10, 0)
     b_weekend = Biz(target_weekend, ref_weekend, pol2)
-    assert b_weekend.work_day.in_(0) is False, "in_working_days(0) should be False for weekend target"
+    assert b_weekend.work_day.in_(0) is False, (
+        "in_working_days(0) should be False for weekend target"
+    )

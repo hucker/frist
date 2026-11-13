@@ -37,7 +37,7 @@ class Age:
 
     Features:
         - Computes age and duration between two datetimes, timestamps, or number values.
-        - Supports flexible initialization: accepts dt.datetime, dt.date, float, or int 
+        - Supports flexible initialization: accepts dt.datetime, dt.date, float, or int
           for start and end times.
         - Uses a configurable BizPolicy for business calendar logic (workdays, holidays,
           business hours).
@@ -118,10 +118,9 @@ class Age:
     ):
         self._start_time: dt.datetime
         self._end_time: dt.datetime
-        self._start_time, self._end_time = time_pair(start_time=start_time, 
-                                                                         end_time=end_time, 
-                                                                         formats__=formats)
-
+        self._start_time, self._end_time = time_pair(
+            start_time=start_time, end_time=end_time, formats__=formats
+        )
 
     @classmethod
     def from_timedelta(cls, delta: dt.timedelta) -> "Age":
@@ -184,9 +183,8 @@ class Age:
 
     # Note: Age is immutable; no state mutation methods are provided.
 
-    # Suggestion: You can use set_times inside __init__ to centralize type handling and 
+    # Suggestion: You can use set_times inside __init__ to centralize type handling and
     # validation for start/end times. Makes future updates easier and keeps logic DRY.
-
 
     @property
     def seconds(self) -> float:
@@ -227,7 +225,7 @@ class Age:
     def months(self) -> float:
         """Get age in months (approximate - 30.44 days)."""
         return self.days / DAYS_PER_MONTH
-    
+
     @property
     def months_precise(self) -> float:
         """
@@ -297,13 +295,13 @@ class Age:
         Get age in years (approximate - 365.25 days, can be negative).
 
         Note:
-            This calculation uses 365.25 days per year for approximation, which 
+            This calculation uses 365.25 days per year for approximation, which
             averages leap and non-leap years.
         """
         # Allow negative ages if base_time is before timestamp
         # Uses 365.25 days/year for approximation; does not distinguish leap/non-leap years.
         return self.days / DAYS_PER_YEAR
-    
+
     @property
     def years_precise(self) -> float:
         """
@@ -311,34 +309,34 @@ class Age:
         Fractional years are calculated using the actual number of days in each year.
         """
         scale = 1.0
-        start:dt.datetime = self.start_time
-        end:dt.datetime = self.end_time
+        start: dt.datetime = self.start_time
+        end: dt.datetime = self.end_time
         if start > end:
             start, end = end, start
             scale = -1.0
-        
+
         def _fractional_days(dt1: dt.datetime, dt2: dt.datetime) -> float:
             """Calculate fractional days between two datetimes."""
             return (dt2 - dt1).total_seconds() / (24 * 3600)
-        
+
         # Same year: fraction only
         if start.year == end.year:
             days_in_year = (dt.datetime(start.year + 1, 1, 1) - dt.datetime(start.year, 1, 1)).days
             return scale * (_fractional_days(start, end) / days_in_year)
-        
+
         # First year fraction
         end_of_first_yr = dt.datetime(start.year, 12, 31, 23, 59, 59)
         days_in_first_yr = (dt.datetime(start.year + 1, 1, 1) - dt.datetime(start.year, 1, 1)).days
         first_year_fraction = _fractional_days(start, end_of_first_yr) / days_in_first_yr
-        
+
         # Last year fraction
         start_of_last_year = dt.datetime(end.year, 1, 1)
         days_in_last_year = (dt.datetime(end.year + 1, 1, 1) - dt.datetime(end.year, 1, 1)).days
         last_year_fraction = _fractional_days(start_of_last_year, end) / days_in_last_year
-        
+
         # Full years in between
         full_years = end.year - start.year - 1
-        
+
         return scale * (first_year_fraction + full_years + last_year_fraction)
 
     def format(
@@ -421,7 +419,7 @@ class Age:
 
         # Regular expression to parse age with unit, including negatives
         match = re.match(r"^(-?\d+(?:\.\d+)?)\s*([a-zA-Z]+)$", age_str)
-   
+
         if not match:
             raise ValueError(f"Invalid age format: {age_str}")
 
@@ -469,8 +467,7 @@ class Age:
         return value * unit_multipliers[unit]
 
 
-
 __all__ = ["Age"]
 
-#a1 = Age(dt.datetime(2020,1,1), dt.datetime(2021,1,1))
-#print(a1.years_precise)
+# a1 = Age(dt.datetime(2020,1,1), dt.datetime(2021,1,1))
+# print(a1.years_precise)

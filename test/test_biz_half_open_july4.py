@@ -35,16 +35,16 @@ def test_biz_half_open_with_july4_holiday():
     # Because July 4 is a holiday, moving -1 business day from Monday
     # will skip Friday and land on Thursday (2025-07-03). Use explicit
     # dates for clarity.
-    dt_below_lower = dt.datetime(2025, 7, 2, 12, 0)   # Wed 2025-07-02
-    dt_on_lower = dt.datetime(2025, 7, 3, 12, 0)      # Thu (window start)
-    dt_holiday = dt.datetime(2025, 7, 4, 12, 0)       # Fri (holiday)
-    dt_interior = dt.datetime(2025, 7, 7, 12, 0)      # Mon (ref)
-    dt_on_upper = dt.datetime(2025, 7, 8, 12, 0)      # Tue (exclusive)
-    dt_above_upper = dt.datetime(2025, 7, 9, 12, 0)   # Wed
+    dt_below_lower = dt.datetime(2025, 7, 2, 12, 0)  # Wed 2025-07-02
+    dt_on_lower = dt.datetime(2025, 7, 3, 12, 0)  # Thu (window start)
+    dt_holiday = dt.datetime(2025, 7, 4, 12, 0)  # Fri (holiday)
+    dt_interior = dt.datetime(2025, 7, 7, 12, 0)  # Mon (ref)
+    dt_on_upper = dt.datetime(2025, 7, 8, 12, 0)  # Tue (exclusive)
+    dt_above_upper = dt.datetime(2025, 7, 9, 12, 0)  # Wed
 
     # business-days (excludes holidays)
     def b_biz(t: dt.datetime) -> bool:
-      return Biz(t, ref, policy).biz_day.in_(-1, 1)
+        return Biz(t, ref, policy).biz_day.in_(-1, 1)
 
     assert b_biz(dt_below_lower) is False
     assert b_biz(dt_on_lower) is True
@@ -56,7 +56,7 @@ def test_biz_half_open_with_july4_holiday():
 
     # working-days (ignores holidays)
     def b_work(t: dt.datetime) -> bool:
-      return Biz(t, ref, policy).work_day.in_(-1, 1)
+        return Biz(t, ref, policy).work_day.in_(-1, 1)
 
     assert b_work(dt_below_lower) is False
     # For working-days the start=-1 window lands on Friday (07-04),

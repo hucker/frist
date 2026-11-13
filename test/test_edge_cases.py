@@ -109,9 +109,7 @@ def test_parse_edge_cases():
     # Assert
     expected_year = 2038
     actual_year = z.target_dt.year
-    assert actual_year >= expected_year, (
-        f"Expected year >= {expected_year}, got {actual_year}"
-    )
+    assert actual_year >= expected_year, f"Expected year >= {expected_year}, got {actual_year}"
 
     # Act & Assert
     with pytest.raises(ValueError):
@@ -121,9 +119,7 @@ def test_parse_edge_cases():
     z_ws = Chrono.parse("  2024-01-01  ")
     expected_year = 2024
     actual_year = z_ws.target_dt.year
-    assert actual_year == expected_year, (
-        f"Expected year {expected_year}, got {actual_year}"
-    )
+    assert actual_year == expected_year, f"Expected year {expected_year}, got {actual_year}"
 
 
 def test_fiscal_boundary_crossing() -> None:
@@ -140,8 +136,7 @@ def test_fiscal_boundary_crossing() -> None:
     actual_fiscal_year_june = chrono_june.biz.fiscal_year
     actual_fiscal_quarter_june = chrono_june.biz.fiscal_quarter
     assert actual_fiscal_year_june == expected_fiscal_year_june, (
-        f"Expected fiscal year {expected_fiscal_year_june} for June, "
-        f"got {actual_fiscal_year_june}"
+        f"Expected fiscal year {expected_fiscal_year_june} for June, got {actual_fiscal_year_june}"
     )
     assert actual_fiscal_quarter_june == expected_fiscal_quarter_june, (
         f"Expected fiscal quarter {expected_fiscal_quarter_june} for June, "
@@ -157,8 +152,7 @@ def test_fiscal_boundary_crossing() -> None:
     actual_fiscal_year_july = chrono_july.biz.fiscal_year
     actual_fiscal_quarter_july = chrono_july.biz.fiscal_quarter
     assert actual_fiscal_year_july == expected_fiscal_year_july, (
-        f"Expected fiscal year {expected_fiscal_year_july} for July, "
-        f"got {actual_fiscal_year_july}"
+        f"Expected fiscal year {expected_fiscal_year_july} for July, got {actual_fiscal_year_july}"
     )
     assert actual_fiscal_quarter_july == expected_fiscal_quarter_july, (
         f"Expected fiscal quarter {expected_fiscal_quarter_july} for July, "
@@ -179,12 +173,8 @@ def test_min_max_datetime():
     expected_max = max_dt
     actual_min = z_min.target_dt
     actual_max = z_max.target_dt
-    assert actual_min == expected_min, (
-        f"Expected min datetime {expected_min}, got {actual_min}"
-    )
-    assert actual_max == expected_max, (
-        f"Expected max datetime {expected_max}, got {actual_max}"
-    )
+    assert actual_min == expected_min, f"Expected min datetime {expected_min}, got {actual_min}"
+    assert actual_max == expected_max, f"Expected max datetime {expected_max}, got {actual_max}"
 
 
 def test_microsecond_precision():
@@ -218,9 +208,7 @@ def test_timezone_aware_naive():
     # Assert
     expected_tzinfo = None
     actual_tzinfo = z_naive.target_dt.tzinfo
-    assert actual_tzinfo is expected_tzinfo, (
-        "Expected tzinfo to be None for naive datetime"
-    )
+    assert actual_tzinfo is expected_tzinfo, "Expected tzinfo to be None for naive datetime"
     # Timezone-aware datetimes should raise due to tz mismatch handled in time_pair
     with pytest.raises(ValueError, match="timezone mismatch"):
         Chrono(target_dt=aware_dt)
@@ -306,9 +294,5 @@ def test_string_datetime_formats_chrono_parse(string_input, expected_datetime):
     expected_ref = ref_dt
     actual_target = chrono.target_dt
     actual_ref = chrono.ref_dt
-    assert actual_target == expected_target, (
-        f"Chrono.parse failed to parse {string_input}"
-    )
-    assert actual_ref == expected_ref, (
-        f"Reference time should be preserved for {string_input}"
-    )
+    assert actual_target == expected_target, f"Chrono.parse failed to parse {string_input}"
+    assert actual_ref == expected_ref, f"Reference time should be preserved for {string_input}"

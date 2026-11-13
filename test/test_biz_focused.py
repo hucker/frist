@@ -5,6 +5,7 @@ Conventions:
 - Tests follow Arrange / Act / Assert (AAA) via inline comments.
 - Use pytest.approx for floating point comparisons.
 """
+
 import datetime as dt
 
 from pytest import approx
@@ -16,7 +17,7 @@ def test_multi_day_fraction_working_and_business_days() -> None:
     """Arrange/Act/Assert: fractional working/business days over a multi-day span."""
     # Arrange
     start: dt.datetime = dt.datetime(2024, 1, 1, 12, 0)  # Mon Jan 1 12:00
-    end: dt.datetime = dt.datetime(2024, 1, 4, 15, 0)    # Thu Jan 4 15:00
+    end: dt.datetime = dt.datetime(2024, 1, 4, 15, 0)  # Thu Jan 4 15:00
     policy: BizPolicy = BizPolicy()  # default 9-17, Mon-Fri
     biz: Biz = Biz(start, end, policy)
 
@@ -28,8 +29,12 @@ def test_multi_day_fraction_working_and_business_days() -> None:
     expected: float = 0.625 + 1.0 + 1.0 + 0.75
 
     # Act / Assert
-    assert biz.working_days == approx(expected, rel=1e-9), "working_days multi-day fraction mismatch"
-    assert biz.business_days == approx(expected, rel=1e-9), "business_days multi-day fraction mismatch"
+    assert biz.working_days == approx(expected, rel=1e-9), (
+        "working_days multi-day fraction mismatch"
+    )
+    assert biz.business_days == approx(expected, rel=1e-9), (
+        "business_days multi-day fraction mismatch"
+    )
 
 
 def test_multi_day_with_middle_holiday() -> None:
@@ -45,8 +50,12 @@ def test_multi_day_with_middle_holiday() -> None:
     expected_business: float = expected_working - 1.0  # Jan 3 becomes 0.0 for business days
 
     # Act / Assert
-    assert biz.working_days == approx(expected_working, rel=1e-9), "working_days with middle holiday mismatch"
-    assert biz.business_days == approx(expected_business, rel=1e-9), "business_days with middle holiday mismatch"
+    assert biz.working_days == approx(expected_working, rel=1e-9), (
+        "working_days with middle holiday mismatch"
+    )
+    assert biz.business_days == approx(expected_business, rel=1e-9), (
+        "business_days with middle holiday mismatch"
+    )
 
 
 def test_in_working_and_business_days_range_with_holiday() -> None:

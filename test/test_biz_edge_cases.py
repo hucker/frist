@@ -28,9 +28,7 @@ def test_workday_fraction_zero_length_business_day() -> None:
     # Act/Assert
     actual = biz.work_day.workday_fraction_at(target)
     expected = 0.0
-    assert actual == expected, (
-        f"Workday fraction mismatch: expected={expected}, actual={actual}"
-    )
+    assert actual == expected, f"Workday fraction mismatch: expected={expected}, actual={actual}"
 
 
 def test_workday_fraction_before_and_after() -> None:
@@ -72,6 +70,7 @@ def test_business_days_signed_when_target_after_ref_edge() -> None:
 
     # Act/Assert
     import pytest as _pytest
+
     assert reverse.business_days == _pytest.approx(-forward.business_days, rel=1e-9)
 
 

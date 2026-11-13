@@ -41,7 +41,6 @@ def test_chrono_properties():
     assert z.timestamp == target_dt.timestamp()
 
 
-
 def test_chrono_age_property():
     """Test that Chrono age property works correctly."""
     target_dt: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
@@ -55,7 +54,7 @@ def test_chrono_age_property():
     assert age.minutes == 1440.0
     assert age.hours == 24.0
     assert age.days == 1.0
-    assert age.weeks == approx(1.0 / 7.0) # type: ignore
+    assert age.weeks == approx(1.0 / 7.0)  # type: ignore
 
 
 def test_chrono_calendar_property():
@@ -185,14 +184,14 @@ def test_chrono_holiday_property():
 def test_age_equivalent_inputs_produce_same_results(input_type: str) -> None:
     """
     Test that equivalent TimeLike representations of the same instant produce same Age calculations.
-    
+
     This tests that datetime, timestamp (float/int), and string representations of the same time
     all produce identical Age objects and calculations.
     """
     # Arrange: Define reference times with specific time components
     start_dt = dt.datetime(2020, 6, 15, 14, 30, 45)
     end_dt = dt.datetime(2023, 9, 22, 9, 15, 30)
-    
+
     # Convert to equivalent representations
     time_formats = {
         "datetime": start_dt,
@@ -200,27 +199,31 @@ def test_age_equivalent_inputs_produce_same_results(input_type: str) -> None:
         "int": int(start_dt.timestamp()),
         "str_datetime": start_dt.strftime("%Y-%m-%d %H:%M:%S"),
     }
-    
+
     end_time_formats = {
         "datetime": end_dt,
         "float": end_dt.timestamp(),
         "int": int(end_dt.timestamp()),
         "str_datetime": end_dt.strftime("%Y-%m-%d %H:%M:%S"),
     }
-    
+
     start_input = time_formats[input_type]
     end_input = end_time_formats[input_type]
-    
+
     # Act: Create Age object
     age = Age(start_input, end_input)
-    
+
     # Assert: Results should be identical to reference datetime Age
     reference_age = Age(start_dt, end_dt)
-    
+
     assert age.days == approx(reference_age.days, rel=1e-10), f"Days differ for {input_type}"
     assert age.seconds == reference_age.seconds, f"Seconds differ for {input_type}"
-    assert age.years_precise == approx(reference_age.years_precise, rel=1e-10), f"Years precise differ for {input_type}"
-    assert age.months_precise == approx(reference_age.months_precise, rel=1e-10), f"Months precise differ for {input_type}"
+    assert age.years_precise == approx(reference_age.years_precise, rel=1e-10), (
+        f"Years precise differ for {input_type}"
+    )
+    assert age.months_precise == approx(reference_age.months_precise, rel=1e-10), (
+        f"Months precise differ for {input_type}"
+    )
 
 
 @pytest.mark.parametrize(
@@ -233,32 +236,36 @@ def test_age_midnight_inputs_produce_same_results(input_type: str) -> None:
     """
     # Arrange: Define reference times at midnight
     start_dt = dt.datetime(2020, 6, 15, 0, 0, 0)  # Midnight
-    end_dt = dt.datetime(2023, 9, 22, 0, 0, 0)    # Midnight
-    
+    end_dt = dt.datetime(2023, 9, 22, 0, 0, 0)  # Midnight
+
     # Convert to midnight representations
     time_formats = {
         "date": start_dt.date(),
         "str_date": start_dt.strftime("%Y-%m-%d"),
     }
-    
+
     end_time_formats = {
         "date": end_dt.date(),
         "str_date": end_dt.strftime("%Y-%m-%d"),
     }
-    
+
     start_input = time_formats[input_type]
     end_input = end_time_formats[input_type]
-    
+
     # Act: Create Age object
     age = Age(start_input, end_input)
-    
+
     # Assert: Results should be identical to reference midnight datetime Age
     reference_age = Age(start_dt, end_dt)
-    
+
     assert age.days == approx(reference_age.days, rel=1e-10), f"Days differ for {input_type}"
     assert age.seconds == reference_age.seconds, f"Seconds differ for {input_type}"
-    assert age.years_precise == approx(reference_age.years_precise, rel=1e-10), f"Years precise differ for {input_type}"
-    assert age.months_precise == approx(reference_age.months_precise, rel=1e-10), f"Months precise differ for {input_type}"
+    assert age.years_precise == approx(reference_age.years_precise, rel=1e-10), (
+        f"Years precise differ for {input_type}"
+    )
+    assert age.months_precise == approx(reference_age.months_precise, rel=1e-10), (
+        f"Months precise differ for {input_type}"
+    )
 
 
 def test_age_datetime_vs_date_different_results() -> None:
@@ -267,15 +274,15 @@ def test_age_datetime_vs_date_different_results() -> None:
     """
     # Arrange
     start_dt = dt.datetime(2020, 6, 15, 14, 30, 45)  # With time
-    end_dt = dt.datetime(2023, 9, 22, 9, 15, 30)     # With time
-    
+    end_dt = dt.datetime(2023, 9, 22, 9, 15, 30)  # With time
+
     start_date = start_dt.date()  # Loses time -> midnight
-    end_date = end_dt.date()      # Loses time -> midnight
-    
+    end_date = end_dt.date()  # Loses time -> midnight
+
     # Act
     age_datetime = Age(start_dt, end_dt)
     age_date = Age(start_date, end_date)
-    
+
     # Assert: Should be different (datetime loses time information)
     assert age_datetime.days != age_date.days, "Datetime and date should produce different results"
     assert abs(age_datetime.days - age_date.days) > 0.1, "Difference should be significant"
@@ -283,26 +290,29 @@ def test_age_datetime_vs_date_different_results() -> None:
 
 # ---------- Biz Class Tests ----------
 
+
 def test_biz_business_day_detection():
     """Test business day detection with holidays and weekends."""
     # Standard policy: Mon-Fri workdays, no holidays
     policy = BizPolicy(workdays=[0, 1, 2, 3, 4], holidays=set())
-    
+
     # Monday (business day)
     chrono = Chrono(target_dt=dt.datetime(2024, 1, 1), policy=policy)  # Monday
     assert chrono.biz.is_business_day is True
     assert chrono.biz.is_workday is True
     assert chrono.biz.holiday is False
-    
+
     # Saturday (weekend, not business day)
     chrono_sat = Chrono(target_dt=dt.datetime(2024, 1, 6), policy=policy)  # Saturday
     assert chrono_sat.biz.is_business_day is False
     assert chrono_sat.biz.is_workday is False
     assert chrono_sat.biz.holiday is False
-    
+
     # Holiday policy
     holiday_policy = BizPolicy(workdays=[0, 1, 2, 3, 4], holidays={"2024-01-01"})
-    chrono_hol = Chrono(target_dt=dt.datetime(2024, 1, 1), policy=holiday_policy)  # Monday but holiday
+    chrono_hol = Chrono(
+        target_dt=dt.datetime(2024, 1, 1), policy=holiday_policy
+    )  # Monday but holiday
     assert chrono_hol.biz.is_business_day is False
     assert chrono_hol.biz.is_workday is True  # Still a workday per policy
     assert chrono_hol.biz.holiday is True
@@ -312,27 +322,27 @@ def test_biz_fiscal_period_boundaries():
     """Test fiscal period start/end dates."""
     # April fiscal year start
     policy = BizPolicy(fiscal_year_start_month=4)
-    
+
     # March 31 (end of Q4/fiscal year)
     chrono = Chrono(target_dt=dt.datetime(2024, 3, 31), policy=policy)
     assert chrono.biz.fiscal_year == 2023
     assert chrono.biz.fiscal_quarter == 4
-    
+
     # April 1 (start of Q1/new fiscal year)
     chrono_apr = Chrono(target_dt=dt.datetime(2024, 4, 1), policy=policy)
     assert chrono_apr.biz.fiscal_year == 2024
     assert chrono_apr.biz.fiscal_quarter == 1
-    
+
     # July 1 (Q2)
     chrono_jul = Chrono(target_dt=dt.datetime(2024, 7, 1), policy=policy)
     assert chrono_jul.biz.fiscal_year == 2024
     assert chrono_jul.biz.fiscal_quarter == 2
-    
+
     # October 1 (Q3)
     chrono_oct = Chrono(target_dt=dt.datetime(2024, 10, 1), policy=policy)
     assert chrono_oct.biz.fiscal_year == 2024
     assert chrono_oct.biz.fiscal_quarter == 3
-    
+
     # January 1 (Q4 of next fiscal year)
     chrono_jan = Chrono(target_dt=dt.datetime(2024, 1, 1), policy=policy)
     assert chrono_jan.biz.fiscal_year == 2023
@@ -343,22 +353,22 @@ def test_biz_business_day_arithmetic():
     """Test business day range membership."""
     # Standard policy: Mon-Fri workdays, no holidays
     policy = BizPolicy(workdays=[0, 1, 2, 3, 4], holidays=set())
-    
+
     # Reference: Wednesday, Jan 3, 2024
     ref_time = dt.datetime(2024, 1, 3)  # Wednesday
-    
+
     # Target: Monday, Jan 1 (2 business days before ref)
     chrono_past = Chrono(target_dt=dt.datetime(2024, 1, 1), ref_dt=ref_time, policy=policy)
     assert chrono_past.biz.biz_day.in_(-2)  # Exactly 2 business days before
-    
+
     # Target: Friday, Jan 5 (2 business days after ref)
     chrono_future = Chrono(target_dt=dt.datetime(2024, 1, 5), ref_dt=ref_time, policy=policy)
     assert chrono_future.biz.biz_day.in_(2)  # Exactly 2 business days after
-    
+
     # Target: Saturday, Jan 6 (not a business day)
     chrono_weekend = Chrono(target_dt=dt.datetime(2024, 1, 6), ref_dt=ref_time, policy=policy)
     assert chrono_weekend.biz.biz_day.in_(-10, 10) is False  # Not a business day
-    
+
     # Working days (ignore holidays)
     assert chrono_past.biz.work_day.in_(-2)  # Monday is a workday
     assert chrono_weekend.biz.work_day.in_(-10, 10) is False  # Saturday is not a workday
@@ -367,45 +377,46 @@ def test_biz_business_day_arithmetic():
 def test_biz_business_days_calculation():
     """Test fractional business days calculation."""
     policy = BizPolicy(workdays=[0, 1, 2, 3, 4], holidays={"2024-01-01"})
-    
+
     # Monday 9 AM to Tuesday 5 PM (standard business hours)
     start = dt.datetime(2024, 1, 2, 9, 0)  # Monday 9 AM
-    end = dt.datetime(2024, 1, 3, 17, 0)   # Tuesday 5 PM
+    end = dt.datetime(2024, 1, 3, 17, 0)  # Tuesday 5 PM
     chrono = Chrono(target_dt=start, ref_dt=end, policy=policy)
-    
+
     # Should be 2 full business days
     assert chrono.biz.business_days == approx(2.0)
-    
+
     # Working days (ignore holidays)
     assert chrono.biz.working_days == approx(2.0)
-    
+
     # Partial day: Monday 9 AM to Monday 1 PM (4 hours = 0.5 business day)
-    partial_start = dt.datetime(2024, 1, 2, 9, 0)   # Monday 9 AM
-    partial_end = dt.datetime(2024, 1, 2, 13, 0)    # Monday 1 PM
+    partial_start = dt.datetime(2024, 1, 2, 9, 0)  # Monday 9 AM
+    partial_end = dt.datetime(2024, 1, 2, 13, 0)  # Monday 1 PM
     chrono_partial = Chrono(target_dt=partial_start, ref_dt=partial_end, policy=policy)
     assert chrono_partial.biz.business_days == approx(0.5)
 
 
 # ---------- Chrono Class Integration Tests ----------
 
+
 def test_chrono_property_integration():
     """Test that Chrono properties work together correctly."""
     target = dt.datetime(2024, 1, 1, 12, 0, 0)  # Monday
-    ref = dt.datetime(2024, 1, 5, 12, 0, 0)     # Friday (same week)
-    
+    ref = dt.datetime(2024, 1, 5, 12, 0, 0)  # Friday (same week)
+
     chrono = Chrono(target_dt=target, ref_dt=ref)
-    
+
     # Age should show about 4 days
     assert chrono.age.days == approx(4.0)
-    
+
     # Cal should show within same week
     assert chrono.cal.week.in_(0)  # Same week
     assert chrono.cal.day.in_(-4)  # Exactly 4 days ago
-    
+
     # Biz should show business days (assuming standard policy)
     assert chrono.biz.business_days == approx(4.0)  # Mon-Thu-Fri
     assert chrono.biz.working_days == approx(4.0)  # Same as business days here
-    
+
     # Fiscal properties
     assert chrono.biz.fiscal_year == 2024  # January 2024
     assert chrono.biz.fiscal_quarter == 1  # Q1 for standard Jan fiscal year start
@@ -414,24 +425,24 @@ def test_chrono_property_integration():
 def test_chrono_edge_cases():
     """Test Chrono with edge case dates."""
     now = dt.datetime.now()
-    
+
     # Very old date
     old_date = dt.datetime(1900, 1, 1)
     chrono_old = Chrono(target_dt=old_date)
     assert chrono_old.age.days > 40000  # Should be many days (positive duration)
-    assert chrono_old.age.years > 120   # Should be over 120 years
-    
-    # Future date  
+    assert chrono_old.age.years > 120  # Should be over 120 years
+
+    # Future date
     future_date = dt.datetime(2100, 1, 1)
     chrono_future = Chrono(target_dt=future_date)
     assert chrono_future.age.days < -20000  # Should be negative (future from now)
-    assert chrono_future.age.years < -70    # Should be negative
-    
+    assert chrono_future.age.years < -70  # Should be negative
+
     # Same instant (should be zero)
     chrono_same = Chrono(target_dt=now, ref_dt=now)
     assert chrono_same.age.seconds == 0
     assert chrono_same.age.days == 0
-    
+
     # Very close times (fractional seconds)
     close_time = now + dt.timedelta(microseconds=500000)  # 0.5 seconds later
     chrono_close = Chrono(target_dt=now, ref_dt=close_time)
@@ -443,19 +454,19 @@ def test_chrono_fiscal_shortcuts():
     # Standard fiscal year (Jan start)
     policy = BizPolicy(fiscal_year_start_month=1)
     ref_time = dt.datetime(2024, 6, 15)  # June 15, 2024
-    
+
     # Target in same fiscal year
     chrono_same = Chrono(target_dt=dt.datetime(2024, 3, 1), ref_dt=ref_time, policy=policy)
     assert chrono_same.biz.is_this_fiscal_year is True
     assert chrono_same.biz.is_last_fiscal_year is False
     assert chrono_same.biz.is_next_fiscal_year is False
-    
+
     # Target in last fiscal year
     chrono_last = Chrono(target_dt=dt.datetime(2023, 12, 1), ref_dt=ref_time, policy=policy)
     assert chrono_last.biz.is_this_fiscal_year is False
     assert chrono_last.biz.is_last_fiscal_year is True
     assert chrono_last.biz.is_next_fiscal_year is False
-    
+
     # Target in next fiscal year
     chrono_next = Chrono(target_dt=dt.datetime(2025, 2, 1), ref_dt=ref_time, policy=policy)
     assert chrono_next.biz.is_this_fiscal_year is False
@@ -467,31 +478,30 @@ def test_chrono_business_day_shortcuts():
     """Test Chrono business day shortcut properties."""
     policy = BizPolicy(workdays=[0, 1, 2, 3, 4], holidays=set())
     ref_time = dt.datetime(2024, 1, 3)  # Wednesday
-    
+
     # Same business day
     chrono_same = Chrono(target_dt=dt.datetime(2024, 1, 3), ref_dt=ref_time, policy=policy)
     assert chrono_same.biz.is_business_day_today is True
     assert chrono_same.biz.is_business_day_yesterday is False
     assert chrono_same.biz.is_business_day_tomorrow is False
-    
+
     # Previous business day (Tuesday)
     chrono_last = Chrono(target_dt=dt.datetime(2024, 1, 2), ref_dt=ref_time, policy=policy)
     assert chrono_last.biz.is_business_day_today is False
     assert chrono_last.biz.is_business_day_yesterday is True
     assert chrono_last.biz.is_business_day_tomorrow is False
-    
+
     # Next business day (Thursday)
     chrono_next = Chrono(target_dt=dt.datetime(2024, 1, 4), ref_dt=ref_time, policy=policy)
     assert chrono_next.biz.is_business_day_today is False
     assert chrono_next.biz.is_business_day_yesterday is False
     assert chrono_next.biz.is_business_day_tomorrow is True
-    
+
     # Weekend (not a business day)
     chrono_weekend = Chrono(target_dt=dt.datetime(2024, 1, 6), ref_dt=ref_time, policy=policy)
     assert chrono_weekend.biz.is_business_day_today is False
     assert chrono_weekend.biz.is_business_day_yesterday is False
     assert chrono_weekend.biz.is_business_day_tomorrow is False
-
 
 
 @pytest.mark.parametrize(
@@ -501,27 +511,45 @@ def test_chrono_business_day_shortcuts():
             dt.datetime(2025, 1, 5, 14, 30),  # Jan 5, 2025, Sunday
             30,  # minute
             14,  # hour
-            7, "Sunday",  # day of week
-            1, "January", 5,  # month, name, day of month
-            1, "Q1", 2025, 5  # quarter, name, year, day of year
+            7,
+            "Sunday",  # day of week
+            1,
+            "January",
+            5,  # month, name, day of month
+            1,
+            "Q1",
+            2025,
+            5,  # quarter, name, year, day of year
         ),
         (
             dt.datetime(2024, 7, 4, 0, 0),  # July 4, 2024, Thursday
             0,
             0,
-            4, "Thursday",
-            7, "July", 4,
-            3, "Q3", 2024, 186
+            4,
+            "Thursday",
+            7,
+            "July",
+            4,
+            3,
+            "Q3",
+            2024,
+            186,
         ),
         (
             dt.datetime(2023, 12, 31, 23, 59),  # Dec 31, 2023, Sunday
             59,
             23,
-            7, "Sunday",
-            12, "December", 31,
-            4, "Q4", 2023, 365
+            7,
+            "Sunday",
+            12,
+            "December",
+            31,
+            4,
+            "Q4",
+            2023,
+            365,
         ),
-    ]
+    ],
 )
 def test_val_and_name_properties(
     dt_obj: dt.datetime,

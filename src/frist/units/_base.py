@@ -6,6 +6,7 @@ business (`Biz`) adapters. `UnitName` provide ergonomic helpers (.in_()) that
 delegate to the canonical methods on their parent objects without owning core
 logic.
 """
+
 from __future__ import annotations
 
 import datetime as dt
@@ -43,6 +44,7 @@ class CalProtocol(Protocol):
 # - Business unit names can use richer `Biz` parents while staying compatible.
 # This improves IDE hints and catches misuse (e.g., calling biz-only methods on Cal).
 TCal = TypeVar("TCal", bound=CalProtocol)
+
 
 # Runtime enum for boundary inclusivity in `between()`.
 class Inclusive(str, Enum):

@@ -19,7 +19,9 @@ def test_time_pair_datetime() -> None:
     target_tim: dt.datetime = dt.datetime(2024, 1, 1, 12, 0, 0)
     reference_tim: dt.datetime = dt.datetime(2024, 1, 2, 12, 0, 0)
     # Act
-    actual_target_tim, actual_reference_tim = time_pair(start_time=target_tim, end_time=reference_tim)
+    actual_target_tim, actual_reference_tim = time_pair(
+        start_time=target_tim, end_time=reference_tim
+    )
     # Assert
     expected_target_tim = target_tim
     expected_reference_tim = reference_tim
@@ -27,6 +29,7 @@ def test_time_pair_datetime() -> None:
     msg_reference = f"Expected reference {expected_reference_tim}, got {actual_reference_tim}"
     assert actual_target_tim == expected_target_tim, msg_target
     assert actual_reference_tim == expected_reference_tim, msg_reference
+
 
 def test_time_pair_date() -> None:
     """Test time_pair with date objects."""
@@ -43,6 +46,7 @@ def test_time_pair_date() -> None:
     assert actual_target_tim == expected_target_tim, msg_target
     assert actual_reference_tim == expected_reference_tim, msg_reference
 
+
 def test_time_pair_float_timestamp() -> None:
     """Test time_pair with float timestamps."""
     # Arrange
@@ -57,6 +61,7 @@ def test_time_pair_float_timestamp() -> None:
     msg_reference = f"Expected reference {expected_reference_tim}, got {actual_reference_tim}"
     assert actual_target_tim == expected_target_tim, msg_target
     assert actual_reference_tim == expected_reference_tim, msg_reference
+
 
 def test_time_pair_int_timestamp() -> None:
     """Test time_pair with int timestamps."""
@@ -73,6 +78,7 @@ def test_time_pair_int_timestamp() -> None:
     assert actual_target_tim == expected_target_tim, msg_target
     assert actual_reference_tim == expected_reference_tim, msg_reference
 
+
 def test_time_pair_string_datetime() -> None:
     """Test time_pair with string full datetime."""
     # Arrange
@@ -87,6 +93,7 @@ def test_time_pair_string_datetime() -> None:
     msg_reference = f"Expected reference {expected_reference_tim}, got {actual_reference_tim}"
     assert actual_target_tim == expected_target_tim, msg_target
     assert actual_reference_tim == expected_reference_tim, msg_reference
+
 
 def test_time_pair_string_date() -> None:
     """Test time_pair with string date only."""
@@ -103,6 +110,7 @@ def test_time_pair_string_date() -> None:
     assert actual_target_tim == expected_target_tim, msg_target
     assert actual_reference_tim == expected_reference_tim, msg_reference
 
+
 def test_time_pair_end_time_none_defaults_to_now() -> None:
     """Test time_pair with end_time=None defaults to now."""
     # Arrange
@@ -116,6 +124,7 @@ def test_time_pair_end_time_none_defaults_to_now() -> None:
     assert actual_target_tim == expected_target_tim, msg_target
     assert isinstance(actual_reference_tim, dt.datetime), msg_reference
 
+
 def test_time_pair_start_time_none_raises() -> None:
     """Test time_pair with start_time=None raises TypeError."""
     # Arrange
@@ -123,6 +132,7 @@ def test_time_pair_start_time_none_raises() -> None:
     # Act & Assert
     with pytest.raises(TypeError):
         time_pair(start_time=None, end_time=reference_tim)
+
 
 def test_time_pair_unsupported_type_raises() -> None:
     """Test time_pair with unsupported type raises TypeError."""
@@ -132,6 +142,7 @@ def test_time_pair_unsupported_type_raises() -> None:
     with pytest.raises(TypeError):
         time_pair(start_time=[2024, 1, 1], end_time=reference_tim)
 
+
 def test_time_pair_unsupported_string_format_raises() -> None:
     """Test time_pair with unsupported string format raises TypeError."""
     # Arrange
@@ -140,12 +151,14 @@ def test_time_pair_unsupported_string_format_raises() -> None:
     with pytest.raises(TypeError):
         time_pair(start_time="not-a-date", end_time=reference_tim)
 
+
 def test_time_pair_naive_vs_aware_raises() -> None:
     """Mixing naive and aware datetimes should raise ValueError."""
     naive = dt.datetime(2024, 1, 1, 12, 0, 0)
     aware = dt.datetime(2024, 1, 2, 12, 0, 0, tzinfo=dt.timezone.utc)
     with pytest.raises((ValueError, TypeError)):
         time_pair(start_time=naive, end_time=aware)
+
 
 def test_time_pair_different_tzinfo_raises() -> None:
     """Using two aware datetimes with different tzinfo should raise ValueError."""

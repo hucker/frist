@@ -41,7 +41,7 @@ def test_working_days_signed_direction():
     policy = BizPolicy(workdays=[0, 1, 2, 3, 4], holidays=set())
     # Target earlier than ref yields positive working_days
     target = dt.datetime(2025, 12, 3, 10, 0)  # Wed
-    ref = dt.datetime(2025, 12, 4, 12, 0)    # Thu
+    ref = dt.datetime(2025, 12, 4, 12, 0)  # Thu
     b_forward = Biz(target, ref, policy)
     pos_days = b_forward.work_day.working_days()
     assert pos_days > 0
@@ -56,7 +56,7 @@ def test_business_days_signed_direction():
     policy = BizPolicy(workdays=[0, 1, 2, 3, 4], holidays={"2025-12-04"})
     # Wed to Fri with Thu a holiday: business_days counts Wed and Fri only
     target = dt.datetime(2025, 12, 3, 10, 0)  # Wed
-    ref = dt.datetime(2025, 12, 5, 12, 0)    # Fri
+    ref = dt.datetime(2025, 12, 5, 12, 0)  # Fri
     b_forward = Biz(target, ref, policy)
     pos_days = b_forward.biz_day.business_days()
     assert pos_days > 0
@@ -72,6 +72,7 @@ def test_biz_day_yesterday_tomorrow_raise():
     ref = dt.datetime(2025, 12, 3, 12, 0)
     b = Biz(target, ref, policy)
     import pytest
+
     with pytest.raises(ValueError):
         _ = b.biz_day.is_yesterday
     with pytest.raises(ValueError):
@@ -84,6 +85,7 @@ def test_work_day_yesterday_tomorrow_raise():
     ref = dt.datetime(2025, 12, 3, 12, 0)
     b = Biz(target, ref, policy)
     import pytest
+
     with pytest.raises(ValueError):
         _ = b.work_day.is_yesterday
     with pytest.raises(ValueError):

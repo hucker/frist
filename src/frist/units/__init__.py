@@ -3,8 +3,8 @@ Units package.
 
 This module re-exports unit classes to provide a stable import surface:
 
-(e.g., `from frist.units import DayUnit` is not required, thus the structure of the 
-package can be changed without affecting imports). 
+(e.g., `from frist.units import DayUnit` is not required, thus the structure of the
+package can be changed without affecting imports).
 """
 
 from ._base import Inclusive, UnitName

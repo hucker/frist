@@ -56,10 +56,10 @@ def test_work_day_between_single_unit_mapping(
 @pytest.mark.parametrize(
     "inclusive, expected",
     [
-        ("both", True),    # 0..1 inclusive includes 0
-        ("left", True),    # 0..1 left-inclusive includes 0
+        ("both", True),  # 0..1 inclusive includes 0
+        ("left", True),  # 0..1 left-inclusive includes 0
         ("right", False),  # strictly after start -> excludes 0
-        ("neither", False) # excludes both boundaries -> excludes 0
+        ("neither", False),  # excludes both boundaries -> excludes 0
     ],
 )
 def test_work_day_between_multi_day_span(
@@ -99,8 +99,8 @@ def test_biz_day_between_single_unit_mapping_observes_holiday(
     "target_day_offset, expected_biz, expected_work",
     [
         (-1, False, False),  # Not same day as ref
-        (0, True, True),     # Same day as ref (Thu)
-        (1, False, False),   # Not same day as ref
+        (0, True, True),  # Same day as ref (Thu)
+        (1, False, False),  # Not same day as ref
     ],
 )
 def test_between_alignment_consistency(

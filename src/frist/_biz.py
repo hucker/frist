@@ -94,38 +94,32 @@ class Biz:
     # ---------- Shortcut properties (policy-aware) ----------
     @property
     def is_business_day_yesterday(self) -> bool:
-        """Shortcut: True when target is in the business-day immediately before ref_dt.
-        """
+        """Shortcut: True when target is in the business-day immediately before ref_dt."""
         return self.biz_day.in_(-1)
 
     @property
     def is_business_day_today(self) -> bool:
-        """Shortcut: True when the target is in the business-day of the ref_dt.
-        """
+        """Shortcut: True when the target is in the business-day of the ref_dt."""
         return self.biz_day.in_(0)
 
     @property
     def is_business_day_tomorrow(self) -> bool:
-        """Shortcut: True when target is in the business-day immediately after ref_dt
-        """
+        """Shortcut: True when target is in the business-day immediately after ref_dt"""
         return self.biz_day.in_(1)
 
     @property
     def is_workday_yesterday(self) -> bool:
-        """Shortcut: True when target is in the workday immediately before the ref_dt
-        """
+        """Shortcut: True when target is in the workday immediately before the ref_dt"""
         return self.work_day.in_(-1)
 
     @property
     def is_workday_today(self) -> bool:
-        """Shortcut: True when target is in the workday of the reference.
-        """
+        """Shortcut: True when target is in the workday of the reference."""
         return self.work_day.in_(0)
 
     @property
     def is_workday_tomorrow(self) -> bool:
-        """Shortcut: True when target is in the workday immediately after the ref_dt
-        """
+        """Shortcut: True when target is in the workday immediately after the ref_dt"""
         return self.work_day.in_(1)
 
     # No backward-compatible aliases; tests and API use explicit
@@ -134,39 +128,32 @@ class Biz:
     # Fiscal shortcuts (explicitly fiscal-aware)
     @property
     def is_last_fiscal_quarter(self) -> bool:
-        """Shortcut: True when target is in the fiscal quarter immediately before ref_dt
-        """
+        """Shortcut: True when target is in the fiscal quarter immediately before ref_dt"""
         return self.fis_qtr.in_(-1)
 
     @property
     def is_this_fiscal_quarter(self) -> bool:
-        """Shortcut: True when the target is in the same fiscal quarter as the ref_dt
-        """
+        """Shortcut: True when the target is in the same fiscal quarter as the ref_dt"""
         return self.fis_qtr.in_(0)
 
     @property
     def is_next_fiscal_quarter(self) -> bool:
-        """Shortcut: True when target is in the fiscal quarter immediately after ref_dt.
-        """
+        """Shortcut: True when target is in the fiscal quarter immediately after ref_dt."""
         return self.fis_qtr.in_(1)
 
     @property
     def is_last_fiscal_year(self) -> bool:
-        """Shortcut: True when target is in the fiscal year immediately before ref_dt.
-        """
+        """Shortcut: True when target is in the fiscal year immediately before ref_dt."""
         return self.fis_year.in_(-1)
 
     @property
     def is_this_fiscal_year(self) -> bool:
-        """Shortcut: True when the target is in the same fiscal year as the reference.
-        """
+        """Shortcut: True when the target is in the same fiscal year as the reference."""
         return self.fis_year.in_(0)
 
     @property
     def is_next_fiscal_year(self) -> bool:
-        """Shortcut: True when target is in the fiscal year immediately after ref_dt.
-
-        """
+        """Shortcut: True when target is in the fiscal year immediately after ref_dt."""
         return self.fis_year.in_(1)
 
     # Alias for external convenience
@@ -181,8 +168,7 @@ class Biz:
     @property
     def fiscal_quarter(self) -> int:
         return self.fis_qtr.val
-    
-    
+
     # ---------- Public calculations ----------
     @property
     def business_days(self) -> float:

@@ -4,6 +4,7 @@ Day unit adapter for `Cal`.
 Implements ergonomic `.in_(offset)` checks for calendar day half-open windows,
 delegating to `Cal` for core behavior.
 """
+
 from __future__ import annotations
 
 import datetime as dt

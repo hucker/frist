@@ -2,6 +2,7 @@
 
 Covers holidays, weekends, and weekdays over a 3-week span.
 """
+
 import datetime as dt
 
 import pytest
@@ -22,25 +23,34 @@ CAL_POLICY: BizPolicy = BizPolicy(
     end_of_business=dt.time(17, 0),
 )
 
+
 def make_dt(y: int, m: int, d: int, h: int = 0, mi: int = 0) -> dt.datetime:
     return dt.datetime(y, m, d, h, mi)
 
+
 # Parameterized cases: (start, end, expected_working, expected_business, description)
 CASES: list[tuple[dt.datetime, dt.datetime, float, float, str]] = [
-    (make_dt(2024, 1, 2, 9),  make_dt(2024, 1, 2, 17), 1.0, 1.0, "Full weekday (Tue)"),
-    (make_dt(2024, 1, 3, 9),  make_dt(2024, 1, 3, 17), 1.0, 0.0, "Full holiday (Wed)"),
-    (make_dt(2024, 1, 6, 9),  make_dt(2024, 1, 6, 17), 0.0, 0.0, "Full weekend (Sat)"),
-    (make_dt(2024, 1, 2, 9),  make_dt(2024, 1, 3, 17), 2.0, 1.0, "Weekday to holiday (Tue-Wed)"),
-    (make_dt(2024, 1, 3, 9),  make_dt(2024, 1, 4, 17), 2.0, 1.0, "Holiday to weekday (Wed-Thu)"),
-    (make_dt(2024, 1, 6, 9),  make_dt(2024, 1, 8, 17), 1.0, 1.0, "Weekend to weekday (Sat-Mon)"),
-    (make_dt(2024, 1, 5, 9),  make_dt(2024, 1, 6, 17), 1.0, 1.0, "Weekday to weekend (Fri-Sat)"),
-    (make_dt(2024, 1, 2, 9),  make_dt(2024, 1, 6, 17), 4.0, 3.0, "Tue-Sat (Tue, Wed, Thu, Fri)"),
-    (make_dt(2024, 1, 6, 9),  make_dt(2024, 1, 10, 17),3.0, 2.0, "Sat-Wed (Mon, Tue, Wed)"),
-    (make_dt(2024, 1, 1, 9),  make_dt(2024, 1, 17, 17),13.0,10.0, "Full 3 weeks (all weekdays incl. holidays)"),
+    (make_dt(2024, 1, 2, 9), make_dt(2024, 1, 2, 17), 1.0, 1.0, "Full weekday (Tue)"),
+    (make_dt(2024, 1, 3, 9), make_dt(2024, 1, 3, 17), 1.0, 0.0, "Full holiday (Wed)"),
+    (make_dt(2024, 1, 6, 9), make_dt(2024, 1, 6, 17), 0.0, 0.0, "Full weekend (Sat)"),
+    (make_dt(2024, 1, 2, 9), make_dt(2024, 1, 3, 17), 2.0, 1.0, "Weekday to holiday (Tue-Wed)"),
+    (make_dt(2024, 1, 3, 9), make_dt(2024, 1, 4, 17), 2.0, 1.0, "Holiday to weekday (Wed-Thu)"),
+    (make_dt(2024, 1, 6, 9), make_dt(2024, 1, 8, 17), 1.0, 1.0, "Weekend to weekday (Sat-Mon)"),
+    (make_dt(2024, 1, 5, 9), make_dt(2024, 1, 6, 17), 1.0, 1.0, "Weekday to weekend (Fri-Sat)"),
+    (make_dt(2024, 1, 2, 9), make_dt(2024, 1, 6, 17), 4.0, 3.0, "Tue-Sat (Tue, Wed, Thu, Fri)"),
+    (make_dt(2024, 1, 6, 9), make_dt(2024, 1, 10, 17), 3.0, 2.0, "Sat-Wed (Mon, Tue, Wed)"),
+    (
+        make_dt(2024, 1, 1, 9),
+        make_dt(2024, 1, 17, 17),
+        13.0,
+        10.0,
+        "Full 3 weeks (all weekdays incl. holidays)",
+    ),
     (make_dt(2024, 1, 2, 13), make_dt(2024, 1, 2, 17), 0.5, 0.5, "Half business day (Tue)"),
     (make_dt(2024, 1, 3, 13), make_dt(2024, 1, 3, 17), 0.5, 0.0, "Partial holiday (Wed)"),
     (make_dt(2024, 1, 7, 13), make_dt(2024, 1, 7, 17), 0.0, 0.0, "Partial weekend (Sun)"),
 ]
+
 
 @pytest.mark.parametrize("start,end,expected_working,expected_business,desc", CASES)
 def test_working_and_business_days_param_cases(
