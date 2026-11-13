@@ -46,8 +46,10 @@ class CalProtocol(Protocol):
 TCal = TypeVar("TCal", bound=CalProtocol)
 
 
-# Runtime enum for boundary inclusivity in `between()`.
-class Inclusive(str, Enum):
+# Runtime enum for boundary inclusivity in `between()`.  Kept as (str, Enum) rather
+# than StrEnum: StrEnum would change str(Inclusive.BOTH) from "Inclusive.BOTH" to
+# "both" for every caller, and that is an interface change.
+class Inclusive(str, Enum):  # noqa: UP042
     """Literal-like enum for window boundary inclusivity.
 
     Values: "both", "left", "right", "neither".

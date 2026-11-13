@@ -155,7 +155,7 @@ def test_time_pair_unsupported_string_format_raises() -> None:
 def test_time_pair_naive_vs_aware_raises() -> None:
     """Mixing naive and aware datetimes should raise ValueError."""
     naive = dt.datetime(2024, 1, 1, 12, 0, 0)
-    aware = dt.datetime(2024, 1, 2, 12, 0, 0, tzinfo=dt.timezone.utc)
+    aware = dt.datetime(2024, 1, 2, 12, 0, 0, tzinfo=dt.UTC)
     with pytest.raises((ValueError, TypeError)):
         time_pair(start_time=naive, end_time=aware)
 

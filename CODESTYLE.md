@@ -9,7 +9,7 @@
 
 - Always add type hints to all functions, methods, and variables where possible.
 - Use explicit types for function arguments and return values.
-- Assume Python 3.10 or greater for all code.
+- Assume Python 3.11 or greater for all code.
 - Prefer built-in type hint syntax (e.g., `str | None`, `int | float`) over `Optional` or `Union` from the typing module when possible.
 - Use typing generics (e.g., `list[str]`, `dict[str, int]`) only when built-in syntax is not available or less clear.
 

@@ -326,7 +326,7 @@ def test_working_days_start_after_end() -> None:
 
 def test_biz_timezone_not_supported():
     """Biz raises for timezone-aware datetimes (handled in time_pair)."""
-    tz_dt = dt.datetime(2025, 1, 1, tzinfo=dt.timezone.utc)
+    tz_dt = dt.datetime(2025, 1, 1, tzinfo=dt.UTC)
 
     with pytest.raises(ValueError, match="timezone mismatch"):
         Biz(tz_dt)

@@ -164,7 +164,7 @@ def test_timezone_aware_naive():
     """Test timezone awareness for naive and aware datetimes in Chrono."""
     # Arrange
     naive_dt = dt.datetime(2024, 1, 1, 12, 0, 0)
-    aware_dt = dt.datetime(2024, 1, 1, 12, 0, 0, tzinfo=dt.timezone.utc)
+    aware_dt = dt.datetime(2024, 1, 1, 12, 0, 0, tzinfo=dt.UTC)
     # Act
     z_naive = Chrono(target_dt=naive_dt)
     # Assert

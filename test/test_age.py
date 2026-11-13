@@ -340,7 +340,7 @@ def test_age_with_mixed_date_types(start: dt.date | dt.datetime, end: dt.date | 
 def test_age_timezone_not_supported():
     """Age raises for timezone-aware datetimes (handled in time_pair)."""
     # Arrange
-    tz_dt = dt.datetime(2025, 1, 1, tzinfo=dt.timezone.utc)
+    tz_dt = dt.datetime(2025, 1, 1, tzinfo=dt.UTC)
 
     # Act & Assert
     with pytest.raises(ValueError, match="timezone mismatch"):

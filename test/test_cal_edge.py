@@ -237,7 +237,7 @@ def test_normalize_weekday_invalid(bad_spec: str) -> None:
 
 def test_cal_timezone_not_supported():
     # Arrange
-    tz_dt = dt.datetime(2025, 1, 1, tzinfo=dt.timezone.utc)
+    tz_dt = dt.datetime(2025, 1, 1, tzinfo=dt.UTC)
     # Act & Assert
     with pytest.raises(ValueError, match="timezone mismatch"):
         Cal(tz_dt, dt.datetime(2025, 1, 1))
