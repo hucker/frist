@@ -159,6 +159,18 @@ def test_chrono_timestamp_target_with_default_ref_measures_to_now() -> None:
     assert chrono.age.end_time == chrono.ref_dt, "Age and Cal/Biz must share the reference time"
 
 
+def test_chrono_timestamp_target_with_naive_ref_is_wall_clock() -> None:
+    """A timestamp target with a naive datetime reference is a wall-clock pair, as in Age."""
+    # Arrange
+    start_ts = FALL_START.timestamp()
+    naive_ref = FALL_END.replace(tzinfo=None)
+    # Act
+    chrono = Chrono(target_dt=start_ts, ref_dt=naive_ref)
+    # Assert
+    assert chrono.age.hours == Age(start_ts, naive_ref).hours, "Chrono must agree with Age"
+    assert chrono.age.end_time == chrono.ref_dt, "Age and Cal/Biz must share the reference time"
+
+
 def test_from_seconds_is_unaffected() -> None:
     """Bare durations keep exact arithmetic."""
     # Act
