@@ -1,0 +1,36 @@
+#!/bin/sh
+# Refuse a commit that is unformatted, or that ruff or mypy would flag
+# (CLAUDE.md, "Quality gates").
+#
+# Enable once per clone:   git config core.hooksPath .githooks
+#
+# Checks the working tree, not just the staged snapshot -- a partial
+# stage is judged by the files as they sit on disk.  The test suite is
+# not run here (about 25 s); run it before committing as usual.
+
+# uv warns on every run that VIRTUAL_ENV points somewhere other than the
+# project .venv; the warning is noise here, so drop the variable.
+unset VIRTUAL_ENV
+
+# --no-cache: the cache records what `ruff format` wrote as formatted, and
+# ruff's layout can still move on a second pass, so a cached check can pass
+# a tree a fresh clone fails.  The full check is about a second.
+echo "pre-commit: ruff format --check --no-cache"
+if ! uv run --no-sync ruff format --check --no-cache; then
+    echo "pre-commit: unformatted files -- run: uv run ruff format.  Commit refused." >&2
+    exit 1
+fi
+
+# ruff takes no paths, the same as the format check: it covers the whole
+# project, so a new top-level folder is checked without editing this file.
+echo "pre-commit: ruff check"
+if ! uv run --no-sync ruff check; then
+    echo "pre-commit: ruff found issues -- commit refused." >&2
+    exit 1
+fi
+
+echo "pre-commit: mypy src/frist"
+if ! uv run --no-sync mypy src/frist; then
+    echo "pre-commit: mypy found issues -- commit refused." >&2
+    exit 1
+fi

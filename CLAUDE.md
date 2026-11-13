@@ -42,20 +42,31 @@ Releases keep the existing `release/X.Y.Z` form.  Merge to `main` with `git merg
 
 ## Tooling: uv-first
 
-- `uv sync` installs the dev group (pytest, pytest-cov, pytest-xdist, hypothesis, mypy, types-python-dateutil).  Never `pip install`.
-- ruff is not pinned in the dev group yet (see Known gaps), so run it as `uvx ruff ...`.  mypy is pinned: `uv run mypy`.
+- `uv sync` installs the dev group (pytest, pytest-cov, pytest-xdist, hypothesis, mypy, types-python-dateutil, ruff, ty).  Never `pip install`.
+- ruff, ty and mypy are pinned there; run them as `uv run ruff ...`, `uv run ty ...`, `uv run mypy ...`, never `uvx`, which would pick a different version.
 - uv warns on every run that `VIRTUAL_ENV` points elsewhere.  That warning is expected; do not "fix" it.
 
 ## Quality gates (must all pass before declaring work done)
 
-| Check             | Command                            | Pass criterion                 |
-| ----------------- | ---------------------------------- | ------------------------------ |
-| Lint              | `uvx ruff check --no-fix src test` | `All checks passed!`           |
-| Format            | `uvx ruff format --check src test` | no file "would be reformatted" |
-| Type check        | `uv run mypy src/frist`            | `Success: no issues found`     |
-| IDE Problems pane | (visual)                           | Zero entries                   |
+| Check             | Command                      | Pass criterion                |
+| ----------------- | ---------------------------- | ----------------------------- |
+| Lint              | `uv run ruff check`          | `All checks passed!`          |
+| Format            | `uv run ruff format --check` | `N files already formatted`   |
+| Type check        | `uv run mypy src/frist`      | `Success: no issues found`    |
+| IDE Problems pane | (visual)                     | Zero entries                  |
 
-`[tool.ruff]` sets `fix = true`, so a plain `ruff check` rewrites files; pass `--no-fix` when you only want a report.  Lint and format fail on today's baseline (111 lint findings, 70 unformatted files).  That is being fixed on `chore/ruff-format`, not inside unrelated branches.
+`ruff check` only reports; fixing is an explicit `uv run ruff check --fix`, and the editor fixes on save.  `.githooks/pre-commit` runs the first three gates on every commit and refuses the commit on any finding.  ruff 0.17 also formats the Python code blocks inside Markdown files, so README edits go through the format gate too.
+
+## Development (once per clone)
+
+```text
+git config core.hooksPath .githooks
+git config alias.fdiff '!git -c diff.ruff-format.textconv="sh scripts/format_textconv.sh" diff'
+git config alias.fblame 'blame --ignore-revs-file .git-blame-ignore-revs'
+```
+
+- The tree was ruff-formatted in one commit on 2026-11-13, listed in `.git-blame-ignore-revs`; the commit before it is tagged `pre-format`.  `git fdiff <old> <new>` diffs Python files as ruff formats them, so a comparison across that commit, or against an older branch, shows real changes only.  `git fblame <file>` skips the formatting commit.
+- Before every commit: `uv run ruff check --fix`, `uv run ruff format`, then the gates.  Never `# fmt: off`, `# fmt: skip`, `# noqa` sweeps or `ty --add-ignore`.
 
 ## Testing
 
@@ -95,9 +106,6 @@ Releases keep the existing `release/X.Y.Z` form.  Merge to `main` with `git merg
 
 Listed so a session does not fix them mid-task.  Remove an item when a branch resolves it.
 
-- 70 of 81 Python files are not ruff-formatted and `ruff check` reports 111 findings (100 of them E501).  Planned: `chore/ruff-format`.
-- `[tool.ruff] select` sits at the deprecated top level (ruff warns) and `fix = true` makes `ruff check` edit files.  Same branch.
-- ruff and ty are not pinned in the dev group, so the editor cannot load the project's versions.  Same branch.
 - `pyproject.toml` points at a `LICENSE` file that does not exist.  Planned: `chore/build-py311-315`.
 - `requires-python` is `>=3.10` while current python-dateutil (4.0) and hypothesis need 3.11.  Same branch.
 - `ty check src test` reports 45 diagnostics: 40 `unused-type-ignore-comment` (the pragmas mypy needs), 5 `invalid-argument-type`, 2 `int`.  Reconcile with a `[tool.ty.rules]` setting or crcglot's dual pragma before gating on ty.

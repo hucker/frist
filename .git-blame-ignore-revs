@@ -1,0 +1,9 @@
+# Commits `git blame` skips: formatting-only changes that move every line
+# without changing what it does.  GitHub reads this file automatically;
+# locally, once per clone:
+#   git config alias.fblame 'blame --ignore-revs-file .git-blame-ignore-revs'
+# then `git fblame <file>`.  Not `git config blame.ignoreRevsFile`: git 2.43
+# makes blame fatal when the file is missing, as it is on older checkouts.
+
+# 2026-11-13 style: ruff format the whole project
+b89cc63c5a937eaaefa777fa20fdd7def1433d23
