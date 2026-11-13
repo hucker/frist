@@ -232,3 +232,6 @@ Temporary Items
 
 # Test artifacts
 results.xml
+
+# Claude Code local overrides
+.claude/settings.local.json

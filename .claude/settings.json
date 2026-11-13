@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(uv run pytest:*)",
+      "PowerShell(uv run mypy:*)",
+      "PowerShell(uvx ruff:*)",
+      "PowerShell(uv run ruff:*)"
+    ],
+    "deny": [
+      "Read(./.pypirc)"
+    ]
+  }
+}
