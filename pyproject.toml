@@ -33,6 +33,8 @@ dev = [
     "mypy",
     "hypothesis==6.100.*",
     "types-python-dateutil",
+    "ruff==0.17.5",
+    "ty==0.0.103",
 ]
 
 [project.scripts]
@@ -69,9 +71,10 @@ commands =
 """
 
 [tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "UP", "Q"]  # Enable these rule categories
-fix = true  # Allow auto-fixing
-line-length=100
 
 [tool.coverage.run]
 omit = [
