@@ -8,6 +8,7 @@ import datetime as dt
 import math
 import re
 from collections.abc import Callable, Sequence
+from enum import StrEnum
 from typing import ClassVar, Self, TypeAlias
 
 from ._constants import (
@@ -31,6 +32,28 @@ from ._types import TimeLike, time_pair
 UnitRow: TypeAlias = tuple[float, str, Callable[["Age"], float]]
 
 
+class FormatStyle(StrEnum):
+    """Output style for ``Age.format``: full unit names or the short labels."""
+
+    VERBOSE = "verbose"
+    COMPACT = "compact"
+
+
+FORMAT_STYLE_VALUES: tuple[str, ...] = tuple(m.value for m in FormatStyle)
+
+
+def coerce_format_style(value: FormatStyle | str) -> FormatStyle:
+    """
+    Return a FormatStyle from a FormatStyle or its string value.
+
+    Raises ValueError for invalid inputs, naming the valid values.
+    """
+    try:
+        return FormatStyle(value)
+    except ValueError as exc:
+        raise ValueError(f"Invalid style value: {value!r}. Valid: {FORMAT_STYLE_VALUES}") from exc
+
+
 class Age:
     """
     Property class for handling age calculations in various time units.
@@ -48,8 +71,9 @@ class Age:
           elapsed, so a value is never 1.x), ``AGE_UNITS`` (humanize-style rounding) or
           ``DURATION_UNITS`` (clock boundaries, for measurements), with an optional
           ``now`` threshold.
-        - Prints either the full unit names (``style="verbose"``, the default) or the short
-          labels in ``COMPACT_LABELS`` (``style="compact"``: "30h", "13d", "2mo").
+        - Prints either the full unit names (``FormatStyle.VERBOSE`` or ``"verbose"``, the
+          default) or the short labels in ``COMPACT_LABELS`` (``FormatStyle.COMPACT`` or
+          ``"compact"``: "30h", "13d", "2mo").
 
     Initialization:
         Age(start_time, end_time=None, formats=None)
@@ -410,7 +434,7 @@ class Age:
         fmt: str | None = None,
         now: int | float | str | None = None,
         now_text: str = "now",
-        style: str = "verbose",
+        style: FormatStyle | str = FormatStyle.VERBOSE,
     ) -> str:
         """
         Return age in the most appropriate units, with customizable unit names and formatting.
@@ -434,9 +458,10 @@ class Age:
                 what is being aged (10 s for files, 100 ms for serial traffic), so
                 there is no default.
             now_text: Text returned when the ``now`` threshold applies.
-            style: ``"verbose"`` (the default) prints the table's unit names; ``"compact"``
-                prints the short labels in ``COMPACT_LABELS`` ("30h", "13d", "2mo") and,
-                unless ``fmt`` is given, no decimals and no space.
+            style: ``FormatStyle.VERBOSE`` (the default) prints the table's unit names;
+                ``FormatStyle.COMPACT`` prints the short labels in ``COMPACT_LABELS``
+                ("30h", "13d", "2mo") and, unless ``fmt`` is given, no decimals and no
+                space.  The strings "verbose" / "compact" are accepted too.
 
         Example:
             age.format()  # "3.25 hours"
@@ -456,11 +481,10 @@ class Age:
             thresholds of the `humanize` library (45 s / 45 min / 22 h / 26 d / 11 mo):
             https://github.com/jmoiron/humanize/blob/main/src/humanize/time.py
         """
-        if style not in ("verbose", "compact"):
-            raise ValueError(f"unknown style {style!r}; use 'verbose' or 'compact'")
+        chosen = coerce_format_style(style)
         if fmt is None:
-            fmt = self.VERBOSE_FMT if style == "verbose" else self.COMPACT_FMT
-        labels: dict[str, str] = self.COMPACT_LABELS if style == "compact" else {}
+            fmt = self.COMPACT_FMT if chosen is FormatStyle.COMPACT else self.VERBOSE_FMT
+        labels: dict[str, str] = self.COMPACT_LABELS if chosen is FormatStyle.COMPACT else {}
 
         if now is not None:
             now_limit: float = Age.parse(now) if isinstance(now, str) else float(now)
@@ -547,7 +571,7 @@ class Age:
         return value * unit_multipliers[unit]
 
 
-__all__ = ["Age"]
+__all__ = ["Age", "FormatStyle"]
 
 # a1 = Age(dt.datetime(2020,1,1), dt.datetime(2021,1,1))
 # print(a1.years_precise)

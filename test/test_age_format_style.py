@@ -7,10 +7,13 @@ space ("30h", "13d", "2mo"), and ``Age.parse`` reads every compact label back.
 """
 
 import datetime as dt
+import inspect
+import re
 
 import pytest
 
-from frist import Age
+from frist import Age, FormatStyle
+from frist._age import coerce_format_style
 from frist._constants import SECONDS_PER_MONTH
 
 
@@ -97,10 +100,38 @@ def test_compact_style_respects_now() -> None:
 
 
 def test_unknown_style_is_rejected() -> None:
-    """A typo in style raises with the accepted values named."""
+    """A typo in style raises with the accepted values named, like Inclusive does."""
     # Act / Assert
-    with pytest.raises(ValueError, match="unknown style 'terse'; use 'verbose' or 'compact'"):
+    expected_message = "Invalid style value: 'terse'. Valid: ('verbose', 'compact')"
+    with pytest.raises(ValueError, match=re.escape(expected_message)):
         Age.from_seconds(5).format(style="terse")
+
+
+def test_style_default_is_the_verbose_enum_member() -> None:
+    """The parameter default is FormatStyle.VERBOSE, not a bare string."""
+    # Act
+    actual_default = inspect.signature(Age.format).parameters["style"].default
+    # Assert
+    assert actual_default is FormatStyle.VERBOSE, (
+        f"Expected FormatStyle.VERBOSE, got {actual_default!r}"
+    )
+
+
+def test_style_accepts_enum_and_string_alike() -> None:
+    """FormatStyle members and their string values select the same output."""
+    # Arrange
+    age = Age.from_seconds(30 * 3600)
+    # Act / Assert
+    assert age.format(style=FormatStyle.COMPACT) == age.format(style="compact") == "30h", "compact"
+    assert age.format(style=FormatStyle.VERBOSE) == age.format(style="verbose"), "verbose"
+
+
+def test_coerce_format_style_accepts_strings_and_enum() -> None:
+    """coerce_format_style mirrors coerce_inclusive: strings and members both coerce."""
+    assert coerce_format_style("verbose") is FormatStyle.VERBOSE, "string to member"
+    assert coerce_format_style("compact") is FormatStyle.COMPACT, "string to member"
+    assert coerce_format_style(FormatStyle.COMPACT) is FormatStyle.COMPACT, "member passes through"
+    assert str(FormatStyle.COMPACT) == "compact", "StrEnum prints as its value"
 
 
 def test_every_compact_label_parses_back() -> None:
