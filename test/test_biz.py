@@ -45,7 +45,8 @@ def test_biz_basic_business_fraction():
 
 
 def test_biz_holiday_affects_business_but_not_working():
-    """When the date is a policy holiday, business_days become 0 but working_days still count weekdays."""
+    """When the date is a policy holiday, business_days become 0 but working_days still count
+    weekdays."""
     holiday_date: str = "2025-11-19"
     policy: BizPolicy = BizPolicy(holidays={holiday_date})
 
@@ -91,7 +92,8 @@ def test_in_business_and_working_days_ranges():
 
 
 def test_in_fiscal_quarters_and_years():
-    """Verify Biz.in_fiscal_quarters and Biz.in_fiscal_years behavior for fiscal year starting in April."""
+    """Verify Biz.in_fiscal_quarters and Biz.in_fiscal_years behavior for fiscal year starting in
+    April."""
     policy: BizPolicy = BizPolicy(fiscal_year_start_month=4)
 
     # Arrange - Reference in FY2025 (July 15, 2025 -> FY2025, Q2)

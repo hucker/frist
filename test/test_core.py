@@ -336,7 +336,8 @@ def test_chrono_holiday_property():
 )
 def test_age_equivalent_inputs_produce_same_results(input_type: str) -> None:
     """
-    Test that equivalent TimeLike representations of the same instant produce identical Age calculations.
+    Test that equivalent TimeLike representations of the same instant produce identical Age
+    calculations.
 
     This tests that datetime, timestamp (float/int), and string representations of the same time
     all produce identical Age objects and calculations.
@@ -385,7 +386,8 @@ def test_age_equivalent_inputs_produce_same_results(input_type: str) -> None:
 )
 def test_age_midnight_inputs_produce_same_results(input_type: str) -> None:
     """
-    Test that date and date-string representations (both midnight) produce identical Age calculations.
+    Test that date and date-string representations (both midnight) produce identical Age
+    calculations.
     """
     # Arrange: Define reference times at midnight
     start_dt = dt.datetime(2020, 6, 15, 0, 0, 0)  # Midnight

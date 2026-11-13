@@ -59,28 +59,36 @@ def main() -> None:
 
     print("=== Calendar Aligned Window Checks (Cal) ===")
     print(
-        f"{'Second in_(-5,0):':<20} {chrono.cal.second.in_(-5, 0):<6}  # Is target 5 sec ago to ref_time?"
+        f"{'Second in_(-5,0):':<20} {chrono.cal.second.in_(-5, 0):<6}  "
+        "# Is target 5 sec ago to ref_time?"
     )
     print(
-        f"{'Minute in_(-5,0):':<20} {chrono.cal.minute.in_(-5, 0):<6}  # Is target 5 min ago to ref_time?"
+        f"{'Minute in_(-5,0):':<20} {chrono.cal.minute.in_(-5, 0):<6}  "
+        "# Is target 5 min ago to ref_time?"
     )
     print(
-        f"{'Hour in_(-1,0):':<20} {chrono.cal.hour.in_(-1, 0):<6}  # Is target 1 hr ago to ref_time?"
+        f"{'Hour in_(-1,0):':<20} {chrono.cal.hour.in_(-1, 0):<6}  "
+        "# Is target 1 hr ago to ref_time?"
     )
     print(
-        f"{'Day in_(-1,1):':<20} {chrono.cal.day.in_(-1, 1):<6}  # Is target day before to day after ref_time?"
+        f"{'Day in_(-1,1):':<20} {chrono.cal.day.in_(-1, 1):<6}  "
+        "# Is target day before to day after ref_time?"
     )
     print(
-        f"{'Week in_(-2,0):':<20} {chrono.cal.week.in_(-2, 0):<6}  # Is target 2 weeks ago to ref_time?"
+        f"{'Week in_(-2,0):':<20} {chrono.cal.week.in_(-2, 0):<6}  "
+        "# Is target 2 weeks ago to ref_time?"
     )
     print(
-        f"{'Month in_(-6,0):':<20} {chrono.cal.month.in_(-6, 0):<6}  # Is target 6 months ago to ref_time?"
+        f"{'Month in_(-6,0):':<20} {chrono.cal.month.in_(-6, 0):<6}  "
+        "# Is target 6 months ago to ref_time?"
     )
     print(
-        f"{'Quarter in_(-1,1):':<20} {chrono.cal.qtr.in_(-1, 1):<6}  # Is target 1 qtr ago to qtr after ref_time?"
+        f"{'Quarter in_(-1,1):':<20} {chrono.cal.qtr.in_(-1, 1):<6}  "
+        "# Is target 1 qtr ago to qtr after ref_time?"
     )
     print(
-        f"{'Year in_(-3,0):':<20} {chrono.cal.year.in_(-3, 0):<6}  # Is target 3 yrs ago to ref_time?\n"
+        f"{'Year in_(-3,0):':<20} {chrono.cal.year.in_(-3, 0):<6}  "
+        "# Is target 3 yrs ago to ref_time?\n"
     )
 
     print("=== Calendar Shortcuts (Cal) ===")

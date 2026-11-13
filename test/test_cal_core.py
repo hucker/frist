@@ -8,7 +8,6 @@ import pytest
 
 from frist import Cal, Chrono
 
-
 # This module is part of smoke tests
 pytestmark = pytest.mark.smoke
 

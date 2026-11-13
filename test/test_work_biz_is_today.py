@@ -1,6 +1,6 @@
 import datetime as dt
 
-from frist import Biz, BizPolicy, Cal
+from frist import Biz, BizPolicy
 
 
 def test_work_day_is_today_true_on_weekday():

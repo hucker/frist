@@ -36,7 +36,7 @@ def test_biz_unit_unit_smoke():
 
     # Act / Assert: iterate units and verify golden boolean expectations
     for unit in UNITS:
-        ns = getattr(biz, unit)
+        assert hasattr(biz, unit), f"Biz has no {unit} namespace"
 
         # Use a weekday ref for stable expectations
         weekday_ref = dt.datetime(2025, 3, 14, 12, 0, 0)  # Friday

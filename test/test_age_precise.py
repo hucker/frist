@@ -1,5 +1,7 @@
-import pytest
 import datetime as dt
+
+import pytest
+
 from frist._age import Age
 from frist._constants import DAYS_PER_MONTH
 
@@ -93,11 +95,12 @@ def test_months_precise(start: dt.datetime, end: dt.datetime, expected: float) -
 
 def test_months_property_normalized_lengths_all_months() -> None:
     """
-    This test is similar to the one above that treats all actual months as 1 month regardless of length,
-    but in this case we use normalized month lengths using the Age.months property which is just number of
-    days divided by 30.44.  Under this scheme there are 4 possible normalized month lengths corresponding to
-    the actual month lengths of 28, 29, 30, and 31 days.  So this test calculates all the months over a
-    fiver year periods and verifies that there are 4 distinct normalized month lengths matching the expected values.
+    This test is similar to the one above that treats all actual months as 1 month regardless of
+    length, but in this case we use normalized month lengths using the Age.months property which is
+    just number of days divided by 30.44.  Under this scheme there are 4 possible normalized month
+    lengths corresponding to the actual month lengths of 28, 29, 30, and 31 days.  So this test
+    calculates all the months over a fiver year periods and verifies that there are 4 distinct
+    normalized month lengths matching the expected values.
     """
     # Arrange
     actual: set[float] = set()

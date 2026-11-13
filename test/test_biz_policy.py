@@ -89,7 +89,8 @@ def test_calendar_policy_invalid_holidays_type() -> None:
 
 def test_calendar_policy_invalid_fiscal_year_start_month() -> None:
     """
-    Test that BizPolicy raises ValueError for invalid fiscal_year_start_month (coverage for __post_init__ line 31).
+    Test that BizPolicy raises ValueError for invalid fiscal_year_start_month (coverage for
+    __post_init__ line 31).
     """
     with pytest.raises(ValueError, match="fiscal_year_start_month must be in 1..12"):
         BizPolicy(fiscal_year_start_month=0)

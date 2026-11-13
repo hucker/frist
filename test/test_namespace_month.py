@@ -70,7 +70,8 @@ def test_month_unit_nth_weekday_param(
     # Act & Assert
     if expected is not None:
         assert mn.nth_weekday(weekday, n) == expected, (
-            f"{n} {weekday} in {ref_date:%B %Y} should be {expected:%Y-%m-%d}, got {mn.nth_weekday(weekday, n)}"
+            f"{n} {weekday} in {ref_date:%B %Y} should be {expected:%Y-%m-%d}, "
+            f"got {mn.nth_weekday(weekday, n)}"
         )
     else:
         with pytest.raises(ValueError):

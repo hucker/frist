@@ -232,7 +232,8 @@ def test_age_equivalent_inputs_produce_same_results(input_type: str) -> None:
 )
 def test_age_midnight_inputs_produce_same_results(input_type: str) -> None:
     """
-    Test that date and date-string representations (both midnight) produce identical Age calculations.
+    Test that date and date-string representations (both midnight) produce identical Age
+    calculations.
     """
     # Arrange: Define reference times at midnight
     start_dt = dt.datetime(2020, 6, 15, 0, 0, 0)  # Midnight
@@ -505,7 +506,9 @@ def test_chrono_business_day_shortcuts():
 
 
 @pytest.mark.parametrize(
-    "dt_obj, expected_minute, expected_hour, expected_day_val, expected_day_name, expected_month_val, expected_month_name, expected_month_day, expected_qtr_val, expected_qtr_name, expected_year_val, expected_year_day",
+    "dt_obj, expected_minute, expected_hour, expected_day_val, expected_day_name, "
+    "expected_month_val, expected_month_name, expected_month_day, expected_qtr_val, "
+    "expected_qtr_name, expected_year_val, expected_year_day",
     [
         (
             dt.datetime(2025, 1, 5, 14, 30),  # Jan 5, 2025, Sunday

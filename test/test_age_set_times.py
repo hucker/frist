@@ -1,8 +1,10 @@
 """
-Test Age.set_times for updating start_time with a fixed end_time, iterating over multiple start times.
+Test Age.set_times for updating start_time with a fixed end_time, iterating over multiple start
+times.
 """
 
 import datetime as dt
+
 from frist import Age
 
 

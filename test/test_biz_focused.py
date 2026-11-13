@@ -59,7 +59,8 @@ def test_multi_day_with_middle_holiday() -> None:
 
 
 def test_in_working_and_business_days_range_with_holiday() -> None:
-    """Arrange/Act/Assert: range membership behaves differently for working vs business days with holidays."""
+    """Arrange/Act/Assert: range membership behaves differently for working vs business days with
+    holidays."""
     # Arrange
     ref: dt.datetime = dt.datetime(2024, 1, 4, 12, 0)
     target: dt.datetime = dt.datetime(2024, 1, 2, 10, 0)
@@ -74,6 +75,7 @@ def test_in_working_and_business_days_range_with_holiday() -> None:
     policy2: BizPolicy = BizPolicy(holidays={"2024-01-02"})
     biz2: Biz = Biz(target, ref, policy2)
 
-    # Act / Assert - business-day membership should be False while working-day membership remains True
+    # Act / Assert - business-day membership should be False while working-day membership remains
+    # True
     assert biz2.work_day.in_(-2, 0) is True, "working_days should ignore holiday"
     assert biz2.biz_day.in_(-2, 0) is False, "business_days should exclude holiday"

@@ -143,7 +143,8 @@ def test_is_holiday_typeerror() -> None:
 )
 def test_business_day_fraction(dt_obj: dt.datetime, expected: float) -> None:
     """
-    Test BizPolicy.business_day_fraction for holidays, weekends, before/after business hours, and fractional calculation.
+    Test BizPolicy.business_day_fraction for holidays, weekends, before/after business hours, and
+    fractional calculation.
     """
     # Arrange
     policy = make_policy()
@@ -173,7 +174,8 @@ def test_business_day_fraction_edge(
     start_of_business: dt.time, end_of_business: dt.time, dt_obj: dt.datetime, expected: float
 ) -> None:
     """
-    Test BizPolicy.business_day_fraction for zero-length and negative-length business day edge cases.
+    Test BizPolicy.business_day_fraction for zero-length and negative-length business day edge
+    cases.
     """
     # Arrange
     policy = BizPolicy(
@@ -186,5 +188,6 @@ def test_business_day_fraction_edge(
     result = policy.business_day_fraction(dt_obj)
     # Assert
     assert result == expected, (
-        f"business_day_fraction({dt_obj!r}, start={start_of_business}, end={end_of_business}) expected {expected}, got {result}"
+        f"business_day_fraction({dt_obj!r}, start={start_of_business}, end={end_of_business}) "
+        f"expected {expected}, got {result}"
     )

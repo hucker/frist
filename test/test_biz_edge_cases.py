@@ -11,8 +11,6 @@ AAA Pattern:
 
 import datetime as dt
 
-import pytest
-
 from frist._biz import Biz
 from frist._biz_policy import BizPolicy
 

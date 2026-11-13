@@ -1,6 +1,6 @@
 import pytest
 
-from frist.units._base import coerce_inclusive, Inclusive
+from frist.units._base import Inclusive, coerce_inclusive
 
 
 def test_coerce_inclusive_accepts_strings_and_enum():

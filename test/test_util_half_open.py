@@ -45,7 +45,8 @@ from frist._util import in_half_open
 def test_in_half_open_various_types(start: Any, value: Any, end: Any, expected: bool) -> None:
     """Verify in_half_open works for ints, floats, date, datetime and tuple types."""
     assert in_half_open(start, value, end) is expected, (
-        f"in_half_open failed for start={start!r}, value={value!r}, end={end!r}: expected {expected}"
+        f"in_half_open failed for start={start!r}, value={value!r}, end={end!r}: "
+        f"expected {expected}"
     )
 
 
@@ -108,7 +109,8 @@ def test_cal_half_open_boundaries_explicit(ref: dt.datetime) -> None:
     for tup, expected in day_cases:
         assert _cal_from(_explicit(tup), r).day.in_(0) is expected
 
-    # Week tests (computed by production code as: start = ref.date() - timedelta(days=ref.weekday()))
+    # Week tests (computed by production code as: start = ref.date() -
+    # timedelta(days=ref.weekday()))
     # For ref 2025-01-01 (Wednesday, weekday()==2) the week starts 2024-12-30.
     week_cases = [
         ((2024, 12, 29, 23, 59, 59, 999_999), False),

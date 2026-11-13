@@ -51,7 +51,8 @@ class Chrono:
         Args:
             target_dt (TimeLike): The datetime to analyze (e.g., file timestamp, event time).
             ref_dt (TimeLike, optional): The reference datetime for calculations (defaults to now).
-            policy (BizPolicy, optional): BizPolicy object for business rules (defaults to fiscal year Jan, 9-5, no holidays).
+            policy (BizPolicy, optional): BizPolicy object for business rules (defaults to fiscal
+                year Jan, 9-5, no holidays).
             formats (list[str], optional): Custom datetime formats for string parsing.
 
         Raises:

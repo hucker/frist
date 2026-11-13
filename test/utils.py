@@ -1,7 +1,8 @@
-import pytest
-from typing import Any, Union
+from typing import Any
 
-Number = Union[int, float]
+import pytest
+
+Number = int | float
 
 
 def approx_val(expected: Number, *, rel: float = 1e-6, abs: float | None = None) -> Any:
