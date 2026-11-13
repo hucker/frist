@@ -95,7 +95,8 @@ def test_timestamp_with_default_end_measures_to_now() -> None:
     # Act
     actual_seconds = Age(an_hour_ago).seconds
     # Assert
-    assert 3600 <= actual_seconds < 3605, f"Expected about 3600 s, got {actual_seconds}"
+    # now() is microsecond-resolution and timestamp() rounds near 1.7e9, so allow 10 ms under
+    assert 3599.99 <= actual_seconds < 3605, f"Expected about 3600 s, got {actual_seconds}"
 
 
 def test_aware_start_with_default_end_uses_now_in_the_same_zone() -> None:
@@ -106,7 +107,7 @@ def test_aware_start_with_default_end_uses_now_in_the_same_zone() -> None:
     age = Age(start)
     # Assert
     assert age.end_time.tzinfo is NY, "end_time should be now in the start's zone"
-    assert 1800 <= age.seconds < 1805, f"Expected about 1800 s, got {age.seconds}"
+    assert 1799.99 <= age.seconds < 1805, f"Expected about 1800 s, got {age.seconds}"
 
 
 def test_aware_calendar_fractions_match_the_wall_clock() -> None:
@@ -155,7 +156,7 @@ def test_chrono_timestamp_target_with_default_ref_measures_to_now() -> None:
     # Act
     chrono = Chrono(target_dt=an_hour_ago)
     # Assert
-    assert 3600 <= chrono.age.seconds < 3605, f"Expected about 3600 s, got {chrono.age.seconds}"
+    assert 3599.99 <= chrono.age.seconds < 3605, f"Expected about 3600 s, got {chrono.age.seconds}"
     assert chrono.age.end_time == chrono.ref_dt, "Age and Cal/Biz must share the reference time"
 
 
