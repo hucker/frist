@@ -8,7 +8,7 @@ import datetime as dt
 import math
 import re
 from collections.abc import Callable, Sequence
-from typing import ClassVar, TypeAlias
+from typing import ClassVar, Self, TypeAlias
 
 from ._constants import (
     DAYS_PER_MONTH,
@@ -123,7 +123,7 @@ class Age:
         )
 
     @classmethod
-    def from_timedelta(cls, delta: dt.timedelta) -> "Age":
+    def from_timedelta(cls, delta: dt.timedelta) -> Self:
         """
         Build an Age representing a bare duration.
 
@@ -146,7 +146,7 @@ class Age:
         return cls(cls._DURATION_ANCHOR, cls._DURATION_ANCHOR + delta)
 
     @classmethod
-    def from_seconds(cls, seconds: float) -> "Age":
+    def from_seconds(cls, seconds: float) -> Self:
         """
         Build an Age representing a bare duration of ``seconds`` seconds.
 
