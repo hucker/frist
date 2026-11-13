@@ -17,7 +17,7 @@
 - Naive datetimes only.  No timezone or DST handling; holidays are precomputed in `BizPolicy`.
 - `Age`, `Cal` and `Biz` never mutate the datetimes they are given.
 - `Age.from_seconds` / `Age.from_timedelta` build bare durations anchored at 2000-01-01, never through `datetime.fromtimestamp`.
-- `Age.AGE_UNITS` and `Age.DURATION_UNITS` are public `(threshold, unit_name, getter)` tables; `format()` walks them in order.
+- `Age.PLURAL_UNITS` (the default: a unit is used only once two of it have elapsed), `Age.AGE_UNITS` and `Age.DURATION_UNITS` are public `(threshold, unit_name, getter)` tables; `format()` walks them in order.
 
 ## Tests are the specification
 
@@ -111,6 +111,6 @@ Listed so a session does not fix them mid-task.  Remove an item when a branch re
 - No CHANGELOG; release history lives in commit messages.
 - Tags stop at `0.16.0`; 0.17 to 0.21 were released without tags.
 - `.vscode/tasks.json` is two JSON objects concatenated, so it does not parse.
-- The README Age table lists `working_days`, `fiscal_year`, `fiscal_quarter`, `biz_policy` and `set_times()`, none of which exist on `Age`; the `Age` class docstring also describes `set_times`.
+- The README Age table lists `working_days`, `fiscal_year`, `fiscal_quarter`, `biz_policy` and `set_times()`, none of which exist on `Age`.
 - `CODESTYLE.md` has typos (`expedted`, `paramerized`, `assert actual_sum = expected_sum`) and an unclosed code fence near line 60.
 - `.gitignore` line 1 starts with a space instead of `#`, so it is a harmless pattern rather than a comment.

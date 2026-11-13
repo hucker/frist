@@ -202,3 +202,15 @@ def test_age_bounds_checking(start_end: tuple[dt.datetime, dt.datetime]):
     # Results should be finite and reasonable
     assert age.days >= 0
     assert age.days < 100000  # Reasonable upper bound for 1900-2100 range
+
+
+@pytest.mark.hypothesis
+@given(seconds=st.floats(min_value=2.0, max_value=400 * 365.25 * 86400))
+def test_plural_units_value_is_never_below_two(seconds: float) -> None:
+    """PLURAL_UNITS hands a unit off only once two of it have elapsed: the value is never 1.x."""
+    # Act
+    text = Age.from_seconds(seconds).format(fmt="{value} {unit}")
+    value_text, unit = text.split(" ")
+    # Assert
+    assert round(float(value_text), 9) >= 2.0, f"{seconds} s formatted as {text!r}"
+    assert unit in {"seconds", "minutes", "hours", "days", "weeks", "months", "years"}, text

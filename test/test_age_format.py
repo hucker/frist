@@ -1,9 +1,10 @@
 """
-Comprehensive tests for the Age.format() method.
+Tests for the Age.format() method.
 
-Verifies that Age.format() returns human-friendly strings for time intervals
-in the most appropriate units, including fractional values and exact decimal formatting.
-Uses non-leap years for month calculations so 14.00 days is exactly half a month.
+Verifies that Age.format() returns human-friendly strings for time intervals in the most
+appropriate unit, for each shipped unit table, including fractional values and exact
+decimal formatting.  Uses non-leap years for month calculations so 14.00 days is exactly
+half a month.
 """
 
 import datetime as dt
@@ -44,17 +45,71 @@ from frist._age import Age
         (dt.datetime(2023, 2, 15), dt.datetime(2023, 1, 1), "-1.50 months"),
     ],
 )
-def test_age_format_default(start: dt.datetime, end: dt.datetime, expected: str) -> None:
-    """
-    Test Age.format() with default formatting and thresholds, including decimals.
-
-    NOTE:
-
-    """
+def test_age_format_age_units(start: dt.datetime, end: dt.datetime, expected: str) -> None:
+    """Test Age.format() with the AGE_UNITS table (humanize thresholds), including decimals."""
     # Arrange
     age = Age(start, end)
     # Act
-    actual = age.format()
+    actual = age.format(units=Age.AGE_UNITS)
+    # Assert
+    assert actual == expected, f"Expected '{expected}', got '{actual}'"
+
+
+@pytest.mark.parametrize(
+    "delta, expected",
+    [
+        # Seconds (<2 min) and the handoff to minutes
+        (dt.timedelta(seconds=119), "119.00 seconds"),
+        (dt.timedelta(seconds=120), "2.00 minutes"),
+        # Minutes (<2 h)
+        (dt.timedelta(minutes=119), "119.00 minutes"),
+        (dt.timedelta(minutes=120), "2.00 hours"),
+        # Hours (<48 h)
+        (dt.timedelta(hours=30), "30.00 hours"),
+        (dt.timedelta(hours=47), "47.00 hours"),
+        (dt.timedelta(hours=48), "2.00 days"),
+        # Days (<2 weeks)
+        (dt.timedelta(days=13), "13.00 days"),
+        (dt.timedelta(days=14), "2.00 weeks"),
+        # Weeks (<2 average months = 60.88 days)
+        (dt.timedelta(days=56), "8.00 weeks"),
+        (dt.timedelta(days=60), "8.57 weeks"),
+        (dt.timedelta(days=61), "2.00 months"),
+        # Months (<2 years), average 30.44-day months
+        (dt.timedelta(days=365.25), "12.00 months"),
+        (dt.timedelta(days=730), "23.98 months"),
+        (dt.timedelta(days=731), "2.00 years"),
+        # Years, average 365.25-day years
+        (dt.timedelta(days=3652.5), "10.00 years"),
+        # Negative durations use the same rows
+        (dt.timedelta(hours=-47), "-47.00 hours"),
+        (dt.timedelta(days=-14), "-2.00 weeks"),
+    ],
+)
+def test_age_format_plural_units(delta: dt.timedelta, expected: str) -> None:
+    """PLURAL_UNITS hands a unit off only once two of it have elapsed, so no value is 1.x."""
+    # Arrange
+    age = Age.from_timedelta(delta)
+    # Act
+    actual = age.format(units=Age.PLURAL_UNITS)
+    # Assert
+    assert actual == expected, f"Expected '{expected}', got '{actual}'"
+
+
+@pytest.mark.parametrize(
+    "delta, expected",
+    [
+        (dt.timedelta(hours=47.6), "48 hours"),
+        (dt.timedelta(days=13.9), "14 days"),
+        (dt.timedelta(days=1), "24 hours"),
+    ],
+)
+def test_age_format_plural_units_integer_format(delta: dt.timedelta, expected: str) -> None:
+    """With an integer format the plural unit names still read correctly (never "1 days")."""
+    # Arrange
+    age = Age.from_timedelta(delta)
+    # Act
+    actual = age.format(fmt="{value:.0f} {unit}")
     # Assert
     assert actual == expected, f"Expected '{expected}', got '{actual}'"
 

@@ -2,10 +2,10 @@
 Tests for Age duration support.
 
 Covers the sub-second properties (``milliseconds`` / ``microseconds``), the bare-duration
-constructors (``from_seconds`` / ``from_timedelta``), sub-second units in ``Age.parse``,
-the public ``AGE_UNITS`` / ``DURATION_UNITS`` tables, and the ``now`` threshold in
-``Age.format``.  Golden values are chosen to be checkable by eye (90 s is 1.5 minutes,
-40 days stays 40 days, 80 ms is 80 ms).
+constructors (``from_seconds`` / ``from_timedelta``), sub-second units in ``Age.parse``, the public
+``PLURAL_UNITS`` / ``AGE_UNITS`` / ``DURATION_UNITS`` tables, and the ``now`` threshold in
+``Age.format``.  Golden values are chosen to be checkable by eye (90 s is 1.5 minutes, 40 days stays
+40 days, 80 ms is 80 ms).
 """
 
 import datetime as dt
@@ -120,16 +120,18 @@ def test_age_parse_bare_m_is_still_minutes() -> None:
 # --- public unit tables --------------------------------------------------------------
 
 
-def test_age_units_is_the_format_default() -> None:
-    """format() with no units is identical to format(units=Age.AGE_UNITS)."""
+def test_plural_units_is_the_format_default() -> None:
+    """format() with no units is identical to format(units=Age.PLURAL_UNITS); AGE_UNITS differs."""
     # Arrange
-    age = Age(dt.datetime(2023, 1, 1), dt.datetime(2023, 1, 15))
+    age = Age(dt.datetime(2023, 1, 1), dt.datetime(2023, 1, 15))  # 14 days
     # Act
     actual_default = age.format()
-    actual_explicit = age.format(units=Age.AGE_UNITS)
+    actual_plural = age.format(units=Age.PLURAL_UNITS)
+    actual_age_units = age.format(units=Age.AGE_UNITS)
     # Assert
-    assert actual_default == "14.00 days", f"Unexpected default output {actual_default}"
-    assert actual_explicit == actual_default, "AGE_UNITS should reproduce the default table"
+    assert actual_default == "2.00 weeks", f"Unexpected default output {actual_default}"
+    assert actual_plural == actual_default, "PLURAL_UNITS should reproduce the default table"
+    assert actual_age_units == "14.00 days", "AGE_UNITS should still be available by name"
 
 
 @pytest.mark.parametrize(

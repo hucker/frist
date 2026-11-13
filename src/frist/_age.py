@@ -39,18 +39,15 @@ class Age:
         - Computes age and duration between two datetimes, timestamps, or number values.
         - Supports flexible initialization: accepts dt.datetime, dt.date, float, or int
           for start and end times.
-        - Uses a configurable BizPolicy for business calendar logic (workdays, holidays,
-          business hours).
         - Provides properties for age in microseconds, milliseconds, seconds, minutes,
-          hours, days, weeks, months, years, and fractional working days.
-        - Allows updating start and end times via the `set_times` method (kwargs-only,
-          preserves previous values if None).
+          hours, days, weeks, months and years, plus calendar-precise months and years.
         - Represents bare durations (no real endpoints) via ``from_seconds`` and
           ``from_timedelta``.
-        - Formats itself in the most appropriate unit via ``format``, using either the
-          ``AGE_UNITS`` table (humanize-style rounding, the default) or the
-          ``DURATION_UNITS`` table (clock boundaries, for measurements), with an
-          optional ``now`` threshold.
+        - Formats itself in the most appropriate unit via ``format``, using the
+          ``PLURAL_UNITS`` table (the default: a unit is used only once two of it have
+          elapsed, so a value is never 1.x), ``AGE_UNITS`` (humanize-style rounding) or
+          ``DURATION_UNITS`` (clock boundaries, for measurements), with an optional
+          ``now`` threshold.
 
     Initialization:
         Age(start_time, end_time=None, formats=None)
@@ -62,23 +59,16 @@ class Age:
         - A duration with no meaningful start/end; both are synthesized from a fixed
           naive anchor (2000-01-01) so the Unix epoch and local timezone never matter.
 
-    Updating times:
-        age.set_times(start_time=..., end_time=...)
-        - Both arguments are optional and kwargs-only.
-        - If a value is None, the previous value is retained.
-        - Supports dt.datetime, dt.date, float, or int for each argument.
-
     Example:
-        age = Age(dt.datetime(2020, 1, 1))
-        age.set_times(end_time=dt.datetime(2024, 1, 1))
+        age = Age(dt.datetime(2020, 1, 1), dt.datetime(2024, 1, 1))
         print(age.years)  # 4.0
+        print(age.format())  # "4.00 years"
 
     Note:
         - All calculations use full datetimes (date and time); dates are converted to
           datetimes at midnight.
         - Timezones are not supported.
-        - The class is designed for correctness and flexibility, supporting arbitrary
-          calendar policies and update patterns.
+        - Age is immutable: build a new one to change its endpoints.
     """
 
     # Naive anchor used by ``from_seconds`` / ``from_timedelta``.  A bare duration has
@@ -87,9 +77,27 @@ class Age:
     # timestamps raise OSError on Windows).
     _DURATION_ANCHOR: ClassVar[dt.datetime] = dt.datetime(2000, 1, 1)
 
-    # Default table for ``format``: "how old is X?" rounding, with thresholds taken
-    # from the humanize library (45 s / 45 min / 22 h / 26 d / 11 mo).  Anything past
-    # the last row is reported in ``years_precise``.
+    # Default table for ``format``: a unit is used only once at least two of it have
+    # elapsed, so a value is never 1.x and the plural unit names always read correctly.
+    # Same rule as Docker's HumanDuration (``docker ps`` CREATED / STATUS): hours under
+    # 48 h, days under 2 weeks, weeks under 2 months, months under 2 years; applied
+    # below hours too.  Months and years are the average-length ``months`` / ``years``
+    # (30.44 d / 365.25 d) so every handoff lands exactly on 2.00; ``AGE_UNITS`` keeps
+    # the calendar-precise months.  The final row is unbounded, so nothing falls
+    # through to ``years_precise``.
+    PLURAL_UNITS: ClassVar[tuple[UnitRow, ...]] = (
+        (120, "seconds", lambda age: age.seconds),
+        (120, "minutes", lambda age: age.minutes),
+        (48, "hours", lambda age: age.hours),
+        (14, "days", lambda age: age.days),
+        (2 * DAYS_PER_MONTH / DAYS_PER_WEEK, "weeks", lambda age: age.weeks),  # 8.70
+        (24, "months", lambda age: age.months),
+        (math.inf, "years", lambda age: age.years),
+    )
+
+    # Humanize-style table for ``format``: "how old is X?" rounding, with thresholds
+    # taken from the humanize library (45 s / 45 min / 22 h / 26 d / 11 mo).  Anything
+    # past the last row is reported in ``years_precise``.
     AGE_UNITS: ClassVar[tuple[UnitRow, ...]] = (
         (45, "seconds", lambda age: age.seconds),
         (45, "minutes", lambda age: age.minutes),
@@ -182,9 +190,6 @@ class Age:
         return self._end_time
 
     # Note: Age is immutable; no state mutation methods are provided.
-
-    # Suggestion: You can use set_times inside __init__ to centralize type handling and
-    # validation for start/end times. Makes future updates easier and keeps logic DRY.
 
     @property
     def seconds(self) -> float:
@@ -352,11 +357,12 @@ class Age:
         Args:
             units: Sequence of (threshold, unit_name, getter) rows controlling units and
                 thresholds; the first row whose getter value satisfies
-                ``abs(value) < threshold`` wins.  Defaults to ``Age.AGE_UNITS``
-                (humanize-style rounding).  ``Age.DURATION_UNITS`` gives clock-boundary
-                rounding for measurements.  If no row matches, the age is reported in
-                ``years_precise``.  A single row with a huge threshold overrides all
-                formatting.
+                ``abs(value) < threshold`` wins.  Defaults to ``Age.PLURAL_UNITS``, where a
+                unit is used only once two of it have elapsed, so a value is never 1.x.
+                ``Age.AGE_UNITS`` gives humanize-style rounding and
+                ``Age.DURATION_UNITS`` clock-boundary rounding for measurements.  If no
+                row matches, the age is reported in ``years_precise``.  A single row
+                with a huge threshold overrides all formatting.
             fmt: Format string for output, receiving ``value`` and ``unit``.
                 Default is "{value:.2f} {unit}".
             now: Optional "close enough to now" threshold.  A number is seconds; a string
@@ -369,6 +375,7 @@ class Age:
 
         Example:
             age.format()  # "3.25 hours"
+            Age.from_seconds(30 * 3600).format()  # "30.00 hours", not "1.25 days"
             age.format(fmt="{value:.0f}{unit}", units=[...])  # "3h"
             age.format(now="10 s")  # "now" while under 10 seconds old
             Age.from_seconds(0.08).format(units=Age.DURATION_UNITS)  # "80.00 milliseconds"
@@ -376,20 +383,19 @@ class Age:
             age.format(units=[(1e20, "custom:", lambda self: self.seconds)], fmt="{value} {unit}")
 
         Note:
-            Default unit transition thresholds are inspired by the `humanize` Python library:
+            ``PLURAL_UNITS`` hands a unit off at 2 min / 2 h / 48 h / 2 weeks / 2 months /
+            2 years, the rule Docker's ``HumanDuration`` uses for ``docker ps``.  Below two
+            seconds there is no smaller unit, so "1.50 seconds" can still appear; use
+            ``DURATION_UNITS`` for sub-second measurements.  ``AGE_UNITS`` keeps the
+            thresholds of the `humanize` library (45 s / 45 min / 22 h / 26 d / 11 mo):
             https://github.com/jmoiron/humanize/blob/main/src/humanize/time.py
-            - Seconds → Minutes: 45 seconds
-            - Minutes → Hours: 45 minutes
-            - Hours → Days: 22 hours
-            - Days → Months: 26 days
-            - Months → Years: 11 months
         """
         if now is not None:
             now_limit: float = Age.parse(now) if isinstance(now, str) else float(now)
             if abs(self.seconds) < now_limit:
                 return now_text
 
-        for threshold, unit, getter in units or self.AGE_UNITS:
+        for threshold, unit, getter in units or self.PLURAL_UNITS:
             value = getter(self)
             if abs(value) < threshold:
                 return fmt.format(value=value, unit=unit)

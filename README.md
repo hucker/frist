@@ -173,7 +173,7 @@ The `Age` object answers "How old is X?" for two datetimes (start and end). It e
 - Purpose: elapsed / duration properties (microseconds, milliseconds, seconds, minutes, hours, days, weeks, months, years).
 - Special: `months_precise` and `years_precise` compute calendar-accurate values; `parse()` converts human-friendly duration strings (including `"100ms"`) to seconds.
 - Durations: `Age.from_seconds()` / `Age.from_timedelta()` build a bare duration with no real endpoints, so a measurement like "80 ms" never has to be faked with two timestamps.
-- Formatting: `format()` picks a unit from a threshold table — `Age.AGE_UNITS` (humanize-style rounding, the default) or `Age.DURATION_UNITS` (clock boundaries for measurements) — and `now=` collapses anything younger than a threshold you choose to `"now"`.
+- Formatting: `format()` picks the unit from a threshold table. The default, `Age.PLURAL_UNITS`, only moves to a unit once two of it have elapsed, so you never read "1.00 days". `Age.AGE_UNITS` rounds like humanize and `Age.DURATION_UNITS` uses clock boundaries for measurements. `now=` collapses anything younger than a threshold you choose to `"now"`.
 - Default behavior: if `end_time` is omitted it defaults to set to `datetime.now()`.
 
 Examples
@@ -461,18 +461,24 @@ All Frist classes accept flexible time inputs through the `TimeLike` type, which
 
 | Class attribute  | Description                                               |
 | ---------------- | --------------------------------------------------------- |
-| `AGE_UNITS`      | Default `format()` table: humanize thresholds (45 s / 45 min / 22 h / 26 d / 11 mo), then years |
+| `PLURAL_UNITS`   | Default `format()` table: moves to a unit once two of it have elapsed (2 min / 2 h / 48 h / 2 w / 2 mo / 2 y), so the value is never 1.x |
+| `AGE_UNITS`      | Humanize-style table: thresholds 45 s / 45 min / 22 h / 26 d / 11 mo, then years |
 | `DURATION_UNITS` | Measurement table: clock boundaries (1000 / 1000 / 60 / 60 / 24), days unbounded |
 
 #### Formatting ages and durations
 
-`format()` walks a table of `(threshold, unit_name, getter)` rows and reports the first row whose value is below its threshold. Two tables ship with `Age` and differ only in *rounding policy*: an age is coarse by nature ("about 10 minutes ago"), a duration is a measurement ("1.50 seconds") that gets compared across runs.
+`format()` walks a table of `(threshold, unit_name, getter)` rows and reports the first row whose value is below its threshold. Three tables ship with `Age` and differ only in *rounding policy*. `PLURAL_UNITS`, the default, moves to a unit only once two of it have elapsed, so you never see a value of 1.x: 30 hours reads "30.00 hours" rather than "1.25 days", and 20 days reads "2.86 weeks". Docker uses the same rule for the CREATED and STATUS columns of `docker ps`. `AGE_UNITS` rounds the way the `humanize` library does ("about 10 minutes ago"), and `DURATION_UNITS` is for measurements ("1.50 seconds") that get compared across runs.
 
 ```python
 from frist import Age
 
-# "How old is this file?" -- humanize-style rounding, 46 s already reads as minutes
-Age(mtime).format()  # "0.77 minutes"
+# "How old is this file?" -- the default never shows 1.x of anything
+Age(mtime).format()  # "46.00 seconds", then "2.00 minutes" from 120 s on
+Age.from_seconds(30 * 3600).format()  # "30.00 hours", not "1.25 days"
+Age.from_seconds(20 * 86400).format()  # "2.86 weeks"
+
+# humanize-style rounding instead: 46 s already reads as minutes
+Age(mtime).format(units=Age.AGE_UNITS)  # "0.77 minutes"
 
 # "How long did that take?" -- clock boundaries, days never roll over into years
 Age.from_seconds(46).format(units=Age.DURATION_UNITS)  # "46.00 seconds"
@@ -487,10 +493,13 @@ Age(mtime).format(now="1.1 min", now_text="just now")
 To use your own labels, rebuild a table from the shipped one rather than restating the thresholds:
 
 ```python
-short = {"seconds": "s", "minutes": "min", "hours": "hr", "days": "day", "months": "mo"}
-units = [(t, short[u], g) for t, u, g in Age.AGE_UNITS]
+short = {"seconds": "s", "minutes": "min", "hours": "hr", "days": "day", "weeks": "wk"}
+short |= {"months": "mo", "years": "yr"}
+units = [(t, short[u], g) for t, u, g in Age.PLURAL_UNITS]
 Age(mtime).format(units=units, fmt="{value:.0f} {unit}")  # "10 min"
 ```
+
+Below two seconds `PLURAL_UNITS` has no smaller unit, so "1.50 seconds" can still appear. Use `DURATION_UNITS` for sub-second measurements.
 
 `from_seconds` / `from_timedelta` anchor both endpoints at a fixed naive datetime (2000-01-01); the elapsed-time properties and `format()` are unaffected, while `months_precise` / `years_precise` are measured from that anchor. This avoids `Age(0, seconds)`, which routes through `datetime.fromtimestamp` (local-time dependent, and negative values raise on Windows).
 
