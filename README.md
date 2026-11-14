@@ -1,6 +1,6 @@
 # `Frist`: Unified Age and Calendar Logic
 
-[![Python](https://img.shields.io/badge/python-3.11%20|%203.12%20|%203.13%20|%203.14%20|%203.15-blue?logo=python&logoColor=white)](https://www.python.org/) [![Coverage](https://img.shields.io/badge/coverage-100%25-green)](https://github.com/hucker/frist/actions) [![Pytest](https://img.shields.io/badge/pytest-100%25%20pass%20%7C%20703%20tests-green?logo=pytest&logoColor=white)](https://docs.pytest.org/en/stable/) [![Ruff](https://img.shields.io/badge/ruff-100%25-green?logo=ruff&logoColor=white)](https://github.com/charliermarsh/ruff) [![Tox](https://img.shields.io/static/v1?label=tox&message=3.11-3.15&color=green&logo=tox&logoColor=white)](https://tox.readthedocs.io/) [![Mypy](https://img.shields.io/static/v1?label=mypy&message=0%20issues&color=green&logo=mypy&logoColor=white)](https://mypy-lang.org/)
+[![Python](https://img.shields.io/badge/python-3.11%20|%203.12%20|%203.13%20|%203.14%20|%203.15-blue?logo=python&logoColor=white)](https://www.python.org/) [![Coverage](https://img.shields.io/badge/coverage-100%25-green)](https://github.com/hucker/frist/actions) [![Pytest](https://img.shields.io/badge/pytest-100%25%20pass%20%7C%20774%20tests-green?logo=pytest&logoColor=white)](https://docs.pytest.org/en/stable/) [![Ruff](https://img.shields.io/badge/ruff-100%25-green?logo=ruff&logoColor=white)](https://github.com/charliermarsh/ruff) [![Tox](https://img.shields.io/static/v1?label=tox&message=3.11-3.15&color=green&logo=tox&logoColor=white)](https://tox.readthedocs.io/) [![Mypy](https://img.shields.io/static/v1?label=mypy&message=0%20issues&color=green&logo=mypy&logoColor=white)](https://mypy-lang.org/)
 
 `Frist` is a Python library designed to make working with time, dates, intervals and business calendars easy using a simple, expressive property-based API. `Frist` provides APIs for `Age`, `Cal` (calendar) and `Biz` (business) objects. The `Age` object answers “How old is this?” for two datetimes (often defaulting the second datetime to “now”), making it useful for file aging, log analysis, or event tracking. The `Cal` object lets you ask “Is this date in a specific window?”—such as today, yesterday, this month, this quarter, using "intuitive" (if you can call half-open intervals intuitive) properties for calendar logic. Calendar ranges are aligned to calendar units (minute, hour, day, week, month, quarter, year). Finally, the `Biz` class lets you establish a business policy for workdays, business hours, holidays and fiscal years so you can perform business-calendar-aware windowing for working days and business days.
 
@@ -711,12 +711,12 @@ False
 Name                                 Stmts   Miss  Cover   Missing
 ------------------------------------------------------------------
 src\frist\__init__.py                   10      0   100%
-src\frist\_age.py                      144      0   100%
-src\frist\_biz.py                       96      0   100%
+src\frist\_age.py                      187      0   100%
+src\frist\_biz.py                       94      0   100%
 src\frist\_biz_policy.py                80      0   100%
 src\frist\_cal.py                       83      0   100%
 src\frist\_constants.py                 17      0   100%
-src\frist\_frist.py                     47      0   100%
+src\frist\_frist.py                     55      0   100%
 src\frist\_types.py                     37      0   100%
 src\frist\_util.py                      16      0   100%
 src\frist\units\__init__.py             14      0   100%
@@ -733,10 +733,9 @@ src\frist\units\_second.py              18      0   100%
 src\frist\units\_week.py                23      0   100%
 src\frist\units\_work_day.py            75      0   100%
 src\frist\units\_year.py                22      0   100%
-------------------------------------------------------------------
 ```
 
-> Note: running `pytest -m smoke` on the current branch produced ~79% coverage running 99 tests and completed in ~1.35s
+> Note: running `pytest -m smoke` on the current branch produced ~78% coverage running 99 tests and completed in ~2.18s
 
 ### Tox
 
