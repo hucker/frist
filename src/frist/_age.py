@@ -76,6 +76,8 @@ class Age:
         - Prints either the full unit names (``AgeFormatStyle.VERBOSE`` or ``"verbose"``, the
           default) or the short labels in ``COMPACT_LABELS`` (``AgeFormatStyle.COMPACT`` or
           ``"compact"``: "30h", "13d", "2mo").
+        - Floors the display at ``smallest_unit`` (the table's first unit unless named):
+          below one of it the text is "< 1 second" / "<1s" rather than a fraction.
 
     Initialization:
         Age(start_time, end_time=None, formats=None)
@@ -155,6 +157,9 @@ class Age:
     # reads every compact label back.
     VERBOSE_FMT: ClassVar[str] = "{value:.2f} {unit}"
     COMPACT_FMT: ClassVar[str] = "{value:.0f}{unit}"
+    # Text for an age below one of the smallest displayed unit (``smallest_unit``).
+    VERBOSE_FLOOR_FMT: ClassVar[str] = "< 1 {unit}"
+    COMPACT_FLOOR_FMT: ClassVar[str] = "<1{unit}"
     COMPACT_LABELS: ClassVar[dict[str, str]] = {
         "microseconds": "us",
         "milliseconds": "ms",
@@ -437,6 +442,7 @@ class Age:
         now: int | float | str | None = None,
         now_text: str = "now",
         style: AgeFormatStyle | str = AgeFormatStyle.VERBOSE,
+        smallest_unit: str | None = None,
     ) -> str:
         """
         Return age in the most appropriate units, with customizable unit names and formatting.
@@ -464,10 +470,16 @@ class Age:
                 ``AgeFormatStyle.COMPACT`` prints the short labels in ``COMPACT_LABELS``
                 ("30h", "13d", "2mo") and, unless ``fmt`` is given, no decimals and no
                 space.  The strings "verbose" / "compact" are accepted too.
+            smallest_unit: Smallest unit to display, by its name in the table ("hours").
+                Below one of it the result is ``VERBOSE_FLOOR_FMT`` / ``COMPACT_FLOOR_FMT``
+                ("< 1 hour" / "<1h"), and the rows below it are never used.  Defaults to
+                the table's first unit: seconds for ``PLURAL_UNITS`` and ``AGE_UNITS``,
+                microseconds for ``DURATION_UNITS``.
 
         Example:
             age.format()  # "3.25 hours"
             age.format(style="compact")  # "3h"
+            age.format(smallest_unit="hours")  # "< 1 hour" while under an hour
             Age.from_seconds(30 * 3600).format()  # "30.00 hours", not "1.25 days"
             age.format(fmt="{value:.0f}{unit}", units=[...])  # "3h"
             age.format(now="10 s")  # "now" while under 10 seconds old
@@ -477,10 +489,11 @@ class Age:
 
         Note:
             ``PLURAL_UNITS`` hands a unit off at 2 min / 2 h / 48 h / 2 weeks / 2 months /
-            2 years, the rule Docker's ``HumanDuration`` uses for ``docker ps``.  Below two
-            seconds there is no smaller unit, so "1.50 seconds" can still appear; use
-            ``DURATION_UNITS`` for sub-second measurements.  ``AGE_UNITS`` keeps the
-            thresholds of the `humanize` library (45 s / 45 min / 22 h / 26 d / 11 mo):
+            2 years, the rule Docker's ``HumanDuration`` uses for ``docker ps``.  Below one
+            second it prints "< 1 second" (see ``smallest_unit``), and "1.50 seconds" can
+            appear up to two seconds; use ``DURATION_UNITS`` for sub-second measurements.
+            ``AGE_UNITS`` keeps the thresholds of the `humanize` library (45 s / 45 min /
+            22 h / 26 d / 11 mo):
             https://github.com/jmoiron/humanize/blob/main/src/humanize/time.py
         """
         chosen = coerce_age_format_style(style)
@@ -493,12 +506,28 @@ class Age:
             if abs(self.seconds) < now_limit:
                 return now_text
 
-        for threshold, unit, getter in units or self.PLURAL_UNITS:
+        rows: list[UnitRow] = list(units or self.PLURAL_UNITS)
+        if smallest_unit is not None:
+            names = [name for _, name, _ in rows]
+            if smallest_unit not in names:
+                raise ValueError(f"Invalid smallest_unit {smallest_unit!r}. Valid: {tuple(names)}")
+            rows = rows[names.index(smallest_unit) :]
+        _, floor_unit, floor_getter = rows[0]
+        if abs(floor_getter(self)) < 1:
+            if chosen is AgeFormatStyle.COMPACT:
+                return self.COMPACT_FLOOR_FMT.format(unit=labels.get(floor_unit, floor_unit))
+            return self.VERBOSE_FLOOR_FMT.format(unit=self._singular(floor_unit))
+
+        for threshold, unit, getter in rows:
             value = getter(self)
             if abs(value) < threshold:
                 return fmt.format(value=value, unit=labels.get(unit, unit))
         value = self.years_precise
         return fmt.format(value=value, unit=labels.get("years", "years"))
+
+    def _singular(self, unit: str) -> str:
+        """Singular of a standard unit name for the floor text ("hours" -> "hour")."""
+        return unit[:-1] if unit in self.COMPACT_LABELS else unit
 
     @staticmethod
     def parse(age_str: str) -> float:

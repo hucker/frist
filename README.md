@@ -174,7 +174,7 @@ The `Age` object answers "How old is X?" for two datetimes (start and end). It e
 - Special: `months_precise` and `years_precise` compute calendar-accurate values; `parse()` converts human-friendly duration strings (including `"100ms"`) to seconds.
 - Durations: `Age.from_seconds()` / `Age.from_timedelta()` build a bare duration with no real endpoints, so a measurement like "80 ms" never has to be faked with two timestamps.
 - Instants: timezone-aware datetimes and POSIX timestamps are measured as instants, exact across DST changes; naive datetimes are wall-clock readings (see Caveats).
-- Formatting: `format()` picks the unit from a threshold table. The default, `Age.PLURAL_UNITS`, only moves to a unit once two of it have elapsed, so you never read "1.00 days". `Age.AGE_UNITS` rounds like humanize and `Age.DURATION_UNITS` uses clock boundaries for measurements. `now=` collapses anything younger than a threshold you choose to `"now"`, and `style="compact"` prints short labels (`30h`, `2mo`).
+- Formatting: `format()` picks the unit from a threshold table. The default, `Age.PLURAL_UNITS`, only moves to a unit once two of it have elapsed, so you never read "1.00 days". `Age.AGE_UNITS` rounds like humanize and `Age.DURATION_UNITS` uses clock boundaries for measurements. `now=` collapses anything younger than a threshold you choose to `"now"`, `style="compact"` prints short labels (`30h`, `2mo`), and `smallest_unit` floors the display (`< 1 hour`).
 - Default behavior: if `end_time` is omitted it defaults to set to `datetime.now()`.
 
 Examples
@@ -458,7 +458,7 @@ All Frist classes accept flexible time inputs through the `TimeLike` type, which
 | `parse(age_str)`                            | Parse age string to seconds (`"5m"`, `"1.5h"`, `"100ms"`, `"250 us"`, `"2mo"`) |
 | `from_seconds(seconds)`                     | Class method: a bare duration of N seconds (fractional and negative OK) |
 | `from_timedelta(delta)`                     | Class method: a bare duration from a `datetime.timedelta` |
-| `format(units=None, fmt=None, now=None, now_text="now", style=AgeFormatStyle.VERBOSE)` | Render in the most appropriate unit, with full names or compact labels; see below |
+| `format(units=None, fmt=None, now=None, now_text="now", style=AgeFormatStyle.VERBOSE, smallest_unit=None)` | Render in the most appropriate unit, with full names or compact labels and a "< 1 unit" floor; see below |
 
 | Class attribute  | Description                                               |
 | ---------------- | --------------------------------------------------------- |
@@ -466,6 +466,7 @@ All Frist classes accept flexible time inputs through the `TimeLike` type, which
 | `AGE_UNITS`      | Humanize-style table: thresholds 45 s / 45 min / 22 h / 26 d / 11 mo, then years |
 | `DURATION_UNITS` | Measurement table: clock boundaries (1000 / 1000 / 60 / 60 / 24), days unbounded |
 | `COMPACT_LABELS` | Short labels for `style="compact"`: us / ms / s / m / h / d / w / mo / y |
+| `VERBOSE_FLOOR_FMT`, `COMPACT_FLOOR_FMT` | Text below one of the smallest unit: `"< 1 {unit}"` and `"<1{unit}"` |
 
 #### Formatting ages and durations
 
@@ -503,7 +504,14 @@ Age(mtime).format(style="compact", fmt="{value:.1f} {unit}")  # "46.0 s"
 
 For labels of your own, rebuild a table from the shipped one rather than restating the thresholds: `[(t, my_labels[u], g) for t, u, g in Age.PLURAL_UNITS]`.
 
-Below two seconds `PLURAL_UNITS` has no smaller unit, so "1.50 seconds" can still appear. Use `DURATION_UNITS` for sub-second measurements.
+`smallest_unit` floors the display. Below one of that unit the text is `< 1 second` (compact `<1s`) rather than a fraction, and the rows below it are never used. It defaults to the table's first unit, seconds for `PLURAL_UNITS` and `AGE_UNITS`, so a sub-second age never prints as `0.08 seconds`; use `DURATION_UNITS` for sub-second measurements. Name a bigger unit to coarsen the output:
+
+```python
+Age.from_seconds(0.5).format()  # "< 1 second"
+Age.from_seconds(1800).format(smallest_unit="hours")  # "< 1 hour"
+Age.from_seconds(1800).format(smallest_unit="hours", style="compact")  # "<1h"
+Age.from_seconds(5400).format(smallest_unit="hours")  # "1.50 hours", never "90.00 minutes"
+```
 
 `from_seconds` / `from_timedelta` anchor both endpoints at a fixed naive datetime (2000-01-01); the elapsed-time properties and `format()` are unaffected, while `months_precise` / `years_precise` are measured from that anchor. This avoids `Age(0, seconds)`, which routes through `datetime.fromtimestamp` (local-time dependent, and negative values raise on Windows).
 
