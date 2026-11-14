@@ -4,7 +4,7 @@
 
 ## Project shape
 
-- Pure-Python library in `src/frist` (setuptools, src layout).  The public API is `__all__` in `src/frist/__init__.py`: `Chrono`, `Age`, `FormatStyle`, `Cal`, `Biz`, `BizPolicy`, the unit classes, `TimeLike`, `time_pair`, `to_datetime`.  `Inclusive` is exported from `frist.units`, not from the top level.
+- Pure-Python library in `src/frist` (setuptools, src layout).  The public API is `__all__` in `src/frist/__init__.py`: `Chrono`, `Age`, `AgeFormatStyle`, `Cal`, `Biz`, `BizPolicy`, the unit classes, `TimeLike`, `time_pair`, `to_datetime`.  `Inclusive` is exported from `frist.units`, not from the top level.
 - `__version__` in `src/frist/__init__.py` must match `version` in `pyproject.toml`.
 - One runtime dependency, `python-dateutil` (only `dateutil.rrule`, in `src/frist/units/_month.py`).  Supported Pythons: 3.11 to 3.15 (the tox envlist); the dev venv is 3.15 (`.python-version`).
 - CLI: `frist <date> [<date>]`, also `python -m frist`.  `src/frist/__main__.py` is excluded from coverage.

@@ -18,7 +18,7 @@ Exports:
     BizPolicy -- Configurable calendar policies (fiscal year start, holidays)
 """
 
-from ._age import Age, FormatStyle
+from ._age import Age, AgeFormatStyle
 from ._biz import Biz
 from ._biz_policy import BizPolicy
 from ._cal import Cal
@@ -46,7 +46,7 @@ __author__ = "Chuck Bass"
 __all__ = [
     "Chrono",
     "Age",
-    "FormatStyle",
+    "AgeFormatStyle",
     "Cal",
     "Biz",
     "BizPolicy",

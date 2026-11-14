@@ -12,8 +12,8 @@ import re
 
 import pytest
 
-from frist import Age, FormatStyle
-from frist._age import coerce_format_style
+from frist import Age, AgeFormatStyle
+from frist._age import coerce_age_format_style
 from frist._constants import SECONDS_PER_MONTH
 
 
@@ -108,30 +108,34 @@ def test_unknown_style_is_rejected() -> None:
 
 
 def test_style_default_is_the_verbose_enum_member() -> None:
-    """The parameter default is FormatStyle.VERBOSE, not a bare string."""
+    """The parameter default is AgeFormatStyle.VERBOSE, not a bare string."""
     # Act
     actual_default = inspect.signature(Age.format).parameters["style"].default
     # Assert
-    assert actual_default is FormatStyle.VERBOSE, (
-        f"Expected FormatStyle.VERBOSE, got {actual_default!r}"
+    assert actual_default is AgeFormatStyle.VERBOSE, (
+        f"Expected AgeFormatStyle.VERBOSE, got {actual_default!r}"
     )
 
 
 def test_style_accepts_enum_and_string_alike() -> None:
-    """FormatStyle members and their string values select the same output."""
+    """AgeFormatStyle members and their string values select the same output."""
     # Arrange
     age = Age.from_seconds(30 * 3600)
     # Act / Assert
-    assert age.format(style=FormatStyle.COMPACT) == age.format(style="compact") == "30h", "compact"
-    assert age.format(style=FormatStyle.VERBOSE) == age.format(style="verbose"), "verbose"
+    assert age.format(style=AgeFormatStyle.COMPACT) == age.format(style="compact") == "30h", (
+        "compact"
+    )
+    assert age.format(style=AgeFormatStyle.VERBOSE) == age.format(style="verbose"), "verbose"
 
 
-def test_coerce_format_style_accepts_strings_and_enum() -> None:
-    """coerce_format_style mirrors coerce_inclusive: strings and members both coerce."""
-    assert coerce_format_style("verbose") is FormatStyle.VERBOSE, "string to member"
-    assert coerce_format_style("compact") is FormatStyle.COMPACT, "string to member"
-    assert coerce_format_style(FormatStyle.COMPACT) is FormatStyle.COMPACT, "member passes through"
-    assert str(FormatStyle.COMPACT) == "compact", "StrEnum prints as its value"
+def test_coerce_age_format_style_accepts_strings_and_enum() -> None:
+    """coerce_age_format_style mirrors coerce_inclusive: strings and members both coerce."""
+    assert coerce_age_format_style("verbose") is AgeFormatStyle.VERBOSE, "string to member"
+    assert coerce_age_format_style("compact") is AgeFormatStyle.COMPACT, "string to member"
+    assert coerce_age_format_style(AgeFormatStyle.COMPACT) is AgeFormatStyle.COMPACT, (
+        "member passes through"
+    )
+    assert str(AgeFormatStyle.COMPACT) == "compact", "StrEnum prints as its value"
 
 
 def test_every_compact_label_parses_back() -> None:

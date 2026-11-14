@@ -458,7 +458,7 @@ All Frist classes accept flexible time inputs through the `TimeLike` type, which
 | `parse(age_str)`                            | Parse age string to seconds (`"5m"`, `"1.5h"`, `"100ms"`, `"250 us"`, `"2mo"`) |
 | `from_seconds(seconds)`                     | Class method: a bare duration of N seconds (fractional and negative OK) |
 | `from_timedelta(delta)`                     | Class method: a bare duration from a `datetime.timedelta` |
-| `format(units=None, fmt=None, now=None, now_text="now", style=FormatStyle.VERBOSE)` | Render in the most appropriate unit, with full names or compact labels; see below |
+| `format(units=None, fmt=None, now=None, now_text="now", style=AgeFormatStyle.VERBOSE)` | Render in the most appropriate unit, with full names or compact labels; see below |
 
 | Class attribute  | Description                                               |
 | ---------------- | --------------------------------------------------------- |
@@ -492,7 +492,7 @@ Age(last_byte).format(now="100ms")  # a string carries its own unit (via Age.par
 Age(mtime).format(now="1.1 min", now_text="just now")
 ```
 
-For a short form, `style="compact"` prints the labels in `Age.COMPACT_LABELS` with no decimals and no space, the convention Twitter, Reddit and `kubectl` use. `Age.parse` reads the result back. Your own `fmt` still applies if you pass one. `style` takes the `FormatStyle` enum (`FormatStyle.VERBOSE`, the default, or `FormatStyle.COMPACT`) or the plain strings, as `between()` does with `Inclusive`:
+For a short form, `style="compact"` prints the labels in `Age.COMPACT_LABELS` with no decimals and no space, the convention Twitter, Reddit and `kubectl` use. `Age.parse` reads the result back. Your own `fmt` still applies if you pass one. `style` takes the `AgeFormatStyle` enum (`AgeFormatStyle.VERBOSE`, the default, or `AgeFormatStyle.COMPACT`) or the plain strings, as `between()` does with `Inclusive`:
 
 ```python
 Age.from_seconds(30 * 3600).format(style="compact")  # "30h"
