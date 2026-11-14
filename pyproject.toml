@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "frist"
-version = "0.22.0"
+version = "0.23.0"
 description = "Calendar-based time window filtering, age calculations, and business logic for dates and times."
 authors = [
     { name = "Chuck Bass", email = "chuck@acrocad.net" }

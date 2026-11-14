@@ -40,7 +40,7 @@ from .units import (
     YearUnit,
 )
 
-__version__ = "0.22.0"
+__version__ = "0.23.0"
 __author__ = "Chuck Bass"
 
 __all__ = [
